@@ -4,8 +4,9 @@ import { useState, useRef } from "react";
 import AccountLayout from "../../../components/AccountLayout";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
-import { User, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Image from "next/image";
+import { getInitials } from "../../../app/utils/image";
 
 export default function ProfileInformationPage() {
   const { user, updateProfile } = useAuth();
@@ -83,8 +84,8 @@ export default function ProfileInformationPage() {
                   />
                 </div>
               ) : (
-                <div className="w-full h-full bg-surface-alt rounded-full flex items-center justify-center">
-                  <User className="h-12 w-12 text-secondary" />
+                <div className="w-full h-full bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-2xl border border-dark select-none">
+                  {getInitials(user.fullName)}
                 </div>
               )}
               <button

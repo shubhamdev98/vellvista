@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useAdminUsers, useUpdateUserRole, useUpdateUserStatus, useDeleteUser } from "../../hooks/useApi";
-import { Search, Users, Shield, Mail, UserCheck, Globe, Key, User, Loader2, X, Trash2, ShieldAlert, ChevronDown } from "lucide-react";
+import { Search, Users, Shield, Mail, UserCheck, Globe, Key, User, Loader2, X, Trash2, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
@@ -35,14 +35,25 @@ export default function AdminUsersPage() {
     type: "role" | "status" | "delete";
     userId: string;
     userName: string;
-    currentVal?: any;
+    currentVal?: string | boolean;
   } | null>(null);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
   useEffect(() => {
     if (rawUsers) {
-      const mapped = ((rawUsers as any[]) || []).map(u => ({
+      const mapped = ((rawUsers as {
+        id: string;
+        email?: string | null;
+        fullName?: string | null;
+        name?: string | null;
+        avatar?: string | null;
+        image?: string | null;
+        googleId?: string | null;
+        isActive?: boolean | null;
+        role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN' | null;
+        createdAt?: string | null;
+      }[]) || []).map(u => ({
         id: u.id,
         email: u.email || "",
         fullName: u.fullName || u.name || "Anonymous",
@@ -224,9 +235,9 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Filters bar */}
-      <div className="bg-surface p-6 border border-light space-y-4">
+      <div className="bg-surface p-6 border border-light space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
         {/* Search bar row */}
-        <div className="relative">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-secondary" />
           <input
             type="text"
@@ -238,12 +249,12 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Filters row (always shown side-by-side / row-wise, even on mobile) */}
-        <div className={`grid gap-3 md:gap-4 ${
+        <div className={`grid gap-3 md:gap-4 md:flex md:items-center md:w-auto ${
           currentUser?.role === "ADMIN" ? "grid-cols-2" : "grid-cols-3"
         }`}>
           {/* Role Filter */}
           {currentUser?.role !== "ADMIN" && (
-            <div className="relative">
+            <div className="relative md:w-44">
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
@@ -261,7 +272,7 @@ export default function AdminUsersPage() {
           )}
 
           {/* Status Filter */}
-          <div className="relative">
+          <div className="relative md:w-44">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -277,7 +288,7 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Provider Filter */}
-          <div className="relative">
+          <div className="relative md:w-44">
             <select
               value={providerFilter}
               onChange={(e) => setProviderFilter(e.target.value)}
@@ -521,7 +532,7 @@ export default function AdminUsersPage() {
                     <div className="relative">
                       <select
                         value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value as any)}
+                        onChange={(e) => setSelectedRole(e.target.value as 'USER' | 'ADMIN' | 'SUPER_ADMIN')}
                         className="w-full pl-3 pr-10 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none"
                       >
                         <option value="USER">Customer</option>

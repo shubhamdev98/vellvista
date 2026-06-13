@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Search, ShoppingCart, User, Menu, X, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartProvider";
 import { useAuth } from "../context/AuthProvider";
@@ -8,7 +8,7 @@ import { useCurrency } from "../context/CurrencyProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getProductImageUrl } from "../app/utils/image";
+import { getProductImageUrl, getInitials } from "../app/utils/image";
 import CurrencySelector from "./CurrencySelector";
 
 const navLinks = [
@@ -61,20 +61,60 @@ function SearchBar({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleIconClick = () => {
+    if (mobile || full) return;
+    setIsExpanded(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleBlur = () => {
+    if (mobile || full) return;
+    if (!value) {
+      setIsExpanded(false);
+    }
+  };
+
+  const showExpanded = mobile || full || isExpanded || !!value;
+
   return (
-    <div className="relative w-full">
+    <div className={`relative transition-all duration-300 ${
+      mobile || full ? "w-full" : showExpanded ? "w-64" : "w-10"
+    }`}>
       <input
+        ref={inputRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onBlur={handleBlur}
         type="text"
         placeholder="Search perfumes..."
-        className={`${
-          full ? "w-full" : "w-64"
-        } text-primary placeholder:text-muted pl-10 pr-4 py-2 border-b ${mobile ? "border-dark" : "border-default"} focus:border-primary outline-none bg-transparent`}
+        className={`w-full text-primary placeholder:text-muted py-2 border-b outline-none bg-transparent transition-all duration-300 ${
+          mobile ? "border-dark" : "border-default"
+        } focus:border-primary ${
+          showExpanded 
+            ? "pl-10 pr-4 opacity-100 cursor-text" 
+            : "pl-0 pr-0 opacity-0 pointer-events-none cursor-pointer"
+        }`}
       />
-      <Search
-        className={`absolute left-3 top-2.5 h-5 w-5 ${mobile ? "text-primary" : "text-secondary"}`}
-      />
+      <button
+        onClick={handleIconClick}
+        type="button"
+        disabled={showExpanded}
+        className={`absolute top-2 h-6 w-6 flex items-center justify-center transition-all duration-300 ${
+          mobile ? "text-primary" : "text-secondary hover:text-primary"
+        } ${
+          showExpanded 
+            ? "left-3 pointer-events-none cursor-default" 
+            : "left-2 cursor-pointer"
+        }`}
+        aria-label="Search perfumes"
+      >
+        <Search className="h-5 w-5" />
+      </button>
     </div>
   );
 }
@@ -92,33 +132,9 @@ function Actions({
 
   return (
     <div className={`flex items-center gap-6 ${mobile ? "" : ""}`}>
-      {user && user.avatar ? (
-        <button
-          onClick={() => router.push("/account")}
-          className="relative w-7 h-7 rounded-full overflow-hidden hover:opacity-80"
-        >
-          <Image
-            src={user.avatar}
-            alt="Profile"
-            width={20}
-            height={20}
-            className="w-full h-full object-cover"
-          />
-        </button>
-      ) : (
-        <button
-          onClick={() =>
-            user ? router.push("/account") : router.push("/auth/login")
-          }
-          className="w-10 h-10 flex items-center justify-center text-primary"
-        >
-          <User className="h-6 w-6" />
-        </button>
-      )}
-
       <button
         onClick={onCartClick}
-        className="relative w-10 h-10 flex items-center justify-center text-primary"
+        className="relative w-10 h-10 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
       >
         <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
 
@@ -128,6 +144,34 @@ function Actions({
           </span>
         )}
       </button>
+
+      {user ? (
+        <button
+          onClick={() => router.push("/account")}
+          className="w-10 h-10 flex items-center justify-center rounded-full overflow-hidden hover:opacity-80 border border-light bg-secondary text-primary select-none cursor-pointer"
+        >
+          {user.avatar ? (
+            <Image
+              src={user.avatar}
+              alt="Profile"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="font-semibold text-sm tracking-wider">
+              {getInitials(user.fullName)}
+            </span>
+          )}
+        </button>
+      ) : (
+        <button
+          onClick={() => router.push("/auth/login")}
+          className="w-10 h-10 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
+        >
+          <User className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 }
@@ -233,6 +277,9 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const { totalItems } = useCart();
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   return (
     <>
@@ -263,8 +310,20 @@ export default function Header() {
               <Actions onCartClick={() => setIsCartOpen(true)} />
             </div>
 
-            <div className="flex md:hidden items-center gap-6 text-primary">
-              <Actions onCartClick={() => setIsCartOpen(true)} mobile />
+            <div className="flex md:hidden items-center gap-2 text-primary">
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative w-10 h-10 flex items-center justify-center text-primary"
+              >
+                <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
+
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-inverse text-xs font-semibold rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-primary w-10 h-10 flex items-center justify-center"
@@ -275,7 +334,70 @@ export default function Header() {
           </div>
 
           {isMenuOpen && (
-            <div className="md:hidden bg-surface p-4 border-t border-default shadow-lg space-y-4">
+            <div className="md:hidden bg-surface p-4 border-t border-default shadow-lg space-y-4 animate-fade-in">
+              {/* Profile / Auth Section */}
+              <div className="px-3 py-4 bg-background-alt border border-default rounded-lg">
+                {user ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      {user.avatar ? (
+                        <div className="w-12 h-12 rounded-full overflow-hidden relative border border-dark shrink-0">
+                          <Image
+                            src={user.avatar}
+                            alt="Profile"
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-sm border border-dark shrink-0 select-none">
+                          {getInitials(user.fullName)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-primary truncate text-sm">
+                          {user.fullName}
+                        </div>
+                        <div className="text-xs text-secondary truncate">{user.email}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-default">
+                      <Link
+                        href="/account/overview"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="px-3 py-2 text-center text-xs font-light bg-primary text-inverse hover:bg-primary-light transition-colors rounded"
+                      >
+                        My Account
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsMenuOpen(false);
+                          router.push("/");
+                        }}
+                        className="px-3 py-2 text-center text-xs font-light border border-dark text-error hover:bg-error-light hover:border-error transition-colors rounded cursor-pointer"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-center space-y-2 py-2">
+                    <p className="text-xs text-secondary font-light">
+                      Sign in to manage orders, wishlist, and profile
+                    </p>
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full py-2.5 text-center text-sm font-light bg-primary text-inverse hover:bg-primary-light transition-colors rounded"
+                    >
+                      Sign In / Register
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <SearchBar
                 full
                 mobile

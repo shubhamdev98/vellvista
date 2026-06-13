@@ -4,18 +4,21 @@ import path from 'path';
 
 config({ path: path.resolve(process.cwd(), '.env') });
 
-const connectionString = process.env.DATABASE_URL;
+const useSupabase = process.env.USE_SUPABASE === 'true';
+const connectionString = useSupabase ? process.env.SUPABASE_DB : process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL is not set');
+  throw new Error(useSupabase ? 'SUPABASE_DB is not set' : 'DATABASE_URL is not set');
 }
 
-const databaseUrl = new URL(connectionString);
+if (!useSupabase) {
+  const databaseUrl = new URL(connectionString);
 
-if (databaseUrl.username === 'username' || databaseUrl.password === 'password') {
-  throw new Error(
-    'DATABASE_URL still contains placeholder credentials. Update backend/.env with your real PostgreSQL username and password.'
-  );
+  if (databaseUrl.username === 'username' || databaseUrl.password === 'password') {
+    throw new Error(
+      'DATABASE_URL still contains placeholder credentials. Update backend/.env with your real PostgreSQL username and password.'
+    );
+  }
 }
 
 export default defineConfig({

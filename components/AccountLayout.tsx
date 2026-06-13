@@ -11,6 +11,7 @@ import OfferNavBar from "./OfferNavBar";
 import Breadcrumb from "./Breadcrumb";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { getInitials } from "../app/utils/image";
 
 export default function AccountLayout({
   children,
@@ -87,8 +88,8 @@ export default function AccountLayout({
                       />
                     </div>
                   ) : (
-                    <div className="w-14 h-14 bg-surface-alt rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-7 w-7 text-secondary" />
+                    <div className="w-14 h-14 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-base border border-dark flex-shrink-0 select-none">
+                      {getInitials(user.fullName)}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">

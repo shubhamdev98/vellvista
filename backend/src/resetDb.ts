@@ -8,10 +8,11 @@ const __dirname = path.dirname(__filename);
 
 config({ path: path.resolve(__dirname, '../.env') });
 
-const connectionString = process.env.DATABASE_URL;
+const useSupabase = process.env.USE_SUPABASE === 'true';
+const connectionString = useSupabase ? process.env.SUPABASE_DB : process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL is not set');
+  throw new Error(useSupabase ? 'SUPABASE_DB is not set' : 'DATABASE_URL is not set');
 }
 
 async function main() {

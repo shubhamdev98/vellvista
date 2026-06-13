@@ -29,6 +29,13 @@
       "when": 1777189416050,
       "tag": "0003_good_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1781376662102,
+      "tag": "0004_common_madripoor",
+      "breakpoints": true
     }
   ]
 }

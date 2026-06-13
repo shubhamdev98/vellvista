@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MapPin, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { trpc } from "../app/utils/trpc";
 import { useAuth } from "../context/AuthProvider";
@@ -48,11 +48,24 @@ export default function AddressManager() {
     isDefault: false
   });
 
+  const fetchAddresses = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      if (!user) return;
+      const data = await trpc.getAddresses({ userId: user.id });
+      setAddresses(data);
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       fetchAddresses();
     }
-  }, [user]);
+  }, [user, fetchAddresses]);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -144,18 +157,7 @@ export default function AddressManager() {
     fetchCities();
   }, [formData.state, states, formData.country, activeCountries, currency]);
 
-  const fetchAddresses = async () => {
-    try {
-      setIsLoading(true);
-      if (!user) return;
-      const data = await trpc.getAddresses({ userId: user.id });
-      setAddresses(data);
-    } catch (error) {
-      console.error("Error fetching addresses:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -513,14 +515,14 @@ export default function AddressManager() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(address)}
-                    className="text-color-1 hover:text-color-4"
+                    className="text-color-1 hover:text-accent transition-colors duration-200"
                     aria-label="Edit address"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(address.id)}
-                    className="text-color-1 hover:text-color-4"
+                    className="text-color-1 hover:text-error transition-colors duration-200"
                     aria-label="Delete address"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -538,7 +540,7 @@ export default function AddressManager() {
               {!address.isDefault && (
                 <button
                   onClick={() => handleSetDefault(address.id)}
-                  className="mt-3 flex items-center gap-1 text-sm text-color-1 hover:text-color-4"
+                  className="mt-3 flex items-center gap-1 text-sm text-color-1 hover:text-accent transition-colors duration-200"
                 >
                   <Check className="h-4 w-4" />
                   Set as Default

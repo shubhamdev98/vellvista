@@ -5,7 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Settings, Menu, Users, Globe, X } from "lucide-react";
+import { getInitials } from "../../app/utils/image";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
@@ -150,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* User profile brief (moved to last) */}
         <div className={`p-4 border-t border-light flex items-center shrink-0 transition-all duration-300 ${isCollapsed ? "justify-center" : "gap-3"
           }`}>
-          <div className="w-10 h-10 bg-surface-alt rounded-full overflow-hidden flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 bg-surface-alt rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-light">
             {user.avatar ? (
               <Image
                 src={user.avatar}
@@ -160,7 +161,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className="w-full h-full object-cover"
               />
             ) : (
-              <Settings className="h-5 w-5 text-secondary" />
+              <div className="w-full h-full bg-secondary text-primary flex items-center justify-center font-semibold text-sm border border-dark select-none">
+                {getInitials(user.fullName)}
+              </div>
             )}
           </div>
           {!isCollapsed && (
