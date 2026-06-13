@@ -1,0 +1,298 @@
+"use client";
+
+import React, { useState } from "react";
+import { Search, ShoppingCart, User, Menu, X, Trash2 } from "lucide-react";
+import { useCart } from "../context/CartProvider";
+import { useAuth } from "../context/AuthProvider";
+import { useCurrency } from "../context/CurrencyProvider";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { getProductImageUrl } from "../app/utils/image";
+import CurrencySelector from "./CurrencySelector";
+
+const navLinks = [
+  { name: "Shop", href: "/products" },
+  { name: "Brands", href: "#brands" },
+  { name: "New Arrivals", href: "#new-arrivals" },
+  { name: "Sale", href: "#sale" },
+];
+
+function NavItems({
+  mobile = false,
+  onLinkClick,
+}: {
+  mobile?: boolean;
+  onLinkClick?: () => void;
+}) {
+  return (
+    <div className={`${mobile ? "space-y-2" : "flex items-center"}`}>
+      {navLinks.map((link, index) => (
+        <React.Fragment key={link.name}>
+          <a
+            href={link.href}
+            onClick={onLinkClick}
+            className={`${
+              mobile
+                ? "block px-3 py-3 text-base text-primary border-b border-default last:border-0 hover:bg-surface-alt rounded"
+                : "px-3 py-2 text-sm text-primary"
+            } font-light hover:text-secondary transition`}
+          >
+            {link.name}
+          </a>
+
+          {!mobile && index < navLinks.length - 1 && (
+            <span className="mx-2 text-muted">|</span>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function SearchBar({
+  full = false,
+  mobile = false,
+  value,
+  onChange,
+}: {
+  full?: boolean;
+  mobile?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative w-full">
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        type="text"
+        placeholder="Search perfumes..."
+        className={`${
+          full ? "w-full" : "w-64"
+        } text-primary placeholder:text-muted pl-10 pr-4 py-2 border-b ${mobile ? "border-dark" : "border-default"} focus:border-primary outline-none bg-transparent`}
+      />
+      <Search
+        className={`absolute left-3 top-2.5 h-5 w-5 ${mobile ? "text-primary" : "text-secondary"}`}
+      />
+    </div>
+  );
+}
+
+function Actions({
+  onCartClick,
+  mobile = false,
+}: {
+  onCartClick: () => void;
+  mobile?: boolean;
+}) {
+  const { totalItems } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  return (
+    <div className={`flex items-center gap-6 ${mobile ? "" : ""}`}>
+      {user && user.avatar ? (
+        <button
+          onClick={() => router.push("/account")}
+          className="relative w-7 h-7 rounded-full overflow-hidden hover:opacity-80"
+        >
+          <Image
+            src={user.avatar}
+            alt="Profile"
+            width={20}
+            height={20}
+            className="w-full h-full object-cover"
+          />
+        </button>
+      ) : (
+        <button
+          onClick={() =>
+            user ? router.push("/account") : router.push("/auth/login")
+          }
+          className="w-10 h-10 flex items-center justify-center text-primary"
+        >
+          <User className="h-6 w-6" />
+        </button>
+      )}
+
+      <button
+        onClick={onCartClick}
+        className="relative w-10 h-10 flex items-center justify-center text-primary"
+      >
+        <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
+
+        {totalItems > 0 && (
+          <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-inverse text-xs font-semibold rounded-full flex items-center justify-center">
+            {totalItems}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function CartSidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const { items, removeItem, clearCart } = useCart();
+  const { formatPrice } = useCurrency();
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+
+  return (
+    <>
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      )}
+
+      <div
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-surface z-50 shadow-2xl transition-transform ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex justify-between p-6 border-b">
+            <h2 className="text-xl font-semibold text-primary">Shopping Cart</h2>
+            <button onClick={onClose} className="text-primary">
+              <X />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6">
+            {items.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <ShoppingCart className="h-12 w-12 text-muted" />
+              </div>
+            ) : (
+              items.map((item) => (
+                <div key={item.cartItemId} className="flex gap-3 mb-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 relative shrink-0">
+                    <Image
+                      src={getProductImageUrl(item.image)}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-light text-primary truncate">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-secondary">{formatPrice(item.price)}</p>
+                    <p className="text-sm text-muted">
+                      Qty: {item.quantity}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => removeItem(item.cartItemId)}
+                    className="p-1 text-muted hover:text-error self-start"
+                  >
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {items.length > 0 && (
+            <div className="p-6 border-t">
+              <div className="flex justify-between mb-4">
+                <span className="text-primary">Total:</span>
+                <span className="text-primary">{formatPrice(total)}</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={clearCart}
+                  className="w-full sm:w-1/2 border border-dark py-3 hover:bg-surface-alt text-primary"
+                >
+                  Clear
+                </button>
+                <button className="w-full sm:w-1/2 bg-primary text-inverse py-3 hover:bg-primary-light">
+                  Checkout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  return (
+    <>
+      <header className="bg-surface sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between h-16 items-center">
+            <Link
+              href="/"
+              className="flex items-center relative h-10 w-[7.5rem]"
+            >
+              <Image
+                src="/logo/vv.png"
+                alt="LuxeScents"
+                fill
+                className="object-contain"
+                priority
+                sizes="120px"
+              />
+            </Link>
+
+            <nav className="hidden md:flex">
+              <NavItems />
+            </nav>
+
+            <div className="hidden md:flex items-center gap-6">
+              <SearchBar value={searchValue} onChange={setSearchValue} />
+              <CurrencySelector />
+              <Actions onCartClick={() => setIsCartOpen(true)} />
+            </div>
+
+            <div className="flex md:hidden items-center gap-6 text-primary">
+              <Actions onCartClick={() => setIsCartOpen(true)} mobile />
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-primary w-10 h-10 flex items-center justify-center"
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+          </div>
+
+          {isMenuOpen && (
+            <div className="md:hidden bg-surface p-4 border-t border-default shadow-lg space-y-4">
+              <SearchBar
+                full
+                mobile
+                value={searchValue}
+                onChange={setSearchValue}
+              />
+              <div className="flex items-center justify-between px-3 py-2 border-b border-default">
+                <span className="text-sm text-secondary font-light">Currency</span>
+                <CurrencySelector />
+              </div>
+              <NavItems mobile onLinkClick={() => setIsMenuOpen(false)} />
+            </div>
+          )}
+        </div>
+      </header>
+
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+    </>
+  );
+}

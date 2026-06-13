@@ -1,21 +1,81 @@
 @import "tailwindcss";
 
+/* ========================================
+   CENTRALIZED COLOR SYSTEM
+   Semantic color variables for the entire project
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors */
+  --color-primary: #020202;           /* Black - Primary actions, main text */
+  --color-primary-light: #1a1a1a;     /* Dark gray - Footer background */
+  --color-primary-dark: #000000;      /* Pure black - Borders, accents */
+  
+  /* Secondary Colors */
+  --color-secondary: #F2E9DF;         /* Cream accent - Offer banners */
+  --color-secondary-dark: #D4C9BE;    /* Warm beige - Category borders */
+  
+  /* Background Colors */
+  --color-background: #FFFFFF;        /* White - Main background */
+  --color-background-alt: #F8F4EF;    /* Soft ivory - Alternative backgrounds */
+  --color-background-muted: #F9FAFB;  /* Light gray - Muted backgrounds */
+  
+  /* Surface Colors */
+  --color-surface: #FFFFFF;           /* White - Card backgrounds */
+  --color-surface-alt: #F3F4F6;       /* Light gray - Alternative surfaces */
+  
+  /* Text Colors */
+  --color-text-primary: #020202;      /* Black - Primary text */
+  --color-text-secondary: #6B7280;    /* Gray-500 - Secondary text */
+  --color-text-muted: #9CA3AF;        /* Gray-400 - Muted text */
+  --color-text-inverse: #FFFFFF;      /* White - Text on dark backgrounds */
+  
+  /* Border Colors */
+  --color-border: #E5E7EB;            /* Gray-200 - Default borders */
+  --color-border-light: #F3F4F6;      /* Gray-100 - Light borders */
+  --color-border-dark: #D1D5DB;       /* Gray-300 - Dark borders */
+  --color-border-primary: #020202;    /* Black - Primary borders */
+  
+  /* Accent Colors */
+  --color-accent: #F59E0B;            /* Amber-500 - Gold/amber accents */
+  --color-accent-light: #FCD34D;     /* Amber-400 - Light amber */
+  --color-accent-dark: #B45309;       /* Amber-900 - Dark amber */
+  
+  /* Status Colors */
+  --color-success: #10B981;           /* Green-500 - Success states */
+  --color-success-light: #D1FAE5;     /* Green-100 - Success backgrounds */
+  --color-success-dark: #047857;      /* Green-700 - Success text */
+  
+  --color-warning: #F59E0B;           /* Yellow-500 - Warning states */
+  --color-warning-light: #FEF3C7;     /* Yellow-100 - Warning backgrounds */
+  --color-warning-dark: #B45309;     /* Yellow-700 - Warning text */
+  
+  --color-error: #EF4444;             /* Red-500 - Error states */
+  --color-error-light: #FEE2E2;      /* Red-100 - Error backgrounds */
+  --color-error-dark: #B91C1C;        /* Red-600 - Error text */
+  
+  --color-info: #3B82F6;              /* Blue-500 - Info states */
+  --color-info-light: #DBEAFE;        /* Blue-100 - Info backgrounds */
+  --color-info-dark: #1D4ED8;        /* Blue-700 - Info text */
+  
+  /* Overlay Colors */
+  --color-overlay: rgba(0, 0, 0, 0.6); /* Black with 60% opacity */
+  --color-overlay-dark: rgba(0, 0, 0, 0.7); /* Black with 70% opacity */
+  --color-overlay-light: rgba(255, 255, 255, 0.1); /* White with 10% opacity */
+  --color-overlay-medium: rgba(255, 255, 255, 0.2); /* White with 20% opacity */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--color-background-alt);
+    --foreground: var(--color-text-primary);
   }
 }
 
@@ -24,3 +84,146 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ========================================
+   SEMANTIC COLOR UTILITY CLASSES
+   Use these classes instead of hardcoded colors
+   ======================================== */
+
+/* Background Colors */
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-light { background-color: var(--color-primary-light); }
+.bg-secondary { background-color: var(--color-secondary); }
+.bg-secondary-dark { background-color: var(--color-secondary-dark); }
+.bg-background { background-color: var(--color-background); }
+.bg-background-alt { background-color: var(--color-background-alt); }
+.bg-background-muted { background-color: var(--color-background-muted); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-surface-alt { background-color: var(--color-surface-alt); }
+
+/* Text Colors */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+.text-inverse { color: var(--color-text-inverse); }
+
+/* Border Colors */
+.border-primary { border-color: var(--color-border-primary); }
+.border-default { border-color: var(--color-border); }
+.border-light { border-color: var(--color-border-light); }
+.border-dark { border-color: var(--color-border-dark); }
+
+/* Accent Colors */
+.bg-accent { background-color: var(--color-accent); }
+.bg-accent-light { background-color: var(--color-accent-light); }
+.bg-accent-dark { background-color: var(--color-accent-dark); }
+.text-accent { color: var(--color-accent); }
+.text-accent-light { color: var(--color-accent-light); }
+.text-accent-dark { color: var(--color-accent-dark); }
+.border-accent { border-color: var(--color-accent); }
+
+/* Status Colors */
+.bg-success { background-color: var(--color-success); }
+.bg-success-light { background-color: var(--color-success-light); }
+.bg-success-dark { background-color: var(--color-success-dark); }
+.text-success { color: var(--color-success); }
+.text-success-light { color: var(--color-success-light); }
+.text-success-dark { color: var(--color-success-dark); }
+
+.bg-warning { background-color: var(--color-warning); }
+.bg-warning-light { background-color: var(--color-warning-light); }
+.bg-warning-dark { background-color: var(--color-warning-dark); }
+.text-warning { color: var(--color-warning); }
+.text-warning-light { color: var(--color-warning-light); }
+.text-warning-dark { color: var(--color-warning-dark); }
+
+.bg-error { background-color: var(--color-error); }
+.bg-error-light { background-color: var(--color-error-light); }
+.bg-error-dark { background-color: var(--color-error-dark); }
+.text-error { color: var(--color-error); }
+.text-error-light { color: var(--color-error-light); }
+.text-error-dark { color: var(--color-error-dark); }
+
+.bg-info { background-color: var(--color-info); }
+.bg-info-light { background-color: var(--color-info-light); }
+.bg-info-dark { background-color: var(--color-info-dark); }
+.text-info { color: var(--color-info); }
+.text-info-light { color: var(--color-info-light); }
+.text-info-dark { color: var(--color-info-dark); }
+
+/* Hover States */
+.hover\:bg-primary:hover { background-color: var(--color-primary); }
+.hover\:bg-secondary:hover { background-color: var(--color-secondary); }
+.hover\:bg-accent:hover { background-color: var(--color-accent); }
+.hover\:bg-success:hover { background-color: var(--color-success); }
+.hover\:bg-warning:hover { background-color: var(--color-warning); }
+.hover\:bg-error:hover { background-color: var(--color-error); }
+
+.hover\:text-primary:hover { color: var(--color-text-primary); }
+.hover\:text-inverse:hover { color: var(--color-text-inverse); }
+.hover\:text-accent:hover { color: var(--color-accent); }
+.hover\:text-success:hover { color: var(--color-success); }
+.hover\:text-warning:hover { color: var(--color-warning); }
+.hover\:text-error:hover { color: var(--color-error); }
+
+/* ========================================
+   LEGACY COLOR CLASSES (for backward compatibility)
+   These will be phased out gradually
+   ======================================== */
+.bg-color-1 { background-color: var(--color-primary); }
+.bg-color-2 { background-color: var(--color-secondary); }
+.bg-color-3 { background-color: var(--color-secondary-dark); }
+.bg-color-4 { background-color: var(--color-background-alt); }
+.bg-color-5 { background-color: var(--color-background); }
+
+.text-color-1 { color: var(--color-text-primary); }
+.text-color-2 { color: var(--color-secondary); }
+.text-color-3 { color: var(--color-secondary-dark); }
+.text-color-4 { color: var(--color-background-alt); }
+.text-color-5 { color: var(--color-background); }
+
+.border-color-1 { border-color: var(--color-primary); }
+.border-color-2 { border-color: var(--color-secondary); }
+.border-color-3 { border-color: var(--color-secondary-dark); }
+
+.hover\:bg-color-1:hover { background-color: var(--color-primary); }
+.hover\:bg-color-2:hover { background-color: var(--color-secondary); }
+.hover\:bg-color-4:hover { background-color: var(--color-background-alt); }
+
+.hover\:text-color-1:hover { color: var(--color-text-primary); }
+.hover\:text-color-2:hover { color: var(--color-secondary); }
+.hover\:text-color-4:hover { color: var(--color-background-alt); }
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN & MOBILE SCALING
+   Sets html font size to 50% on mobile screens (max-width: 767px)
+   and forces layout boundaries to prevent horizontal overflow.
+   ======================================== */
+
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  html {
+    font-size: 70% !important;
+  }
+}
+

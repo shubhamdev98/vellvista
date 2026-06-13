@@ -1,0 +1,50 @@
+{
+  "name": "luxescents-backend",
+  "version": "1.0.0",
+  "description": "Backend for LuxeScents fragrance store",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "seed": "tsx src/seed.ts",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:push": "drizzle-kit push:pg",
+    "db:studio": "drizzle-kit studio"
+  },
+  "keywords": [
+    "express",
+    "trpc",
+    "drizzle",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@trpc/client": "^10.45.0",
+    "@trpc/server": "^10.45.0",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "^1.6.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.29.4",
+    "express": "^4.18.2",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.10",
+    "postgres": "^3.4.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^20.10.5",
+    "@types/nodemailer": "^8.0.0",
+    "drizzle-kit": "^0.20.7",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  }
+}
