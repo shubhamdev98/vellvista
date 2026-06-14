@@ -334,9 +334,9 @@ export default function Header() {
           </div>
 
           {isMenuOpen && (
-            <div className="md:hidden bg-surface p-4 border-t border-default shadow-lg space-y-4 animate-fade-in">
+            <div className="md:hidden bg-surface p-4 border-t border-default space-y-4 animate-fade-in">
               {/* Profile / Auth Section */}
-              <div className="px-3 py-4 bg-background-alt border border-default rounded-lg">
+              <div className="px-3 py-4 border border-default">
                 {user ? (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
