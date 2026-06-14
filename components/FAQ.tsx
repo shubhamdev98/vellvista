@@ -18,16 +18,8 @@ const faqs: FAQItem[] = [
     answer: "Our curated selection features Eau de Parfum (EDP) and Parfum concentrations, which generally last between 6 to 8 hours. However, longevity can vary depending on skin type, climate, and the specific fragrance notes.",
   },
   {
-    question: "How should I store my perfume to preserve its quality?",
-    answer: "We recommend storing your perfumes in a cool, dry place away from direct sunlight, heat, and humidity (avoid bathrooms). Extreme temperature fluctuations and light can break down the delicate scent molecules over time.",
-  },
-  {
     question: "What is your return and exchange policy?",
     answer: "We offer a 15-day return policy for unused, unopened, and undamaged items in their original packaging. If you receive a damaged or incorrect product, please contact our customer support team immediately.",
-  },
-  {
-    question: "How can I track my shipment?",
-    answer: "Once your order is processed and shipped, you will receive a tracking link via email. You can also monitor your order status directly from the 'Orders' section in your account dashboard.",
   },
 ];
 
@@ -56,11 +48,11 @@ export default function FAQ() {
             return (
               <div
                 key={index}
-                className="overflow-hidden transition-all duration-300"
+                className="overflow-hidden"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full flex items-center justify-between py-5 text-left text-primary hover:text-opacity-80 transition-colors focus:outline-none"
+                  className="w-full flex items-center justify-between py-6 text-left text-primary hover:text-opacity-80 transition-colors focus:outline-none cursor-pointer"
                   aria-expanded={isOpen}
                 >
                   <span className="font-serif text-lg sm:text-xl font-medium tracking-tight text-primary">
@@ -73,12 +65,14 @@ export default function FAQ() {
                   )}
                 </button>
                 <div
-                  className={`transition-all duration-300 ease-in-out ${
-                    isOpen ? "max-h-48 pb-5" : "max-h-0"
-                  } overflow-hidden`}
+                  className={`grid transition-all duration-300 ease-in-out ${
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
                 >
-                  <div className="text-sm sm:text-base text-secondary leading-relaxed font-light pr-8">
-                    {faq.answer}
+                  <div className="overflow-hidden">
+                    <div className="pb-6 text-sm sm:text-base text-secondary leading-relaxed font-light pr-8">
+                      {faq.answer}
+                    </div>
                   </div>
                 </div>
               </div>
