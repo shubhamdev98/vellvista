@@ -23,6 +23,7 @@ interface Product {
   image: string;
   isNew?: boolean;
   isSale?: boolean;
+  category?: string;
 }
 
 const products: Product[] = [
@@ -36,6 +37,7 @@ const products: Product[] = [
     reviews: 324,
     image: "/product/beautinow-niche-perfume-k1X05CSCybE-unsplash.jpg",
     isSale: true,
+    category: "women",
   },
   {
     id: 2,
@@ -46,6 +48,7 @@ const products: Product[] = [
     reviews: 256,
     image: "/product/filip-baotic-_3cLB_mvVTw-unsplash.jpg",
     isNew: true,
+    category: "women",
   },
   {
     id: 3,
@@ -55,6 +58,7 @@ const products: Product[] = [
     rating: 4.7,
     reviews: 189,
     image: "/product/kelvin-lutan-5f4yovjJw4c-unsplash.jpg",
+    category: "men",
   },
   {
     id: 4,
@@ -66,6 +70,7 @@ const products: Product[] = [
     reviews: 412,
     image: "/product/laurissi-Bxsl6rpbwfI-unsplash.jpg",
     isSale: true,
+    category: "women",
   },
   {
     id: 5,
@@ -76,6 +81,7 @@ const products: Product[] = [
     reviews: 167,
     image: "/product/miska-sage-UpoUiGj-qg8-unsplash.jpg",
     isNew: true,
+    category: "unisex",
   },
   {
     id: 6,
@@ -85,6 +91,7 @@ const products: Product[] = [
     rating: 4.9,
     reviews: 523,
     image: "/product/pavlo-talpa-MfGoZ-QoJFc-unsplash.jpg",
+    category: "women",
   },
   {
     id: 7,
@@ -94,6 +101,7 @@ const products: Product[] = [
     rating: 4.6,
     reviews: 298,
     image: "/product/romy-ameryckx-NLz3Wy8Thac-unsplash.jpg",
+    category: "men",
   },
   {
     id: 8,
@@ -103,6 +111,7 @@ const products: Product[] = [
     rating: 4.8,
     reviews: 445,
     image: "/product/zulian-firmansyah-rYcbOljwx10-unsplash.jpg",
+    category: "women",
   },
   {
     id: 9,
@@ -115,6 +124,7 @@ const products: Product[] = [
     image: "/product/rashid-dFpeXStwwIM-unsplash.jpg",
     isSale: true,
     isNew: true,
+    category: "unisex",
   },
 ];
 
@@ -155,6 +165,7 @@ export default function ProductGrid({
             image: p.image,
             isNew: p.isNew || false,
             isSale: p.isSale || false,
+            category: p.category || "unisex",
           }));
           setDbProducts(mapped);
         }
@@ -209,6 +220,8 @@ export default function ProductGrid({
     minRating: 0,
     saleOnly: false,
     newOnly: false,
+    maleOnly: false,
+    femaleOnly: false,
   });
 
   // Apply filters
@@ -218,6 +231,16 @@ export default function ProductGrid({
     if (product.rating < filters.minRating) return false;
     if (filters.saleOnly && !product.isSale) return false;
     if (filters.newOnly && !product.isNew) return false;
+
+    // Filter by gender category if either is selected
+    if (filters.maleOnly || filters.femaleOnly) {
+      const prodCat = (product.category || "").toLowerCase();
+      const matchesMale = filters.maleOnly && (prodCat === "men" || prodCat === "unisex");
+      const matchesFemale = filters.femaleOnly && (prodCat === "women" || prodCat === "unisex");
+      if (!matchesMale && !matchesFemale) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -228,6 +251,8 @@ export default function ProductGrid({
       minRating: 0,
       saleOnly: false,
       newOnly: false,
+      maleOnly: false,
+      femaleOnly: false,
     });
   };
 
@@ -419,6 +444,37 @@ export default function ProductGrid({
                   <option value={4.5}>4.5+ Stars</option>
                   <option value={4.8}>4.8+ Stars</option>
                 </select>
+              </div>
+
+              {/* Gender */}
+              <div className="mb-6">
+                <label className="block text-xs font-light text-secondary mb-1">
+                  Gender
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filters.maleOnly}
+                      onChange={(e) =>
+                        setFilters({ ...filters, maleOnly: e.target.checked })
+                      }
+                      className="w-4 h-4 accent-primary border-primary"
+                    />
+                    <span className="text-sm text-secondary hover:text-primary transition-colors">Male</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filters.femaleOnly}
+                      onChange={(e) =>
+                        setFilters({ ...filters, femaleOnly: e.target.checked })
+                      }
+                      className="w-4 h-4 accent-primary border-primary"
+                    />
+                    <span className="text-sm text-secondary hover:text-primary transition-colors">Female</span>
+                  </label>
+                </div>
               </div>
 
               {/* Checkboxes */}
