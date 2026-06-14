@@ -119,34 +119,34 @@ const Footer = () => {
 
         {/* Features Bar */}
         <div className="border-t border-primary pt-8 mb-8">
-          <div className="grid grid-cols-4 gap-2 sm:gap-6 md:gap-8 justify-items-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 justify-items-center">
             <div className="flex flex-col items-center lg:items-start w-full">
-              <div className="flex items-center space-x-1 sm:space-x-3">
-                <Truck className="h-4 w-4 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-[9px] sm:text-sm leading-tight">Free Shipping</h3>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
+                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Free Shipping</h3>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">On orders over $50</p>
+              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">On orders over $50</p>
             </div>
             <div className="flex flex-col items-center lg:items-start w-full">
-              <div className="flex items-center space-x-1 sm:space-x-3">
-                <Shield className="h-4 w-4 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-[9px] sm:text-sm leading-tight">Secure Payment</h3>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
+                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Secure Payment</h3>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">100% secure transactions</p>
+              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">100% secure transactions</p>
             </div>
             <div className="flex flex-col items-center lg:items-start w-full">
-              <div className="flex items-center space-x-1 sm:space-x-3">
-                <RefreshCw className="h-4 w-4 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-[9px] sm:text-sm leading-tight">Easy Returns</h3>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
+                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Easy Returns</h3>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">30-day return policy</p>
+              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">30-day return policy</p>
             </div>
             <div className="flex flex-col items-center lg:items-start w-full">
-              <div className="flex items-center space-x-1 sm:space-x-3">
-                <CreditCard className="h-4 w-4 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-[9px] sm:text-sm leading-tight">Multiple Payment</h3>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
+                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Multiple Payment</h3>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">Secure payment methods</p>
+              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-center lg:text-left lg:pl-9">Secure payment methods</p>
             </div>
           </div>
         </div>
