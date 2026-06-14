@@ -1,3 +1,4 @@
+// Trigger build with fixed TypeScript annotations
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
