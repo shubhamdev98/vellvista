@@ -48,6 +48,9 @@ export const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 5000, // 5 seconds
+  greetingTimeout: 5000,   // 5 seconds
+  socketTimeout: 5000,     // 5 seconds
 });
 
 export const auth = betterAuth({
@@ -100,12 +103,13 @@ export const auth = betterAuth({
         `,
       };
 
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Password reset email sent successfully to ${user.email}`);
-      } catch (error) {
-        console.error("Failed to send password reset email:", error);
-      }
+      transporter.sendMail(mailOptions)
+        .then(() => {
+          console.log(`Password reset email sent successfully to ${user.email}`);
+        })
+        .catch((error) => {
+          console.error("Failed to send password reset email:", error);
+        });
     },
   },
 });

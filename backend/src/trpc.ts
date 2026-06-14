@@ -195,35 +195,36 @@ export const appRouter = router({
         console.log(`\n=========================================\nOTP FOR ${email}: ${otp}\n=========================================\n`);
         otpStore.set(email, { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
 
-        // Send OTP email
-        try {
-          const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
-          const mailOptions = {
-            from: `"Vellvista" <${process.env.SMTP_USER}>`,
-            to: email,
-            subject: "Verify Your Email - Vellvista",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
-                </div>
-                <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
-                <p style="color: #4b5563; font-size: 16px;">Hello ${fullName},</p>
-                <p style="color: #4b5563; font-size: 16px;">Thank you for registering with Vellvista. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
-                </div>
-                <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
-                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-                <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
+        // Send OTP email asynchronously in the background so it does not block the registration request
+        const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
+        const mailOptions = {
+          from: `"Vellvista" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject: "Verify Your Email - Vellvista",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
               </div>
-            `,
-          };
-          await transporter.sendMail(mailOptions);
-          console.log(`OTP email sent successfully to ${email}`);
-        } catch (mailErr) {
-          console.error("Failed to send OTP email:", mailErr);
-        }
+              <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
+              <p style="color: #4b5563; font-size: 16px;">Hello ${fullName},</p>
+              <p style="color: #4b5563; font-size: 16px;">Thank you for registering with Vellvista. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
+              </div>
+              <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
+            </div>
+          `,
+        };
+        transporter.sendMail(mailOptions)
+          .then(() => {
+            console.log(`OTP email sent successfully to ${email}`);
+          })
+          .catch((mailErr) => {
+            console.error("Failed to send OTP email:", mailErr);
+          });
         
         return { 
           success: true, 
@@ -259,35 +260,36 @@ export const appRouter = router({
       console.log(`\n=========================================\nNEW OTP FOR ${input.email}: ${otp}\n=========================================\n`);
       otpStore.set(input.email, { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
 
-      // Send OTP email
-      try {
-        const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
-        const mailOptions = {
-          from: `"Vellvista" <${process.env.SMTP_USER}>`,
-          to: input.email,
-          subject: "Verify Your Email - Vellvista",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-              <div style="text-align: center; margin-bottom: 20px;">
-                <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
-              </div>
-              <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
-              <p style="color: #4b5563; font-size: 16px;">Hello,</p>
-              <p style="color: #4b5563; font-size: 16px;">We received a request to resend the verification code for your Vellvista account. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
-              </div>
-              <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
-              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-              <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
+      // Send OTP email asynchronously in the background so it does not block the request
+      const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
+      const mailOptions = {
+        from: `"Vellvista" <${process.env.SMTP_USER}>`,
+        to: input.email,
+        subject: "Verify Your Email - Vellvista",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
             </div>
-          `,
-        };
-        await transporter.sendMail(mailOptions);
-        console.log(`Resent OTP email sent successfully to ${input.email}`);
-      } catch (mailErr) {
-        console.error("Failed to send resent OTP email:", mailErr);
-      }
+            <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
+            <p style="color: #4b5563; font-size: 16px;">Hello,</p>
+            <p style="color: #4b5563; font-size: 16px;">We received a request to resend the verification code for your Vellvista account. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
+          </div>
+        `,
+      };
+      transporter.sendMail(mailOptions)
+        .then(() => {
+          console.log(`Resent OTP email sent successfully to ${input.email}`);
+        })
+        .catch((mailErr) => {
+          console.error("Failed to send resent OTP email:", mailErr);
+        });
 
       return { success: true, message: 'OTP resent successfully' };
     }),
