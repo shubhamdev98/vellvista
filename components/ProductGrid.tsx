@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingCart, Star, Heart, Filter, X, Grid, List } from "lucide-react";
+import { ShoppingCart, Star, Heart, Filter, X, Grid, List, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "./Breadcrumb";
@@ -404,7 +404,7 @@ export default function ProductGrid({
                         minPrice: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
+                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary bg-surface text-primary"
                     placeholder="Min"
                   />
                   <input
@@ -418,7 +418,7 @@ export default function ProductGrid({
                         maxPrice: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
+                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary bg-surface text-primary"
                     placeholder="Max"
                   />
                 </div>
@@ -429,21 +429,26 @@ export default function ProductGrid({
                 <label className="block text-xs font-light text-secondary mb-1">
                   Minimum Rating
                 </label>
-                <select
-                  value={filters.minRating}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      minRating: Number(e.target.value),
-                    })
-                  }
-                  className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
-                >
-                  <option value={0}>All Ratings</option>
-                  <option value={4}>4+ Stars</option>
-                  <option value={4.5}>4.5+ Stars</option>
-                  <option value={4.8}>4.8+ Stars</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={filters.minRating}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        minRating: Number(e.target.value),
+                      })
+                    }
+                    className="w-full pl-3 pr-10 py-2.5 text-sm border border-default focus:outline-none focus:border-primary bg-surface text-primary cursor-pointer appearance-none"
+                  >
+                    <option value={0}>All Ratings</option>
+                    <option value={4}>4+ Stars</option>
+                    <option value={4.5}>4.5+ Stars</option>
+                    <option value={4.8}>4.8+ Stars</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-secondary">
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
+                </div>
               </div>
 
               {/* Gender */}
