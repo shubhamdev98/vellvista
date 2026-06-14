@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './trpc';
@@ -29,7 +29,7 @@ const getLocalIp = () => {
 };
 
 const localIp = getLocalIp();
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 const serverIp = process.env.SERVER_IP || localIp;
 
