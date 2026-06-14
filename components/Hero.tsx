@@ -17,10 +17,10 @@ export default function Hero() {
       </div>
 
       {/* Content Overlay */}
-      <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-20 sm:pb-20 md:pb-24">
+      <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-28 sm:pb-32 md:pb-36">
         <div className="max-w-2xl text-left">
           <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3">
-            summer collection 24
+            summer collection 26
           </h4>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight font-serif text-inverse">
             The Art of Fragrance
