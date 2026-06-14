@@ -115,7 +115,7 @@ const Footer = () => {
                     alt="Facebook"
                     width={20}
                     height={20}
-                    className="brightness-0 invert object-contain"
+                    className="object-contain"
                   />
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Instagram">
@@ -124,7 +124,7 @@ const Footer = () => {
                     alt="Instagram"
                     width={20}
                     height={20}
-                    className="brightness-0 invert object-contain"
+                    className="object-contain"
                   />
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Twitter">
@@ -133,7 +133,7 @@ const Footer = () => {
                     alt="Twitter"
                     width={20}
                     height={20}
-                    className="brightness-0 invert object-contain"
+                    className="object-contain"
                   />
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="YouTube">
@@ -142,7 +142,7 @@ const Footer = () => {
                     alt="YouTube"
                     width={20}
                     height={20}
-                    className="brightness-0 invert object-contain"
+                    className="object-contain"
                   />
                 </a>
               </div>
@@ -200,21 +200,21 @@ const Footer = () => {
                   alt="Visa"
                   width={38}
                   height={24}
-                  className="brightness-0 invert object-contain"
+                  className="object-contain"
                 />
                 <Image
                   src="/payment/american-express.png"
                   alt="American Express"
                   width={38}
                   height={24}
-                  className="brightness-0 invert object-contain"
+                  className="object-contain"
                 />
                 <Image
                   src="/payment/google-pay.png"
                   alt="Google Pay"
                   width={42}
                   height={24}
-                  className="brightness-0 invert object-contain"
+                  className="object-contain"
                 />
               </div>
             </div>
