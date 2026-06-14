@@ -3,6 +3,7 @@ import Hero from '@/components/Hero';
 import CategorySection from '@/components/CategorySection';
 import PromoBanner from '@/components/PromoBanner';
 import ProductGrid from '@/components/ProductGrid';
+import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
 import OfferNavBar from '@/components/OfferNavBar';
 
@@ -16,6 +17,7 @@ export default function Home() {
         <CategorySection />
         <PromoBanner />
         <ProductGrid />
+        <FAQ />
       </main>
       <Footer />
     </div>
