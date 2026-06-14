@@ -404,7 +404,7 @@ export default function ProductGrid({
                         minPrice: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2.5 text-sm border border-primary focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-primary"
+                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
                     placeholder="Min"
                   />
                   <input
@@ -418,7 +418,7 @@ export default function ProductGrid({
                         maxPrice: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2.5 text-sm border border-primary focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-primary"
+                    className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
                     placeholder="Max"
                   />
                 </div>
@@ -437,7 +437,7 @@ export default function ProductGrid({
                       minRating: Number(e.target.value),
                     })
                   }
-                  className="w-full px-3 py-2.5 text-sm border border-primary focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-primary"
+                  className="w-full px-3 py-2.5 text-sm border border-default focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface text-primary"
                 >
                   <option value={0}>All Ratings</option>
                   <option value={4}>4+ Stars</option>
@@ -477,30 +477,35 @@ export default function ProductGrid({
                 </div>
               </div>
 
-              {/* Checkboxes */}
-              <div className="mb-6 space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.saleOnly}
-                    onChange={(e) =>
-                      setFilters({ ...filters, saleOnly: e.target.checked })
-                    }
-                    className="w-4 h-4 accent-primary border-primary"
-                  />
-                  <span className="text-sm text-secondary hover:text-primary transition-colors">Sale Only</span>
+              {/* Offers */}
+              <div className="mb-6">
+                <label className="block text-xs font-light text-secondary mb-1">
+                  Offers
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.newOnly}
-                    onChange={(e) =>
-                      setFilters({ ...filters, newOnly: e.target.checked })
-                    }
-                    className="w-4 h-4 accent-primary border-primary"
-                  />
-                  <span className="text-sm text-secondary hover:text-primary transition-colors">New Only</span>
-                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filters.saleOnly}
+                      onChange={(e) =>
+                        setFilters({ ...filters, saleOnly: e.target.checked })
+                      }
+                      className="w-4 h-4 accent-primary border-primary"
+                    />
+                    <span className="text-sm text-secondary hover:text-primary transition-colors">Sale Only</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filters.newOnly}
+                      onChange={(e) =>
+                        setFilters({ ...filters, newOnly: e.target.checked })
+                      }
+                      className="w-4 h-4 accent-primary border-primary"
+                    />
+                    <span className="text-sm text-secondary hover:text-primary transition-colors">New Only</span>
+                  </label>
+                </div>
               </div>
             </div>
 
