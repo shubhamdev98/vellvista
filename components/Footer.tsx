@@ -109,8 +109,41 @@ const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-inverse mb-4">Follow Us</h3>
               <div className="flex space-x-4">
-                <a href="#" className="text-muted hover:text-inverse transition-colors" aria-label="Twitter">
-                  <MessageCircle className="h-5 w-5" />
+                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Facebook">
+                  <Image
+                    src="/social/facebook.png"
+                    alt="Facebook"
+                    width={20}
+                    height={20}
+                    className="brightness-0 invert object-contain"
+                  />
+                </a>
+                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Instagram">
+                  <Image
+                    src="/social/instagram.png"
+                    alt="Instagram"
+                    width={20}
+                    height={20}
+                    className="brightness-0 invert object-contain"
+                  />
+                </a>
+                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Twitter">
+                  <Image
+                    src="/social/twitter.png"
+                    alt="Twitter"
+                    width={20}
+                    height={20}
+                    className="brightness-0 invert object-contain"
+                  />
+                </a>
+                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="YouTube">
+                  <Image
+                    src="/social/youtube.png"
+                    alt="YouTube"
+                    width={20}
+                    height={20}
+                    className="brightness-0 invert object-contain"
+                  />
                 </a>
               </div>
             </div>
@@ -161,12 +194,28 @@ const Footer = () => {
             {/* Payment Methods */}
             <div className="flex items-center space-x-4">
               <span className="text-muted text-sm">We accept:</span>
-              <div className="flex space-x-3">
-                {/* Payment Icons - using text representations */}
-                <span className="text-muted font-semibold text-sm">VISA</span>
-                <span className="text-muted font-semibold text-sm">MC</span>
-                <span className="text-muted font-semibold text-sm">AMEX</span>
-                <span className="text-muted font-semibold text-sm">PP</span>
+              <div className="flex items-center space-x-4">
+                <Image
+                  src="/payment/visa.png"
+                  alt="Visa"
+                  width={38}
+                  height={24}
+                  className="brightness-0 invert object-contain"
+                />
+                <Image
+                  src="/payment/american-express.png"
+                  alt="American Express"
+                  width={38}
+                  height={24}
+                  className="brightness-0 invert object-contain"
+                />
+                <Image
+                  src="/payment/google-pay.png"
+                  alt="Google Pay"
+                  width={42}
+                  height={24}
+                  className="brightness-0 invert object-contain"
+                />
               </div>
             </div>
           </div>
