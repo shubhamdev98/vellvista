@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -68,8 +69,16 @@ function ResetPasswordForm() {
   return (
     <div className="min-h-screen bg-background-muted flex items-center justify-center p-6 lg:p-10">
       <div className="w-full max-w-md bg-surface p-8 rounded-xl shadow-sm border border-light">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-primary mb-1">LuxeScents</h1>
+        <div className="text-center mb-8 flex flex-col items-center justify-center">
+          <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
+            <Image
+              src="/logo/vv.png"
+              alt="Vellvista"
+              fill
+              className="object-contain"
+              priority
+            />
+          </Link>
           <p className="text-secondary text-sm">Set New Password</p>
         </div>
 

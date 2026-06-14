@@ -61,11 +61,17 @@ export default function ForgotPassword() {
       {/* RIGHT SIDE - Takes remaining space */}
       <div className="w-full lg:w-3/5 bg-background-muted flex items-center justify-center p-6 lg:p-10">
         <div className="max-w-md w-full">
-          {/* Mobile Header */}
-          <div className="lg:hidden text-center mb-6">
-            <h1 className="text-2xl font-semibold text-primary mb-1">
-              LuxeScents
-            </h1>
+          {/* Header Section */}
+          <div className="text-center mb-6 flex flex-col items-center justify-center">
+            <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
+              <Image
+                src="/logo/vv.png"
+                alt="Vellvista"
+                fill
+                className="object-contain"
+                priority
+              />
+            </Link>
             <p className="text-muted text-sm">
               Your Signature Scent Awaits
             </p>
