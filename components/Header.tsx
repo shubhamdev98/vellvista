@@ -13,7 +13,6 @@ import CurrencySelector from "./CurrencySelector";
 
 const navLinks = [
   { name: "Shop", href: "/products" },
-  { name: "Brands", href: "#brands" },
   { name: "New Arrivals", href: "#new-arrivals" },
   { name: "Sale", href: "#sale" },
 ];
