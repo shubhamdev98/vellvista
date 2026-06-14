@@ -86,7 +86,7 @@ const __dirname = path.dirname(__filename);
 // Configure multer for image upload
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-    const uploadPath = path.join(__dirname, '../../public/reviews');
+    const uploadPath = path.join(__dirname, '../public/reviews');
     cb(null, uploadPath);
   },
   filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
@@ -131,10 +131,10 @@ app.use(
 );
 
 // Serve static files from public directory
-app.use('/reviews', express.static(path.join(__dirname, '../../public/reviews')));
+app.use('/reviews', express.static(path.join(__dirname, '../public/reviews')));
 
 // Ensure product uploads directory exists
-const productUploadPath = path.join(__dirname, '../../public/product');
+const productUploadPath = path.join(__dirname, '../public/product');
 if (!fs.existsSync(productUploadPath)) {
   fs.mkdirSync(productUploadPath, { recursive: true });
 }
