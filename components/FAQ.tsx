@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 
 interface FAQItem {
   question: string;
@@ -39,7 +39,7 @@ export default function FAQ() {
   };
 
   return (
-    <section className="py-16 bg-background-alt border-t border-default">
+    <section className="py-16 bg-white border-t border-default">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-primary mb-3">
@@ -50,34 +50,34 @@ export default function FAQ() {
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="border-t border-default divide-y divide-default">
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
               <div
                 key={index}
-                className="bg-surface border border-default overflow-hidden transition-all duration-300"
+                className="overflow-hidden transition-all duration-300"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full flex items-center justify-between p-5 text-left text-primary hover:bg-surface-alt transition-colors focus:outline-none"
+                  className="w-full flex items-center justify-between py-5 text-left text-primary hover:text-opacity-80 transition-colors focus:outline-none"
                   aria-expanded={isOpen}
                 >
-                  <span className="font-semibold text-sm sm:text-base pr-4">
+                  <span className="font-serif text-lg sm:text-xl font-medium tracking-tight text-primary">
                     {faq.question}
                   </span>
-                  <ChevronDown
-                    className={`h-5 w-5 text-secondary transition-transform duration-300 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  {isOpen ? (
+                    <Minus className="h-5 w-5 text-primary shrink-0" />
+                  ) : (
+                    <Plus className="h-5 w-5 text-primary shrink-0" />
+                  )}
                 </button>
                 <div
                   className={`transition-all duration-300 ease-in-out ${
-                    isOpen ? "max-h-48 border-t border-default" : "max-h-0"
+                    isOpen ? "max-h-48 pb-5" : "max-h-0"
                   } overflow-hidden`}
                 >
-                  <div className="p-5 text-sm sm:text-[15px] text-secondary leading-relaxed font-light bg-white">
+                  <div className="text-sm sm:text-base text-secondary leading-relaxed font-light pr-8">
                     {faq.answer}
                   </div>
                 </div>
