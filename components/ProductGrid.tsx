@@ -271,7 +271,7 @@ export default function ProductGrid({
 
   return (
     <section id="products" className="py-12 sm:py-16 scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showTitle && (
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-color-1 mb-3 sm:mb-4">

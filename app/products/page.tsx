@@ -7,15 +7,13 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <ProductsBanner />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <ProductGrid
-          showTitle={false}
-          breadcrumbItems={[
-            { label: "Home", href: "/" },
-            { label: "Products" },
-          ]}
-        />
-      </div>
+      <ProductGrid
+        showTitle={false}
+        breadcrumbItems={[
+          { label: "Home", href: "/" },
+          { label: "Products" },
+        ]}
+      />
       <Footer />
     </div>
   );
