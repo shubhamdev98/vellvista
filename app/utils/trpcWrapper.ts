@@ -1,10 +1,11 @@
 import { createTRPCProxyClient, httpLink, loggerLink } from '@trpc/client';
 
 const getBaseUrl = () => {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_TRPC_URL || 'http://172.29.214.47:3001/trpc';
-  }
-  return process.env.NEXT_PUBLIC_TRPC_URL || 'http://172.29.214.47:3001/trpc';
+  const trpcUrl = process.env.NEXT_PUBLIC_TRPC_URL;
+  if (trpcUrl) return trpcUrl;
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (backendUrl) return `${backendUrl}/trpc`;
+  return 'http://172.29.214.47:3001/trpc';
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
