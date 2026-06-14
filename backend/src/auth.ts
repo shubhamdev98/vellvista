@@ -59,6 +59,12 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   socialProviders,
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
+  },
   trustedOrigins: [
     process.env.FRONTEND_URL || frontendUrl,
     "http://localhost:3000",

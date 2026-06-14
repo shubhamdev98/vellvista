@@ -30,6 +30,7 @@ const getLocalIp = () => {
 
 const localIp = getLocalIp();
 const app: Express = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 3001;
 const serverIp = process.env.SERVER_IP || localIp;
 
