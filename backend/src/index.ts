@@ -7,7 +7,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { db } from './db';
 import fs from 'fs';
 import { reviews } from './schema';
@@ -79,9 +78,7 @@ io.on('connection', (socket) => {
 // Export io for use in other modules
 export { io };
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 // Configure multer for image upload
 const storage = multer.diskStorage({
