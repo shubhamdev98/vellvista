@@ -1,5 +1,5 @@
 // Trigger build with fixed TypeScript annotations
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './trpc';
@@ -128,8 +128,14 @@ app.use(
   })
 );
 
+// Ensure reviews uploads directory exists
+const reviewsUploadPath = path.join(__dirname, '../public/reviews');
+if (!fs.existsSync(reviewsUploadPath)) {
+  fs.mkdirSync(reviewsUploadPath, { recursive: true });
+}
+
 // Serve static files from public directory
-app.use('/reviews', express.static(path.join(__dirname, '../public/reviews')));
+app.use('/reviews', express.static(reviewsUploadPath));
 
 // Ensure product uploads directory exists
 const productUploadPath = path.join(__dirname, '../public/product');
@@ -243,6 +249,16 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
     console.error('Error details:', error instanceof Error ? error.message : String(error));
     res.status(500).json({ success: false, error: 'Failed to submit review', details: error instanceof Error ? error.message : String(error) });
   }
+});
+
+// Global error handling middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Unhandled server error:', err);
+  res.status(500).json({
+    success: false,
+    error: err.message || 'Internal Server Error',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // Start server
