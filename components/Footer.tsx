@@ -151,7 +151,7 @@ const Footer = () => {
         </div>
 
         {/* Features Bar */}
-        <div className="border-t border-primary pt-8 mb-8">
+        <div className="border-t border-white/20 pt-8 mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div className="flex flex-col items-start w-full">
               <div className="flex items-center space-x-2 sm:space-x-3">
@@ -185,7 +185,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Footer */}
-        <div className="border-t border-primary pt-8">
+        <div className="border-t border-white/20 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-muted text-sm">
               <p>&copy; 2024 LuxeScents. All rights reserved. | Crafted with passion for fragrance lovers</p>
