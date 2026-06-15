@@ -9,7 +9,7 @@ import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import { db } from './db';
 import fs from 'fs';
-import { reviews, uploadedFiles } from './schema';
+import { reviews } from './schema';
 import { eq } from 'drizzle-orm';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
@@ -138,31 +138,6 @@ if (!fs.existsSync(reviewsUploadPath)) {
 // Serve static files from public directory
 app.use('/reviews', express.static(reviewsUploadPath));
 
-app.get('/reviews/:filename', async (req: Request, res: Response) => {
-  const { filename } = req.params;
-  const filePath = path.join(reviewsUploadPath, filename);
-  try {
-    const [fileRecord] = await db
-      .select()
-      .from(uploadedFiles)
-      .where(eq(uploadedFiles.filename, filename));
-
-    if (fileRecord) {
-      const buffer = Buffer.from(fileRecord.data, 'base64');
-      if (!fs.existsSync(reviewsUploadPath)) {
-        fs.mkdirSync(reviewsUploadPath, { recursive: true });
-      }
-      fs.writeFileSync(filePath, buffer);
-      res.setHeader('Content-Type', fileRecord.mimeType);
-      return res.send(buffer);
-    }
-    return res.status(404).send('File not found');
-  } catch (error) {
-    console.error('Error fetching review file from db:', error);
-    return res.status(500).send('Internal server error');
-  }
-});
-
 // Ensure product uploads directory exists
 const productUploadPath = path.join(__dirname, '../public/product');
 if (!fs.existsSync(productUploadPath)) {
@@ -171,31 +146,6 @@ if (!fs.existsSync(productUploadPath)) {
 
 // Serve product static files
 app.use('/product', express.static(productUploadPath));
-
-app.get('/product/:filename', async (req: Request, res: Response) => {
-  const { filename } = req.params;
-  const filePath = path.join(productUploadPath, filename);
-  try {
-    const [fileRecord] = await db
-      .select()
-      .from(uploadedFiles)
-      .where(eq(uploadedFiles.filename, filename));
-
-    if (fileRecord) {
-      const buffer = Buffer.from(fileRecord.data, 'base64');
-      if (!fs.existsSync(productUploadPath)) {
-        fs.mkdirSync(productUploadPath, { recursive: true });
-      }
-      fs.writeFileSync(filePath, buffer);
-      res.setHeader('Content-Type', fileRecord.mimeType);
-      return res.send(buffer);
-    }
-    return res.status(404).send('File not found');
-  } catch (error) {
-    console.error('Error fetching product file from db:', error);
-    return res.status(500).send('Internal server error');
-  }
-});
 
 // Configure multer for product images
 const productStorage = multer.diskStorage({
@@ -242,22 +192,6 @@ async function uploadToCloudinary(file: Express.Multer.File, folder: string): Pr
     console.error('Error deleting local temp file:', err);
   }
   return result.secure_url;
-}
-
-async function saveFileToDatabase(file: Express.Multer.File) {
-  try {
-    const fileBuffer = fs.readFileSync(file.path);
-    const base64Data = fileBuffer.toString('base64');
-    
-    await db.insert(uploadedFiles).values({
-      filename: file.filename,
-      data: base64Data,
-      mimeType: file.mimetype,
-    }).onConflictDoNothing();
-    console.log(`Successfully persisted ${file.filename} to database.`);
-  } catch (error) {
-    console.error(`Failed to persist file ${file.filename} to database:`, error);
-  }
 }
 
 app.post('/api/upload-product-image', uploadProductImage.single('image'), async (req: Request & { file?: Express.Multer.File }, res: Response) => {

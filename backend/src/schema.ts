@@ -295,15 +295,3 @@ export type NewPayment = typeof payments.$inferInsert;
 export type Country = typeof countries.$inferSelect;
 export type NewCountry = typeof countries.$inferInsert;
 
-// Uploaded files table for persisting files across ephemeral storage restarts
-export const uploadedFiles = pgTable('uploaded_files', {
-  id: serial('id').primaryKey(),
-  filename: text('filename').notNull().unique(),
-  data: text('data').notNull(), // base64 encoded string of file data
-  mimeType: text('mime_type').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-
-export type UploadedFile = typeof uploadedFiles.$inferSelect;
-export type NewUploadedFile = typeof uploadedFiles.$inferInsert;
-
