@@ -9,10 +9,11 @@ import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import { db } from './db';
 import fs from 'fs';
-import { reviews } from './schema';
+import { reviews, uploadedFiles } from './schema';
 import { eq } from 'drizzle-orm';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
+import { v2 as cloudinary } from 'cloudinary';
 
 import os from 'os';
 
@@ -137,6 +138,31 @@ if (!fs.existsSync(reviewsUploadPath)) {
 // Serve static files from public directory
 app.use('/reviews', express.static(reviewsUploadPath));
 
+app.get('/reviews/:filename', async (req: Request, res: Response) => {
+  const { filename } = req.params;
+  const filePath = path.join(reviewsUploadPath, filename);
+  try {
+    const [fileRecord] = await db
+      .select()
+      .from(uploadedFiles)
+      .where(eq(uploadedFiles.filename, filename));
+
+    if (fileRecord) {
+      const buffer = Buffer.from(fileRecord.data, 'base64');
+      if (!fs.existsSync(reviewsUploadPath)) {
+        fs.mkdirSync(reviewsUploadPath, { recursive: true });
+      }
+      fs.writeFileSync(filePath, buffer);
+      res.setHeader('Content-Type', fileRecord.mimeType);
+      return res.send(buffer);
+    }
+    return res.status(404).send('File not found');
+  } catch (error) {
+    console.error('Error fetching review file from db:', error);
+    return res.status(500).send('Internal server error');
+  }
+});
+
 // Ensure product uploads directory exists
 const productUploadPath = path.join(__dirname, '../public/product');
 if (!fs.existsSync(productUploadPath)) {
@@ -145,6 +171,31 @@ if (!fs.existsSync(productUploadPath)) {
 
 // Serve product static files
 app.use('/product', express.static(productUploadPath));
+
+app.get('/product/:filename', async (req: Request, res: Response) => {
+  const { filename } = req.params;
+  const filePath = path.join(productUploadPath, filename);
+  try {
+    const [fileRecord] = await db
+      .select()
+      .from(uploadedFiles)
+      .where(eq(uploadedFiles.filename, filename));
+
+    if (fileRecord) {
+      const buffer = Buffer.from(fileRecord.data, 'base64');
+      if (!fs.existsSync(productUploadPath)) {
+        fs.mkdirSync(productUploadPath, { recursive: true });
+      }
+      fs.writeFileSync(filePath, buffer);
+      res.setHeader('Content-Type', fileRecord.mimeType);
+      return res.send(buffer);
+    }
+    return res.status(404).send('File not found');
+  } catch (error) {
+    console.error('Error fetching product file from db:', error);
+    return res.status(500).send('Internal server error');
+  }
+});
 
 // Configure multer for product images
 const productStorage = multer.diskStorage({
@@ -171,12 +222,55 @@ const uploadProductImage = multer({
   },
 });
 
-app.post('/api/upload-product-image', uploadProductImage.single('image'), (req: Request & { file?: Express.Multer.File }, res: Response) => {
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'your_cloud_name',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+async function uploadToCloudinary(file: Express.Multer.File, folder: string): Promise<string> {
+  const result = await cloudinary.uploader.upload(file.path, {
+    folder: `vellvista/${folder}`,
+  });
+  // Delete local temp file after upload to Cloudinary
+  try {
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+  } catch (err) {
+    console.error('Error deleting local temp file:', err);
+  }
+  return result.secure_url;
+}
+
+async function saveFileToDatabase(file: Express.Multer.File) {
+  try {
+    const fileBuffer = fs.readFileSync(file.path);
+    const base64Data = fileBuffer.toString('base64');
+    
+    await db.insert(uploadedFiles).values({
+      filename: file.filename,
+      data: base64Data,
+      mimeType: file.mimetype,
+    }).onConflictDoNothing();
+    console.log(`Successfully persisted ${file.filename} to database.`);
+  } catch (error) {
+    console.error(`Failed to persist file ${file.filename} to database:`, error);
+  }
+}
+
+app.post('/api/upload-product-image', uploadProductImage.single('image'), async (req: Request & { file?: Express.Multer.File }, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ success: false, error: 'No file uploaded' });
   }
-  const fileUrl = `/product/${req.file.filename}`;
-  res.json({ success: true, url: fileUrl });
+  try {
+    const fileUrl = await uploadToCloudinary(req.file, 'product');
+    res.json({ success: true, url: fileUrl });
+  } catch (error) {
+    console.error('Failed to upload product image to Cloudinary:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image to Cloudinary' });
+  }
 });
 
 // Health check endpoint
@@ -201,7 +295,7 @@ app.get('/api/reviews/:productId', async (req: Request, res: Response) => {
     // Format reviews with full image URLs
     const formattedReviews = productReviews.map(review => ({
       ...review,
-      image: review.image ? `${dynamicBackendUrl}${review.image}` : null,
+      image: review.image ? (review.image.startsWith('http') ? review.image : `${dynamicBackendUrl}${review.image}`) : null,
       createdAt: review.createdAt?.toISOString() || new Date().toISOString(),
     }));
 
@@ -220,6 +314,8 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
 
     const { productId, userId, rating, title, comment, userName } = req.body;
 
+    const imageUrl = req.file ? await uploadToCloudinary(req.file, 'reviews') : null;
+
     const reviewData = {
       productId: parseInt(productId),
       userId: userId,
@@ -227,7 +323,7 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
       title: title || '',
       comment: comment || '',
       userName: userName || 'Anonymous',
-      image: req.file ? `/reviews/${req.file.filename}` : null,
+      image: imageUrl,
     };
 
     console.log('Review data to insert:', reviewData);
@@ -244,7 +340,7 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
     // Format review with full image URL for Socket.io
     const formattedReview = {
       ...newReview,
-      image: newReview.image ? `${dynamicBackendUrl}${newReview.image}` : null,
+      image: newReview.image ? (newReview.image.startsWith('http') ? newReview.image : `${dynamicBackendUrl}${newReview.image}`) : null,
       createdAt: newReview.createdAt?.toISOString() || new Date().toISOString(),
     };
 
