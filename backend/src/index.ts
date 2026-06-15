@@ -194,10 +194,14 @@ app.get('/api/reviews/:productId', async (req: Request, res: Response) => {
       .where(eq(reviews.productId, parseInt(productId as string)))
       .orderBy(reviews.createdAt);
 
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const dynamicBackendUrl = `${protocol}://${host}`;
+
     // Format reviews with full image URLs
     const formattedReviews = productReviews.map(review => ({
       ...review,
-      image: review.image ? `${backendUrl}${review.image}` : null,
+      image: review.image ? `${dynamicBackendUrl}${review.image}` : null,
       createdAt: review.createdAt?.toISOString() || new Date().toISOString(),
     }));
 
@@ -233,10 +237,14 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
 
     console.log('Review inserted successfully:', newReview);
 
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const dynamicBackendUrl = `${protocol}://${host}`;
+
     // Format review with full image URL for Socket.io
     const formattedReview = {
       ...newReview,
-      image: newReview.image ? `${backendUrl}${newReview.image}` : null,
+      image: newReview.image ? `${dynamicBackendUrl}${newReview.image}` : null,
       createdAt: newReview.createdAt?.toISOString() || new Date().toISOString(),
     };
 
