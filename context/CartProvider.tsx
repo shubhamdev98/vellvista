@@ -22,9 +22,20 @@ type CartContextType = {
   clearCart: () => Promise<void>;
   isLoading: boolean;
   requiresLogin: boolean;
+  // Coupon related
+  couponCode: string;
+  discountRate: number; // e.g., 0.1 for 10% discount
+  applyCoupon: (code: string) => void;
+  removeCoupon: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// Ref to store pending timeout per cart item for debounced server sync
+const updateTimers = { current: {} as Record<number, ReturnType<typeof setTimeout>> };
+// Ref to cache the latest quantity before server sync (per cart item)
+const pendingQuantities = { current: {} as Record<number, number> };
+
 
 const isNetworkError = (error: unknown) =>
   error instanceof Error && error.message.toLowerCase().includes("failed to fetch");
@@ -32,6 +43,25 @@ const isNetworkError = (error: unknown) =>
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [discountRate, setDiscountRate] = useState(0); // 0 means no discount
+
+
+  const applyCoupon = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    if (trimmed === 'SAVE10') {
+      setCouponCode(trimmed);
+      setDiscountRate(0.1);
+    } else {
+      setCouponCode('');
+      setDiscountRate(0);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode('');
+    setDiscountRate(0);
+  };
   const hasWarnedBackendUnavailable = useRef(false);
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState(() => {
@@ -72,14 +102,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const cartData = await trpc.getCart({ userId, sessionId });
-      const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
-        id: item.productId,
-        cartItemId: item.id,
-        name: item.product?.name || "",
-        price: parseFloat(item.product?.price || "0"),
-        image: item.product?.image || "",
-        quantity: item.quantity,
-      }));
+        const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
+          id: item.productId,
+          cartItemId: item.id,
+          name: item.product?.name || "",
+          price: parseFloat(item.product?.price || "0"),
+          image: item.product?.image || "",
+          quantity: item.quantity,
+        }));
       setItems(mappedItems);
     } catch (error: unknown) {
       if (isNetworkError(error)) {
@@ -129,10 +159,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = async (cartItemId: number, quantity: number) => {
     try {
-      await trpc.updateCartItem({ id: cartItemId, quantity });
+      // Ensure quantity is at least 1
+      const newQty = Math.max(1, quantity);
+      // Optimistically update UI
+      setItems(prev => prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item));
+      // Immediately sync with backend
+      await trpc.updateCartItem({ id: cartItemId, quantity: newQty });
+      // Refresh cart to stay consistent
       await fetchCart();
     } catch (error) {
-      console.error("Error updating cart:", error);
+      console.error("Error updating cart quantity:", error);
     }
   };
 
@@ -161,9 +197,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       isLoading,
       requiresLogin: !user,
+      // Coupon related
+      couponCode,
+      discountRate,
+      applyCoupon,
+      removeCoupon,
     }),
-    [items, totalItems, isLoading, user, sessionId]
+    [items, totalItems, isLoading, user, sessionId, couponCode, discountRate]
   );
+
+  // Cleanup any pending timers and pending quantities when the provider unmounts
+  useEffect(() => {
+    return () => {
+      Object.values(updateTimers.current).forEach(timer => clearTimeout(timer));
+      // Clear any pending quantity refs
+      pendingQuantities.current = {};
+    };
+  }, []);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

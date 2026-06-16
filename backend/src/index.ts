@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
+
 import { db } from './db';
 import fs from 'fs';
 import { reviews } from './schema';
@@ -158,10 +159,18 @@ const productStorage = multer.diskStorage({
   },
 });
 
+
+
+// Ensure uploads directory exists
+const uploadsDir = path.resolve(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const uploadProductImage = multer({
   storage: productStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
@@ -173,26 +182,37 @@ const uploadProductImage = multer({
 });
 
 // Configure Cloudinary
+// Validate Cloudinary configuration
+const requiredEnv = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    console.warn(`⚠️ Cloudinary env var ${key} is not set. Cloudinary uploads may fail.`);
+  }
+});
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'your_cloud_name',
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Helper to upload a file to Cloudinary and delete the local temporary file
 async function uploadToCloudinary(file: Express.Multer.File, folder: string): Promise<string> {
   const result = await cloudinary.uploader.upload(file.path, {
     folder: `vellvista/${folder}`,
   });
-  // Delete local temp file after upload to Cloudinary
+  // Delete local temp file after upload
   try {
     if (fs.existsSync(file.path)) {
       fs.unlinkSync(file.path);
     }
   } catch (err) {
-    console.error('Error deleting local temp file:', err);
+    console.error('Error deleting temp file:', err);
   }
   return result.secure_url;
 }
+
+
+
 
 app.post('/api/upload-product-image', uploadProductImage.single('image'), async (req: Request & { file?: Express.Multer.File }, res: Response) => {
   if (!req.file) {

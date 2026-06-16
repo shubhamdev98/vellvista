@@ -1,4 +1,4 @@
-import Image from "next/image";
+
 
 export default function Hero() {
   return (
@@ -6,18 +6,21 @@ export default function Hero() {
       id="home"
       className="relative h-[37.5rem] md:h-[43.75rem] text-inverse overflow-hidden"
     >
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626146/vellvista/hero/kuxe9bmhyizzmrn6rg4t.jpg"
-          alt="Velvista Hero"
-          fill
-          className="object-cover"
-          priority
-        />
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-primary/60"></div>
-      </div>
+      {/* Background Video */}
+        <div className="absolute inset-0 z-0">
+          <video
+            className="object-cover w-full h-full"
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src="/mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
+            <source src="/desk.mp4" type="video/mp4" media="(min-width: 768px)" />
+          </video>
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-primary/60"></div>
+        </div>
 
       {/* Content Overlay */}
       <div className="absolute inset-x-0 bottom-[20%] md:bottom-[25%] z-10">

@@ -10,7 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getProductImageUrl, getInitials } from "../app/utils/image";
 import CurrencySelector from "./CurrencySelector";
-
+import CartItem from "./CartItem";
 const navLinks = [
   { name: "Shop", href: "/products" },
   { name: "New Arrivals", href: "#new-arrivals" },
@@ -182,12 +182,21 @@ function CartSidebar({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { items, removeItem, clearCart } = useCart();
+  const { items, removeItem, clearCart, updateQuantity } = useCart();
   const { formatPrice } = useCurrency();
+  // Local state for coupon handling
+  const [couponCode, setCouponCode] = useState('');
+  const [discountRate, setDiscountRate] = useState(0); // e.g., 0.1 for 10% discount
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+  // Calculations for subtotal, tax, discount, and grand total
+  const subtotal = total;
+  const TAX_RATE = 0.08; // 8% sales tax
+  const taxAmount = subtotal * TAX_RATE;
+  const discountAmount = subtotal * discountRate;
+  const grandTotal = subtotal + taxAmount - discountAmount;
 
   return (
     <>
@@ -196,9 +205,9 @@ function CartSidebar({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-surface z-50 shadow-2xl transition-transform ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+          className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform sm:rounded-l-2xl ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           <div className="flex justify-between p-6 border-b">
@@ -208,64 +217,79 @@ function CartSidebar({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6">
-            {items.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <ShoppingCart className="h-12 w-12 text-muted" />
-              </div>
-            ) : (
-              items.map((item) => (
-                <div key={item.cartItemId} className="flex gap-3 mb-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 relative shrink-0">
-                    <Image
-                      src={getProductImageUrl(item.image)}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+              {items.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <ShoppingCart className="h-12 w-12 text-muted" />
+                </div>
+              ) : (
+                items.map((item) => (
+                  <CartItem key={item.cartItemId} item={item} updateQuantity={updateQuantity} removeItem={removeItem} />
+                ))
+              )}
+            </div>
+            
+            {items.length > 0 && (
+              <div className="border-t p-4 bg-surface sticky bottom-0">
+                <div className="flex justify-between text-sm text-muted mb-2">
+                  <span>Subtotal:</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-muted mb-2">
+                  <span>Tax (8%):</span>
+                  <span>{formatPrice(taxAmount)}</span>
+                </div>
+                {discountRate > 0 && (
+                  <div className="flex justify-between text-sm text-success mb-2">
+                    <span>Discount:</span>
+                    <span>-{formatPrice(discountAmount)}</span>
                   </div>
+                )}
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-light text-primary truncate">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm text-secondary">{formatPrice(item.price)}</p>
-                    <p className="text-sm text-muted">
-                      Qty: {item.quantity}
-                    </p>
-                  </div>
-
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    className="flex-1 border border-default rounded px-2 py-1 text-sm"
+                  />
                   <button
-                    onClick={() => removeItem(item.cartItemId)}
-                    className="p-1 text-muted hover:text-error self-start"
+                    onClick={() => {
+                      if (couponCode.trim().toUpperCase() === "SAVE10") {
+                        setDiscountRate(0.1);
+                      } else {
+                        setDiscountRate(0);
+                      }
+                    }}
+                    className="bg-accent text-inverse px-3 py-1 rounded text-sm hover:bg-accent-light"
                   >
-                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Apply
                   </button>
                 </div>
-              ))
+
+                <div className="flex justify-between font-semibold text-primary mb-4">
+                  <span>Grand Total:</span>
+                  <span>{formatPrice(grandTotal)}</span>
+                </div>
+
+<div className="flex flex-col md:flex-row gap-2">
+  <button
+    onClick={clearCart}
+    className="flex-1 border border-primary text-primary py-3 rounded hover:bg-surface-alt"
+  >
+    Clear
+  </button>
+  <button
+    className="flex-1 bg-primary text-inverse py-3 rounded hover:bg-primary-light"
+  >
+    Checkout
+  </button>
+</div>
+              </div>
             )}
           </div>
-
-          {items.length > 0 && (
-            <div className="p-6 border-t">
-              <div className="flex justify-between mb-4">
-                <span className="text-primary">Total:</span>
-                <span className="text-primary">{formatPrice(total)}</span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  onClick={clearCart}
-                  className="w-full sm:w-1/2 border border-dark py-3 hover:bg-surface-alt text-primary"
-                >
-                  Clear
-                </button>
-                <button className="w-full sm:w-1/2 bg-primary text-inverse py-3 hover:bg-primary-light">
-                  Checkout
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>
