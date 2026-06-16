@@ -11,6 +11,7 @@ export default function CartPage() {
     items,
     totalItems,
     removeItem,
+    updateQuantity,
     clearCart,
     couponCode,
     discountRate,
@@ -50,26 +51,36 @@ export default function CartPage() {
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <div key={item.cartItemId} className="flex gap-4 items-center p-4 border rounded bg-surface">
-              <div className="w-20 h-20 relative">
+            <div key={item.cartItemId} className="flex items-center gap-3 p-3 border bg-surface sm:gap-4 sm:p-4">
+              <div className="w-16 h-16 relative flex-shrink-0 sm:w-20 sm:h-20">
                 <Image
                   src={getProductImageUrl(item.image)}
                   alt={item.name}
                   fill
-                  className="object-cover rounded"
+                  className="object-cover"
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-sm font-medium text-primary truncate">{item.name}</h2>
                 <p className="text-sm text-secondary">{formatPrice(item.price)}</p>
-                <p className="text-sm text-muted">Qty: {item.quantity}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                  className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 sm:w-7 sm:h-7 sm:text-sm"
+                >−</button>
+                <span className="w-6 text-center text-sm text-primary sm:w-8">{item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                  className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 sm:w-7 sm:h-7 sm:text-sm"
+                >+</button>
               </div>
               <button
                 onClick={() => removeItem(item.cartItemId)}
-                className="p-2 text-muted hover:text-error"
+                className="p-1.5 text-muted hover:text-error flex-shrink-0 sm:p-2"
                 aria-label="Remove item"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
           ))}

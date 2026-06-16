@@ -231,7 +231,7 @@ function CartSidebar({
             </div>
             
             {items.length > 0 && (
-              <div className="border-t p-4 bg-surface sticky bottom-0">
+              <div className="border-t border-gray-200 p-4 bg-surface sticky bottom-0">
                 <div className="flex justify-between text-sm text-muted mb-2">
                   <span>Subtotal:</span>
                   <span>{formatPrice(subtotal)}</span>
@@ -263,7 +263,7 @@ function CartSidebar({
                         setDiscountRate(0);
                       }
                     }}
-                    className="bg-accent text-inverse px-3 py-1 rounded text-sm hover:bg-accent-light"
+                    className="bg-accent text-inverse px-3 py-1 text-sm hover:bg-accent-light"
                   >
                     Apply
                   </button>
@@ -274,15 +274,15 @@ function CartSidebar({
                   <span>{formatPrice(grandTotal)}</span>
                 </div>
 
-<div className="flex flex-col md:flex-row gap-2">
+<div className="flex flex-row gap-2">
   <button
     onClick={clearCart}
-    className="flex-1 border border-primary text-primary py-3 rounded hover:bg-surface-alt"
+    className="flex-1 border border-primary text-primary py-3 hover:bg-surface-alt"
   >
     Clear
   </button>
   <button
-    className="flex-1 bg-primary text-inverse py-3 rounded hover:bg-primary-light"
+    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light"
   >
     Checkout
   </button>
