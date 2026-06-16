@@ -9,7 +9,7 @@ export default function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/hero/velvista hero.jpg"
+          src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626146/vellvista/hero/kuxe9bmhyizzmrn6rg4t.jpg"
           alt="Velvista Hero"
           fill
           className="object-cover"

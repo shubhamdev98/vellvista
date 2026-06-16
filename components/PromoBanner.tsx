@@ -6,7 +6,7 @@ export default function PromoBanner() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/product/laura-chouette-3RJ1HFdiJ0M-unsplash.jpg"
+          src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626156/vellvista/product/hzbpvaobukfgznudrw7x.jpg"
           alt="Luxury Perfume Collection"
           fill
           className="object-cover object-center scale-105 hover:scale-100 transition-transform duration-700"

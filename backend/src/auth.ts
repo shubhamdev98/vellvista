@@ -88,7 +88,7 @@ export const auth = betterAuth({
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${resetFrontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
+              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
             </div>
             <h2 style="color: #111827; text-align: center;">Reset Your Password</h2>
             <p style="color: #4b5563; font-size: 16px;">Hello,</p>

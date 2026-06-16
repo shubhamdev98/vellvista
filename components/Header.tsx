@@ -290,7 +290,7 @@ export default function Header() {
               className="flex items-center relative h-10 w-[7.5rem]"
             >
               <Image
-                src="/logo/vv.png"
+                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
                 alt="LuxeScents"
                 fill
                 className="object-contain"

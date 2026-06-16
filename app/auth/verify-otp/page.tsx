@@ -90,7 +90,7 @@ function VerifyOtpForm() {
       <div className="hidden lg:flex lg:w-2/5 relative">
         <div className="relative w-full h-full my-auto">
           <Image
-            src="/product/fernando-andrade-potCPE_Cw8A-unsplash (1).jpg"
+            src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626154/vellvista/product/dudjtbufu5igfoqhmvkv.jpg"
             alt="Luxury Fragrances"
             fill
             className="object-cover"
@@ -108,7 +108,7 @@ function VerifyOtpForm() {
           <div className="text-center mb-6 flex flex-col items-center justify-center">
             <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
               <Image
-                src="/logo/vv.png"
+                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
                 alt="Vellvista"
                 fill
                 className="object-contain"

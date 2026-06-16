@@ -26,7 +26,7 @@ const Footer = () => {
           <div className="col-span-2 lg:col-span-1">
             <div className="relative h-10 w-[7.5rem] mb-4">
               <Image
-                src="/logo/vv.png"
+                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
                 alt="LuxeScents"
                 fill
                 className="object-contain brightness-0 invert"
@@ -111,7 +111,7 @@ const Footer = () => {
               <div className="flex space-x-4">
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Facebook">
                   <Image
-                    src="/social/facebook.png"
+                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626184/vellvista/social/kiqgvb4hhcu5tfiovv0s.png"
                     alt="Facebook"
                     width={20}
                     height={20}
@@ -120,7 +120,7 @@ const Footer = () => {
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Instagram">
                   <Image
-                    src="/social/instagram.png"
+                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626185/vellvista/social/wylukhgkcug0nujiqxjh.png"
                     alt="Instagram"
                     width={20}
                     height={20}
@@ -129,7 +129,7 @@ const Footer = () => {
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Twitter">
                   <Image
-                    src="/social/twitter.png"
+                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626187/vellvista/social/pbji7av8mmfwri9od5ad.png"
                     alt="Twitter"
                     width={20}
                     height={20}
@@ -138,7 +138,7 @@ const Footer = () => {
                 </a>
                 <a href="#" className="hover:opacity-85 transition-opacity" aria-label="YouTube">
                   <Image
-                    src="/social/youtube.png"
+                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626188/vellvista/social/m5uihnucyhkmogwcxesx.png"
                     alt="YouTube"
                     width={20}
                     height={20}
@@ -196,21 +196,21 @@ const Footer = () => {
               <span className="text-muted text-sm">We accept:</span>
               <div className="flex items-center space-x-4">
                 <Image
-                  src="/payment/visa.png"
+                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626153/vellvista/payment/zagvhixwwwtgfnqrmsax.png"
                   alt="Visa"
                   width={38}
                   height={24}
                   className="object-contain"
                 />
                 <Image
-                  src="/payment/american-express.png"
+                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626150/vellvista/payment/nmbvo0aahkdfskrzfjwh.png"
                   alt="American Express"
                   width={38}
                   height={24}
                   className="object-contain"
                 />
                 <Image
-                  src="/payment/google-pay.png"
+                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626151/vellvista/payment/gejoim9tohpazotl8zqg.png"
                   alt="Google Pay"
                   width={42}
                   height={24}

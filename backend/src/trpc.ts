@@ -204,8 +204,8 @@ export const appRouter = router({
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
               <div style="text-align: center; margin-bottom: 20px;">
-                <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
-              </div>
+              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
+            </div>
               <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
               <p style="color: #4b5563; font-size: 16px;">Hello ${fullName},</p>
               <p style="color: #4b5563; font-size: 16px;">Thank you for registering with Vellvista. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
@@ -269,7 +269,7 @@ export const appRouter = router({
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${frontendUrl}/logo/vv.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
+              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
             </div>
             <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
             <p style="color: #4b5563; font-size: 16px;">Hello,</p>

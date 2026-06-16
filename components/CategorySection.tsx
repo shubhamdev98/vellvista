@@ -13,17 +13,17 @@ const categories: Category[] = [
   {
     id: "men",
     name: "Men",
-    image: "/product/beautinow-niche-perfume-k1X05CSCybE-unsplash.jpg",
+    image: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg",
   },
   {
     id: "women",
     name: "Women",
-    image: "/product/filip-baotic-_3cLB_mvVTw-unsplash.jpg",
+    image: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544138/vellvista/product/vnqu2pvfpyhqdzl7bevh.jpg",
   },
   {
     id: "unisex",
     name: "Unisex",
-    image: "/product/kelvin-lutan-5f4yovjJw4c-unsplash.jpg",
+    image: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544160/vellvista/product/wfwrpm4pinxikehslkd7.jpg",
   },
 ];
 
