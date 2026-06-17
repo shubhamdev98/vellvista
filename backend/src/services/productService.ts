@@ -1,14 +1,50 @@
 import { db } from '../db';
-import { products, categories } from '../schema';
-import { eq, like, and, or, gte, lte, desc, count } from 'drizzle-orm';
+import { products, categories, reviews } from '../schema';
+import { eq, like, and, or, gte, lte, desc, count, sql } from 'drizzle-orm';
 import type { Product, NewProduct } from '../schema';
 
 export class ProductService {
+  // Helper to generate the reviews stats subquery
+  private static getReviewsSubquery() {
+    return db
+      .select({
+        productId: reviews.productId,
+        avgRating: sql<string>`coalesce(round(avg(${reviews.rating})::numeric, 1)::text, '0')`.as('avg_rating'),
+        reviewsCount: sql<number>`count(${reviews.id})::integer`.as('reviews_count'),
+      })
+      .from(reviews)
+      .groupBy(reviews.productId)
+      .as('rev_stats');
+  }
+
+  // Helper to execute select query with left join on review stats
+  private static getProductsWithStatsQuery(reviewsSub: ReturnType<typeof ProductService.getReviewsSubquery>) {
+    return db
+      .select({
+        id: products.id,
+        name: products.name,
+        brand: products.brand,
+        price: products.price,
+        originalPrice: products.originalPrice,
+        image: products.image,
+        description: products.description,
+        isNew: products.isNew,
+        isSale: products.isSale,
+        category: products.category,
+        stock: products.stock,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
+        rating: sql<string>`coalesce(${reviewsSub.avgRating}, '0')`,
+        reviews: sql<number>`coalesce(${reviewsSub.reviewsCount}, 0)`,
+      })
+      .from(products)
+      .leftJoin(reviewsSub, eq(products.id, reviewsSub.productId));
+  }
+
   // Get all products
   static async getAllProducts(limit = 20, offset = 0) {
-    const result = await db
-      .select()
-      .from(products)
+    const reviewsSub = ProductService.getReviewsSubquery();
+    const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(products.createdAt));
@@ -18,9 +54,8 @@ export class ProductService {
 
   // Get product by ID
   static async getProductById(id: number) {
-    const result = await db
-      .select()
-      .from(products)
+    const reviewsSub = ProductService.getReviewsSubquery();
+    const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .where(eq(products.id, id))
       .limit(1);
     
@@ -100,9 +135,8 @@ export class ProductService {
       ? and(...whereConditions) 
       : undefined;
 
-    const result = await db
-      .select()
-      .from(products)
+    const reviewsSub = ProductService.getReviewsSubquery();
+    const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .where(whereClause)
       .limit(limit)
       .offset(offset)
@@ -122,9 +156,8 @@ export class ProductService {
 
   // Get featured products (new or sale items)
   static async getFeaturedProducts(limit = 8) {
-    const result = await db
-      .select()
-      .from(products)
+    const reviewsSub = ProductService.getReviewsSubquery();
+    const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .where(or(
         eq(products.isNew, true),
         eq(products.isSale, true)
@@ -137,9 +170,8 @@ export class ProductService {
 
   // Get products by category
   static async getProductsByCategory(category: string, limit = 20, offset = 0) {
-    const result = await db
-      .select()
-      .from(products)
+    const reviewsSub = ProductService.getReviewsSubquery();
+    const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .where(eq(products.category, category))
       .limit(limit)
       .offset(offset)

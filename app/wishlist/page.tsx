@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useWishlist } from "../../context/WishlistProvider";
 import { useCart } from "../../context/CartProvider";
 import { ShoppingCart, Trash2, Heart } from "lucide-react";
@@ -10,14 +12,22 @@ import { getImageUrl } from "../utils/image";
 export default function WishlistPage() {
   const { wishlistItems, removeFromWishlist, isLoading } = useWishlist();
   const { addItem } = useCart();
+  const [addingProductIds, setAddingProductIds] = useState<Record<number, boolean>>({});
 
-  const handleAddToCart = (product: { id: number; name: string; price: string; image: string }) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: parseFloat(product.price),
-      image: product.image,
-    });
+  const handleAddToCart = async (product: { id: number; name: string; price: string; image: string }) => {
+    setAddingProductIds(prev => ({ ...prev, [product.id]: true }));
+    try {
+      await addItem({
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price),
+        image: product.image,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAddingProductIds(prev => ({ ...prev, [product.id]: false }));
+    }
   };
 
   if (isLoading) {
@@ -73,10 +83,15 @@ export default function WishlistPage() {
                   <span className="text-xl font-semibold text-color-1">${item.product.price}</span>
                   <button
                     onClick={() => handleAddToCart(item.product)}
-                    className="bg-color-1 text-color-4 p-2 rounded hover:bg-color-4 hover:text-color-1 transition-colors"
+                    disabled={addingProductIds[item.product.id]}
+                    className="bg-color-1 text-color-4 p-2 rounded hover:bg-color-4 hover:text-color-1 transition-colors flex items-center justify-center disabled:opacity-50"
                     aria-label="Add to cart"
                   >
-                    <ShoppingCart className="h-4 w-4" />
+                    {addingProductIds[item.product.id] ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <ShoppingCart className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>

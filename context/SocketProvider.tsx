@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface SocketContextType {
@@ -54,24 +54,24 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const joinProduct = (productId: string) => {
+  const joinProduct = useCallback((productId: string) => {
     if (socket) {
       socket.emit('join-product', productId);
     }
-  };
+  }, [socket]);
 
-  const leaveProduct = (productId: string) => {
+  const leaveProduct = useCallback((productId: string) => {
     if (socket) {
       socket.emit('leave-product', productId);
     }
-  };
+  }, [socket]);
 
-  const value: SocketContextType = {
+  const value: SocketContextType = useMemo(() => ({
     socket,
     isConnected,
     joinProduct,
     leaveProduct,
-  };
+  }), [socket, isConnected, joinProduct, leaveProduct]);
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

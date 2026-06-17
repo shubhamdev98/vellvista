@@ -687,21 +687,25 @@ export const appRouter = router({
         ))
         .limit(1);
 
+      let cartItemId: number;
       if (existingItem.length > 0) {
-        await db.update(shoppingCart)
+        const result = await db.update(shoppingCart)
           .set({ quantity: existingItem[0].quantity + input.quantity })
-          .where(eq(shoppingCart.id, existingItem[0].id));
+          .where(eq(shoppingCart.id, existingItem[0].id))
+          .returning({ id: shoppingCart.id });
+        cartItemId = result[0].id;
       } else {
-        await db.insert(shoppingCart).values({
+        const result = await db.insert(shoppingCart).values({
           userId: input.userId,
           sessionId: input.sessionId,
           productId: input.productId,
           variantId: input.variantId,
           quantity: input.quantity
-        });
+        }).returning({ id: shoppingCart.id });
+        cartItemId = result[0].id;
       }
 
-      return { success: true, message: 'Added to cart' };
+      return { success: true, message: 'Added to cart', cartItemId };
     }),
 
   updateCartItem: publicProcedure

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { trpc } from '../app/utils/trpc';
 import { useToast } from './ToastProvider';
 import { useAuth } from './AuthProvider';
@@ -35,7 +35,24 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
   const { user } = useAuth();
 
-  const addToWishlist = async (productId: number) => {
+  const fetchWishlist = useCallback(async () => {
+    try {
+      if (!user) {
+        setWishlistItems([]);
+        return;
+      }
+
+      setIsLoading(true);
+      const items = await trpc.getWishlist({ userId: user.id });
+      setWishlistItems(items);
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const addToWishlist = useCallback(async (productId: number) => {
     try {
       if (!user) {
         showToast('Please login to add items to wishlist', 'warning');
@@ -56,9 +73,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       console.error('Error adding to wishlist:', error);
       showToast('Failed to add to wishlist', 'error');
     }
-  };
+  }, [user, fetchWishlist, showToast]);
 
-  const removeFromWishlist = async (productId: number) => {
+  const removeFromWishlist = useCallback(async (productId: number) => {
     try {
       if (!user) return;
 
@@ -72,40 +89,23 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       console.error('Error removing from wishlist:', error);
       showToast('Failed to remove from wishlist', 'error');
     }
-  };
+  }, [user, fetchWishlist, showToast]);
 
-  const fetchWishlist = async () => {
-    try {
-      if (!user) {
-        setWishlistItems([]);
-        return;
-      }
-
-      setIsLoading(true);
-      const items = await trpc.getWishlist({ userId: user.id });
-      setWishlistItems(items);
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const isInWishlist = (productId: number) => {
+  const isInWishlist = useCallback((productId: number) => {
     return wishlistItems.some(item => item.product.id === productId);
-  };
+  }, [wishlistItems]);
 
   useEffect(() => {
     fetchWishlist();
-  }, [user]);
+  }, [user, fetchWishlist]);
 
-  const value: WishlistContextType = {
+  const value: WishlistContextType = useMemo(() => ({
     wishlistItems,
     isInWishlist,
     addToWishlist,
     removeFromWishlist,
     isLoading
-  };
+  }), [wishlistItems, isInWishlist, addToWishlist, removeFromWishlist, isLoading]);
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 }

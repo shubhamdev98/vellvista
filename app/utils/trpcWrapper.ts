@@ -1,4 +1,4 @@
-import { createTRPCProxyClient, httpLink, loggerLink } from '@trpc/client';
+import { createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
 
 const getBaseUrl = () => {
   const trpcUrl = process.env.NEXT_PUBLIC_TRPC_URL;
@@ -17,7 +17,7 @@ const client = createTRPCProxyClient<any>({
         typeof window === 'undefined' &&
         opts.direction === 'down',
     }),
-    httpLink({
+    httpBatchLink({
       url: getBaseUrl(),
     }),
   ],

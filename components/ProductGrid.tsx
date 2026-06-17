@@ -146,7 +146,6 @@ export default function ProductGrid({
   const [isDoubleColumn, setIsDoubleColumn] = useState(true);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [reviewStats, setReviewStats] = useState<Record<number, { avg: number; count: number }>>({});
 
   useEffect(() => {
     const fetchDbProducts = async () => {
@@ -178,38 +177,7 @@ export default function ProductGrid({
     fetchDbProducts();
   }, []);
 
-  // Fetch real review stats for all displayed products
   const displayProducts = dbProducts.length > 0 ? dbProducts : products;
-
-  useEffect(() => {
-    const fetchReviewStats = async () => {
-      const stats: Record<number, { avg: number; count: number }> = {};
-      await Promise.all(
-        displayProducts.map(async (product) => {
-          try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001';
-            const response = await fetch(`${backendUrl}/api/reviews/${product.id}`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data && data.length > 0) {
-                const total = data.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0);
-                stats[product.id] = {
-                  avg: Math.round((total / data.length) * 10) / 10,
-                  count: data.length,
-                };
-              }
-            }
-          } catch {
-            // silently skip
-          }
-        })
-      );
-      setReviewStats(stats);
-    };
-    if (displayProducts.length > 0) {
-      fetchReviewStats();
-    }
-  }, [displayProducts.length]);
 
   // displayProducts is computed above before the review stats fetch
 
@@ -595,16 +563,16 @@ export default function ProductGrid({
                     />
                   </button>
 
-                  {/* Rating Badge - Bottom Right of Image (only if real reviews exist) */}
-                  {reviewStats[product.id] && (
+                  {/* Rating Badge - Bottom Right of Image (only if reviews exist) */}
+                  {product.reviews > 0 && (
                     <div className="absolute bottom-2.5 right-2.5 z-10">
                       <div className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-md">
                         <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 fill-current" />
                         <span className="text-[11px] sm:text-xs font-bold text-gray-800">
-                          {reviewStats[product.id].avg}
+                          {product.rating}
                         </span>
                         <span className="text-[10px] sm:text-[11px] text-gray-500">
-                          ({reviewStats[product.id].count})
+                          ({product.reviews})
                         </span>
                       </div>
                     </div>
@@ -645,6 +613,8 @@ export default function ProductGrid({
                     onClick={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      setClickedProductId(product.id);
+                      const timer = setTimeout(() => setClickedProductId(null), 1000);
                       try {
                         await addItem({
                           id: product.id,
@@ -652,9 +622,9 @@ export default function ProductGrid({
                           price: product.price,
                           image: product.image,
                         });
-                        setClickedProductId(product.id);
-                        setTimeout(() => setClickedProductId(null), 1000);
                       } catch (error: unknown) {
+                        clearTimeout(timer);
+                        setClickedProductId(null);
                         const message =
                           error instanceof Error
                             ? error.message

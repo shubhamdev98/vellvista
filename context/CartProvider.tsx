@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useMemo, useState, useEffect, useRef, type ReactNode } from "react";
 import { trpc } from "../app/utils/trpc";
 import { useAuth } from "./AuthProvider";
 
@@ -47,7 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [discountRate, setDiscountRate] = useState(0); // 0 means no discount
 
 
-  const applyCoupon = (code: string) => {
+  const applyCoupon = useCallback((code: string) => {
     const trimmed = code.trim().toUpperCase();
     if (trimmed === 'SAVE10') {
       setCouponCode(trimmed);
@@ -56,12 +56,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCouponCode('');
       setDiscountRate(0);
     }
-  };
+  }, []);
 
-  const removeCoupon = () => {
+  const removeCoupon = useCallback(() => {
     setCouponCode('');
     setDiscountRate(0);
-  };
+  }, []);
   const hasWarnedBackendUnavailable = useRef(false);
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState(() => {
@@ -96,20 +96,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     const userId = user?.id || undefined;
     if (!userId && !sessionId) return;
     try {
       setIsLoading(true);
       const cartData = await trpc.getCart({ userId, sessionId });
-        const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
-          id: item.productId,
-          cartItemId: item.id,
-          name: item.product?.name || "",
-          price: parseFloat(item.product?.price || "0"),
-          image: item.product?.image || "",
-          quantity: item.quantity,
-        }));
+      const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
+        id: item.productId,
+        cartItemId: item.id,
+        name: item.product?.name || "",
+        price: parseFloat(item.product?.price || "0"),
+        image: item.product?.image || "",
+        quantity: item.quantity,
+      }));
       setItems(mappedItems);
     } catch (error: unknown) {
       if (isNetworkError(error)) {
@@ -123,72 +123,106 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id, sessionId]);
 
   useEffect(() => {
     fetchCart();
-  }, [user, sessionId]);
+  }, [user, sessionId, fetchCart]);
 
-  const addItem = async (item: Omit<CartItem, "quantity" | "cartItemId">) => {
+  const addItem = useCallback(async (item: Omit<CartItem, "quantity" | "cartItemId">) => {
     if (!user) {
       throw new Error("You cannot add product without login. You need to login first.");
     }
+    
+    const tempCartItemId = -Date.now();
+    let previousItems: CartItem[] = [];
+    
+    setItems(prev => {
+      previousItems = prev;
+      const existingIndex = prev.findIndex(i => i.id === item.id);
+      if (existingIndex > -1) {
+        return prev.map((i, idx) => 
+          idx === existingIndex ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            id: item.id,
+            cartItemId: tempCartItemId,
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            quantity: 1,
+          },
+        ];
+      }
+    });
+    
     try {
       const userId = user.id;
-      await trpc.addToCart({
+      const res = await trpc.addToCart({
         userId,
         sessionId,
         productId: item.id,
         quantity: 1,
       });
-      await fetchCart();
+      
+      if (res && res.cartItemId) {
+        setItems(prev =>
+          prev.map(i => (i.cartItemId === tempCartItemId ? { ...i, cartItemId: res.cartItemId } : i))
+        );
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      setItems(previousItems);
       throw error;
     }
-  };
+  }, [user, sessionId]);
 
-  const removeItem = async (cartItemId: number) => {
+  const removeItem = useCallback(async (cartItemId: number) => {
+    let previousItems: CartItem[] = [];
+    setItems(prev => {
+      previousItems = prev;
+      return prev.filter(item => item.cartItemId !== cartItemId);
+    });
     try {
       await trpc.removeFromCart({ id: cartItemId });
-      await fetchCart();
     } catch (error) {
       console.error("Error removing from cart:", error);
+      setItems(previousItems);
     }
-  };
+  }, []);
 
-  const updateQuantity = async (cartItemId: number, quantity: number) => {
-    // Save previous state so we can revert if the backend call fails
-    const previousItems = items;
+  const updateQuantity = useCallback(async (cartItemId: number, quantity: number) => {
+    let previousItems: CartItem[] = [];
+    const newQty = Math.max(1, quantity);
+    setItems(prev => {
+      previousItems = prev;
+      return prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item);
+    });
     try {
-      // Ensure quantity is at least 1
-      const newQty = Math.max(1, quantity);
-      // FIX: Optimistically update UI without re-fetching from the backend.
-      // Previously, fetchCart() was called after the update which overwrote
-      // the optimistic state with data in a potentially different order
-      // (PostgreSQL returns rows in arbitrary order without ORDER BY).
-      // Now we trust the optimistic update and only sync the new quantity
-      // to the backend. The order in the items array is preserved.
-      setItems(prev => prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item));
-      // Sync with backend (no fetchCart() afterward to avoid overwriting order)
       await trpc.updateCartItem({ id: cartItemId, quantity: newQty });
     } catch (error) {
       console.error("Error updating cart quantity:", error);
-      // Revert optimistic update on failure so the UI stays accurate
       setItems(previousItems);
     }
-  };
+  }, []);
 
-
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
+    let previousItems: CartItem[] = [];
+    setItems(prev => {
+      previousItems = prev;
+      return [];
+    });
     try {
       const userId = user?.id || undefined;
       await trpc.clearCart({ userId, sessionId });
-      await fetchCart();
     } catch (error) {
       console.error("Error clearing cart:", error);
+      setItems(previousItems);
     }
-  };
+  }, [user?.id, sessionId]);
 
   const totalItems = useMemo(
     () => items.reduce((count, item) => count + item.quantity, 0),
@@ -205,13 +239,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       isLoading,
       requiresLogin: !user,
-      // Coupon related
       couponCode,
       discountRate,
       applyCoupon,
       removeCoupon,
     }),
-    [items, totalItems, isLoading, user, sessionId, couponCode, discountRate]
+    [items, totalItems, isLoading, user, couponCode, discountRate, addItem, removeItem, updateQuantity, clearCart, applyCoupon, removeCoupon]
   );
 
   // Cleanup any pending timers and pending quantities when the provider unmounts

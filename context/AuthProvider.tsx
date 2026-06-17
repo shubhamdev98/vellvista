@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { trpc } from '../app/utils/trpc';
 import { authClient } from '../app/utils/auth-client';
 
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthSession();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
       console.log('Attempting login with:', email);
@@ -153,9 +153,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = useCallback(async () => {
     setIsLoading(true);
     try {
       await authClient.signIn.social({
@@ -168,9 +168,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const register = async (userData: RegisterData) => {
+  const register = useCallback(async (userData: RegisterData) => {
     setIsLoading(true);
     try {
       const registerInput = {
@@ -206,9 +206,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const verifyOtp = async (email: string, otp: string) => {
+  const verifyOtp = useCallback(async (email: string, otp: string) => {
     setIsLoading(true);
     try {
       const result = await trpc.verifyRegistrationOtp({ email, otp });
@@ -234,9 +234,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     // Clear better-auth session (Google OAuth)
     try {
       await authClient.signOut();
@@ -249,36 +249,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('userData');
     localStorage.removeItem('loginTime');
     localStorage.removeItem('cartSessionId');
-  };
+  }, []);
 
-  const updateProfile = async (userData: Partial<User>) => {
+  const updateProfile = useCallback(async (userData: Partial<User>) => {
     setIsLoading(true);
     try {
-      if (user) {
-        // If updating avatar, use the backend endpoint
+      setUser(prev => {
+        if (!prev) return null;
         if (userData.avatar) {
-          const result = await trpc.updateAvatar({
-            id: user.id,
+          trpc.updateAvatar({
+            id: prev.id,
             avatar: userData.avatar
+          }).then((result: any) => {
+            const updated = { ...prev, avatar: result.user.avatar };
+            setUser(updated);
+            localStorage.setItem('userData', JSON.stringify(updated));
+          }).catch((err: any) => {
+            console.error('Avatar update failed:', err);
+          }).finally(() => {
+            setIsLoading(false);
           });
-          const updatedUser = { ...user, avatar: result.user.avatar };
-          setUser(updatedUser);
-          localStorage.setItem('userData', JSON.stringify(updatedUser));
+          return prev;
         } else {
-          const updatedUser = { ...user, ...userData };
-          setUser(updatedUser);
-          localStorage.setItem('userData', JSON.stringify(updatedUser));
+          const updated = { ...prev, ...userData };
+          localStorage.setItem('userData', JSON.stringify(updated));
+          setIsLoading(false);
+          return updated;
         }
-      }
+      });
     } catch (error) {
       console.error('Profile update failed:', error);
-      throw error;
-    } finally {
       setIsLoading(false);
+      throw error;
     }
-  };
+  }, []);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     isLoading,
     login,
@@ -287,7 +293,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyOtp,
     logout,
     updateProfile,
-  };
+  }), [user, isLoading, login, loginWithGoogle, register, verifyOtp, logout, updateProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

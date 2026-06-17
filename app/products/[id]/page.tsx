@@ -35,6 +35,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const [variants, setVariants] = useState<Variant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   interface Product {
     id: number;
@@ -165,14 +167,24 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     });
   };
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      image: product.image,
-    });
+  const handleAddToCart = async () => {
+    if (!product || isAdding) return;
+    setIsAdding(true);
+    try {
+      await addItem({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image: product.image,
+      });
+      setIsAdded(true);
+      showToast("Added to cart successfully!", "success");
+      setTimeout(() => setIsAdded(false), 1500);
+    } catch (error: any) {
+      showToast(error.message || "Failed to add item to cart.", "warning");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -403,10 +415,33 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <div className="flex space-x-4 mb-6">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-primary text-inverse py-3 font-semibold hover:bg-secondary hover:text-primary transition-colors flex items-center justify-center"
+                  disabled={isAdding}
+                  className={`flex-1 py-3 font-semibold transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                    isAdded
+                      ? "bg-green-600 text-white"
+                      : isAdding
+                        ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                        : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
+                  }`}
                 >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Add to Cart
+                  {isAdded ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Added!
+                    </>
+                  ) : isAdding ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Add to Cart
+                    </>
+                  )}
                 </button>
                 <button className="p-3 border border-dark  hover:border-primary transition-colors">
                   <Heart className="h-5 w-5 text-primary" />

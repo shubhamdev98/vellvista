@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, boolean, timestamp, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, numeric, boolean, timestamp, integer, index } from 'drizzle-orm/pg-core';
 
 // Users table (Better Auth schema extended with custom app properties)
 export const user = pgTable('user', {
@@ -66,6 +66,10 @@ export const productVariants = pgTable('product_variants', {
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    productIdIdx: index('product_variants_product_id_idx').on(table.productId),
+  };
 });
 
 // Reviews table
@@ -83,6 +87,11 @@ export const reviews = pgTable('reviews', {
   helpfulCount: integer('helpful_count').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    productIdIdx: index('reviews_product_id_idx').on(table.productId),
+    userIdIdx: index('reviews_user_id_idx').on(table.userId),
+  };
 });
 
 // Products table
@@ -138,6 +147,12 @@ export const wishlist = pgTable('wishlist', {
   userId: text('user_id').notNull().references(() => user.id),
   productId: integer('product_id').notNull().references(() => products.id),
   createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('wishlist_user_id_idx').on(table.userId),
+    productIdIdx: index('wishlist_product_id_idx').on(table.productId),
+    userProductIdx: index('wishlist_user_product_idx').on(table.userId, table.productId),
+  };
 });
 
 // Shopping cart table
@@ -150,6 +165,14 @@ export const shoppingCart = pgTable('shopping_cart', {
   quantity: integer('quantity').notNull().default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('shopping_cart_user_id_idx').on(table.userId),
+    sessionIdIdx: index('shopping_cart_session_id_idx').on(table.sessionId),
+    productIdIdx: index('shopping_cart_product_id_idx').on(table.productId),
+    userProductIdx: index('shopping_cart_user_product_idx').on(table.userId, table.productId),
+    sessionProductIdx: index('shopping_cart_session_product_idx').on(table.sessionId, table.productId),
+  };
 });
 
 // Addresses table

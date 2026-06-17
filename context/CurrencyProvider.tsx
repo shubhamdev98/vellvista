@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { trpc } from "../app/utils/trpc";
 
 export type CurrencyCode = "USD" | "INR" | "TRY" | "MXN" | "AED" | "GBP" | "CAD" | "EUR" | "AUD" | "SGD" | "JPY";
@@ -130,7 +130,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return availableCurrencies[0] || CURRENCIES[0];
   }, [availableCurrencies, selectedCountryCode]);
 
-  const setCountryCode = (countryCode: string) => {
+  const setCountryCode = useCallback((countryCode: string) => {
     const codeLower = countryCode.toLowerCase();
     setSelectedCountryCode(codeLower);
     if (typeof window !== "undefined") {
@@ -141,21 +141,21 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("selectedCurrency", matched.code);
       }
     }
-  };
+  }, [availableCurrencies]);
 
-  const setCurrency = (code: CurrencyCode) => {
+  const setCurrency = useCallback((code: CurrencyCode) => {
     // Keep setCurrency for backward compatibility in case other parts of the app use it
     const matched = availableCurrencies.find(c => c.code === code);
     if (matched) {
       setCountryCode(matched.countryCode);
     }
-  };
+  }, [availableCurrencies, setCountryCode]);
 
-  const convertPrice = (priceInUSD: number): number => {
+  const convertPrice = useCallback((priceInUSD: number): number => {
     return priceInUSD * currency.rate;
-  };
+  }, [currency.rate]);
 
-  const formatPrice = (priceInUSD: number): string => {
+  const formatPrice = useCallback((priceInUSD: number): string => {
     const converted = convertPrice(priceInUSD);
     if (currency.code === "USD") {
       return `$${converted.toFixed(2)}`;
@@ -182,11 +182,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       return `MX$${converted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     }
     return `${currency.symbol}${converted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
+  }, [currency.code, currency.symbol, convertPrice]);
 
   const value = useMemo(
     () => ({ currency, setCurrency, formatPrice, convertPrice, availableCurrencies, setCountryCode }),
-    [currency, availableCurrencies]
+    [currency, setCurrency, formatPrice, convertPrice, availableCurrencies, setCountryCode]
   );
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;
