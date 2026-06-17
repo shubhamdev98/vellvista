@@ -10,7 +10,7 @@ import { wishlist, products, reviews, addresses, shoppingCart, payments, shippin
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, asc } from 'drizzle-orm';
 import { transporter } from './auth';
 
 // Create tRPC instance with proper types
@@ -643,16 +643,21 @@ export const appRouter = router({
       }
 
       let cartItems;
+      // FIX: Add ORDER BY to guarantee deterministic item order.
+      // Without this, PostgreSQL returns rows in arbitrary physical order
+      // which changes after UPDATEs (MVCC relocates updated rows).
       if (input.userId) {
         cartItems = await db.select()
           .from(shoppingCart)
           .leftJoin(products, eq(shoppingCart.productId, products.id))
-          .where(eq(shoppingCart.userId, input.userId));
+          .where(eq(shoppingCart.userId, input.userId))
+          .orderBy(asc(shoppingCart.createdAt), asc(shoppingCart.id));
       } else {
         cartItems = await db.select()
           .from(shoppingCart)
           .leftJoin(products, eq(shoppingCart.productId, products.id))
-          .where(eq(shoppingCart.sessionId, input.sessionId || ""));
+          .where(eq(shoppingCart.sessionId, input.sessionId || ""))
+          .orderBy(asc(shoppingCart.createdAt), asc(shoppingCart.id));
       }
 
       return cartItems.map(item => ({

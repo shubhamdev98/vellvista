@@ -62,7 +62,10 @@ export default function CartPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-sm font-medium text-primary truncate">{item.name}</h2>
-                <p className="text-sm text-secondary">{formatPrice(item.price)}</p>
+                {/* FIX: Display line total (unit price × quantity) instead of just unit price.
+                    This is consistent with the sidebar cart (CartItem.tsx) and ensures
+                    the displayed price updates correctly when quantity changes. */}
+                <p className="text-sm text-secondary">{formatPrice(item.price * item.quantity)}</p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button

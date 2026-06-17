@@ -29,7 +29,7 @@ export default function Hero() {
             <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3">
               summer collection 26
             </h4>
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight font-serif text-inverse">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight text-inverse">
               The Art of Fragrance
             </h1>
           </div>

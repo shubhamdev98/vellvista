@@ -158,19 +158,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (cartItemId: number, quantity: number) => {
+    // Save previous state so we can revert if the backend call fails
+    const previousItems = items;
     try {
       // Ensure quantity is at least 1
       const newQty = Math.max(1, quantity);
-      // Optimistically update UI
+      // FIX: Optimistically update UI without re-fetching from the backend.
+      // Previously, fetchCart() was called after the update which overwrote
+      // the optimistic state with data in a potentially different order
+      // (PostgreSQL returns rows in arbitrary order without ORDER BY).
+      // Now we trust the optimistic update and only sync the new quantity
+      // to the backend. The order in the items array is preserved.
       setItems(prev => prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item));
-      // Immediately sync with backend
+      // Sync with backend (no fetchCart() afterward to avoid overwriting order)
       await trpc.updateCartItem({ id: cartItemId, quantity: newQty });
-      // Refresh cart to stay consistent
-      await fetchCart();
     } catch (error) {
       console.error("Error updating cart quantity:", error);
+      // Revert optimistic update on failure so the UI stays accurate
+      setItems(previousItems);
     }
   };
+
 
   const clearCart = async () => {
     try {

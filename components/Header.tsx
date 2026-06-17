@@ -205,7 +205,7 @@ function CartSidebar({
       )}
 
       <div
-          className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform sm:rounded-l-2xl ${
+          className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
