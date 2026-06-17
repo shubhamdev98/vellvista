@@ -1,10 +1,12 @@
 
 
+import Link from 'next/link';
+
 export default function Hero() {
   return (
     <div
       id="home"
-      className="relative h-[37.5rem] md:h-[43.75rem] text-inverse overflow-hidden"
+      className="relative h-screen md:h-[88vh] text-inverse overflow-hidden"
     >
       {/* Background Video */}
         <div className="absolute inset-0 z-0">
@@ -23,15 +25,18 @@ export default function Hero() {
         </div>
 
       {/* Content Overlay */}
-      <div className="absolute inset-x-0 bottom-[20%] md:bottom-[25%] z-10">
+      <div className="absolute inset-x-0 bottom-[20%] md:bottom-[10%] z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
           <div className="max-w-2xl">
-            <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3">
-              summer collection 26
+            <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3 mt-4">
+                summer collection 26
             </h4>
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight text-inverse">
-              The Art of Fragrance
+                The Art of Fragrance
             </h1>
+            <Link href="/shop" className="inline-block mt-6 bg-white text-primary font-medium py-3 px-6 transition-colors duration-300">
+                Shop Now
+            </Link>
           </div>
         </div>
       </div>
