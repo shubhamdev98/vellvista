@@ -15,7 +15,7 @@ export default function Home() {
         <Hero />
         <CategorySection />
         <PromoBanner />
-        <ProductGrid />
+        <ProductGrid limit={4} />
       </main>
       <Footer />
     </div>

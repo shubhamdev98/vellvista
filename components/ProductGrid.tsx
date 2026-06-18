@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { ShoppingCart, Star, Heart, Filter, X, Grid, List, ChevronDown } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import Breadcrumb from "./Breadcrumb";
 import { useCart } from "../context/CartProvider";
 import { useWishlist } from "../context/WishlistProvider";
@@ -131,11 +131,13 @@ const products: Product[] = [
 interface ProductGridProps {
   showTitle?: boolean;
   breadcrumbItems?: { label: string; href?: string }[];
+  limit?: number; // Limit number of products displayed (used on landing page)
 }
 
 export default function ProductGrid({
   showTitle = true,
   breadcrumbItems,
+  limit,
 }: ProductGridProps) {
   const { addItem } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
@@ -178,6 +180,8 @@ export default function ProductGrid({
   }, []);
 
   const displayProducts = dbProducts.length > 0 ? dbProducts : products;
+  // Apply limit if provided (e.g., landing page shows only 4 items)
+  const limitedProducts = typeof limit === 'number' ? displayProducts.slice(0, limit) : displayProducts;
 
   // displayProducts is computed above before the review stats fetch
 
@@ -190,22 +194,23 @@ export default function ProductGrid({
     newOnly: false,
     maleOnly: false,
     femaleOnly: false,
+    unisexOnly: false,
   });
 
-  // Apply filters
-  const filteredProducts = displayProducts.filter((product) => {
+  const filteredProducts = (typeof limit === 'number' ? limitedProducts : displayProducts).filter((product) => {
     if (product.price < filters.minPrice) return false;
     if (product.price > filters.maxPrice) return false;
     if (product.rating < filters.minRating) return false;
     if (filters.saleOnly && !product.isSale) return false;
     if (filters.newOnly && !product.isNew) return false;
 
-    // Filter by gender category if either is selected
-    if (filters.maleOnly || filters.femaleOnly) {
+    // Filter by gender category if any gender filter is selected
+    if (filters.maleOnly || filters.femaleOnly || filters.unisexOnly) {
       const prodCat = (product.category || "").toLowerCase();
-      const matchesMale = filters.maleOnly && (prodCat === "men" || prodCat === "unisex");
-      const matchesFemale = filters.femaleOnly && (prodCat === "women" || prodCat === "unisex");
-      if (!matchesMale && !matchesFemale) {
+      const matchesMale = filters.maleOnly && prodCat === "men";
+      const matchesFemale = filters.femaleOnly && prodCat === "women";
+      const matchesUnisex = filters.unisexOnly && prodCat === "unisex";
+      if (!matchesMale && !matchesFemale && !matchesUnisex) {
         return false;
       }
     }
@@ -221,6 +226,7 @@ export default function ProductGrid({
       newOnly: false,
       maleOnly: false,
       femaleOnly: false,
+      unisexOnly: false,
     });
   };
 
@@ -441,6 +447,17 @@ export default function ProductGrid({
                     />
                     <span className="text-sm text-secondary hover:text-primary transition-colors">Female</span>
                   </label>
+                  <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filters.unisexOnly}
+                      onChange={(e) =>
+                        setFilters({ ...filters, unisexOnly: e.target.checked })
+                      }
+                      className="w-4 h-4 accent-primary border-primary"
+                    />
+                    <span className="text-sm text-secondary hover:text-primary transition-colors">Unisex</span>
+                  </label>
                 </div>
               </div>
 
@@ -641,12 +658,12 @@ export default function ProductGrid({
         </div>
 
         <div className="text-center mt-8 sm:mt-12">
-          <a
-            href="#products"
+          <Link
+            href="/products"
             className="inline-block border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light hover:bg-primary hover:text-inverse transition-colors"
           >
             Load more
-          </a>
+          </Link>
         </div>
       </div>
     </section>
