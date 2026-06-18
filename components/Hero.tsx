@@ -8,7 +8,7 @@ export default function Hero() {
     >
       {/* Background Video */}
         <div className="absolute inset-0 z-0">
-          <video
+          <video autoPlay preload="auto"
             className="object-cover w-full h-full"
             muted
             loop

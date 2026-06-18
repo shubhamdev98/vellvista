@@ -1,4 +1,6 @@
 // Trigger build with fixed TypeScript annotations
+import dotenv from 'dotenv';
+dotenv.config();
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
@@ -183,32 +185,46 @@ const uploadProductImage = multer({
 
 // Configure Cloudinary
 // Validate Cloudinary configuration
+// Simple warning if Cloudinary env vars are missing; upload will handle errors
 const requiredEnv = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
-    console.warn(`⚠️ Cloudinary env var ${key} is not set. Cloudinary uploads may fail.`);
+    console.warn(`⚠️ Cloudinary env var ${key} is not set. Uploads may fail.`);
   }
 });
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'your_cloud_name',
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+  api_key: process.env.CLOUDINARY_API_KEY || '',
+  api_secret: process.env.CLOUDINARY_API_SECRET || '',
 });
 
 // Helper to upload a file to Cloudinary and delete the local temporary file
 async function uploadToCloudinary(file: Express.Multer.File, folder: string): Promise<string> {
-  const result = await cloudinary.uploader.upload(file.path, {
-    folder: `vellvista/${folder}`,
-  });
-  // Delete local temp file after upload
+  // Validate required Cloudinary configuration at upload time
+  const missing = [];
+  if (!process.env.CLOUDINARY_CLOUD_NAME) missing.push('CLOUDINARY_CLOUD_NAME');
+  if (!process.env.CLOUDINARY_API_KEY) missing.push('CLOUDINARY_API_KEY');
+  if (!process.env.CLOUDINARY_API_SECRET) missing.push('CLOUDINARY_API_SECRET');
+  if (missing.length > 0) {
+    const errMsg = `Cloudinary configuration missing: ${missing.join(', ')}`;
+    console.error(errMsg);
+    throw new Error(errMsg);
+  }
+
   try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: `vellvista/${folder}`,
+      resource_type: 'image',
+    });
+    // Delete local temp file after upload
     if (fs.existsSync(file.path)) {
       fs.unlinkSync(file.path);
     }
+    return result.secure_url;
   } catch (err) {
-    console.error('Error deleting temp file:', err);
+    console.error('Cloudinary upload error:', err);
+    throw err;
   }
-  return result.secure_url;
 }
 
 
