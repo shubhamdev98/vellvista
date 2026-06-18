@@ -31,11 +31,10 @@ function NavItems({
           <a
             href={link.href}
             onClick={onLinkClick}
-            className={`${
-              mobile
+            className={`${mobile
                 ? "block px-3 py-3 text-base text-primary border-b border-default last:border-0 hover:bg-surface-alt rounded"
                 : "px-3 py-2 text-sm text-primary"
-            } font-light hover:text-secondary transition`}
+              } font-light hover:text-secondary transition`}
           >
             {link.name}
           </a>
@@ -81,9 +80,8 @@ function SearchBar({
   const showExpanded = mobile || full || isExpanded || !!value;
 
   return (
-    <div className={`relative transition-all duration-300 ${
-      mobile || full ? "w-full" : showExpanded ? "w-64" : "w-10"
-    }`}>
+    <div className={`relative transition-all duration-300 ${mobile || full ? "w-full" : showExpanded ? "w-64" : "w-10"
+      }`}>
       <input
         ref={inputRef}
         value={value}
@@ -91,25 +89,21 @@ function SearchBar({
         onBlur={handleBlur}
         type="text"
         placeholder="Search perfumes..."
-        className={`w-full text-primary placeholder:text-muted py-2 border-b outline-none bg-transparent transition-all duration-300 ${
-          mobile ? "border-dark" : "border-default"
-        } focus:border-primary ${
-          showExpanded 
-            ? "pl-10 pr-4 opacity-100 cursor-text" 
+        className={`w-full text-primary placeholder:text-muted py-2 border-b outline-none bg-transparent transition-all duration-300 ${mobile ? "border-dark" : "border-default"
+          } focus:border-primary ${showExpanded
+            ? "pl-10 pr-4 opacity-100 cursor-text"
             : "pl-0 pr-0 opacity-0 pointer-events-none cursor-pointer"
-        }`}
+          }`}
       />
       <button
         onClick={handleIconClick}
         type="button"
         disabled={showExpanded}
-        className={`absolute top-2 h-6 w-6 flex items-center justify-center transition-all duration-300 ${
-          mobile ? "text-primary" : "text-secondary hover:text-primary"
-        } ${
-          showExpanded 
-            ? "left-3 pointer-events-none cursor-default" 
+        className={`absolute top-2 h-6 w-6 flex items-center justify-center transition-all duration-300 ${mobile ? "text-primary" : "text-secondary hover:text-primary"
+          } ${showExpanded
+            ? "left-3 pointer-events-none cursor-default"
             : "left-2 cursor-pointer"
-        }`}
+          }`}
         aria-label="Search perfumes"
       >
         <Search className="h-5 w-5" />
@@ -205,8 +199,7 @@ function CartSidebar({
       )}
 
       <div
-          className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform ${
-            isOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform ${isOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
         <div className="flex flex-col h-full">
@@ -229,7 +222,7 @@ function CartSidebar({
                 ))
               )}
             </div>
-            
+
             {items.length > 0 && (
               <div className="border-t border-gray-200 p-4 bg-surface sticky bottom-0">
                 <div className="flex justify-between text-sm text-muted mb-2">
@@ -253,7 +246,7 @@ function CartSidebar({
                     placeholder="Coupon code"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    className="flex-1 border border-default rounded px-2 py-1 text-sm"
+                    className="flex-1 border border-default rounded hover:border-gray-300 hover:rounded-none px-2 py-1 text-sm"
                   />
                   <button
                     onClick={() => {
@@ -274,19 +267,19 @@ function CartSidebar({
                   <span>{formatPrice(grandTotal)}</span>
                 </div>
 
-<div className="flex flex-row gap-2">
-  <button
-    onClick={clearCart}
-    className="flex-1 border border-primary text-primary py-3 hover:bg-surface-alt"
-  >
-    Clear
-  </button>
-  <button
-    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light"
-  >
-    Checkout
-  </button>
-</div>
+                <div className="flex flex-row gap-2">
+                  <button
+                    onClick={clearCart}
+                    className="flex-1 border border-primary text-primary py-3 hover:bg-surface-alt"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light"
+                  >
+                    Checkout
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -228,11 +228,10 @@ export default function ProductGrid({
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-3 w-3 sm:h-4 sm:w-4 ${
-          i < Math.floor(rating)
+        className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(rating)
             ? "text-warning fill-current"
             : "text-muted"
-        }`}
+          }`}
       />
     ));
   };
@@ -259,22 +258,20 @@ export default function ProductGrid({
               <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
                 <button
                   onClick={() => setIsDoubleColumn(false)}
-                  className={`p-1.5 sm:p-2 transition-colors ${
-                    !isDoubleColumn
+                  className={`p-1.5 sm:p-2 transition-colors ${!isDoubleColumn
                       ? "bg-primary text-inverse"
                       : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                  }`}
+                    }`}
                   aria-label="Single column view"
                 >
                   <List className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <button
                   onClick={() => setIsDoubleColumn(true)}
-                  className={`p-1.5 sm:p-2 transition-colors ${
-                    isDoubleColumn
+                  className={`p-1.5 sm:p-2 transition-colors ${isDoubleColumn
                       ? "bg-primary text-inverse"
                       : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                  }`}
+                    }`}
                   aria-label="Double column view"
                 >
                   <Grid className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -296,22 +293,20 @@ export default function ProductGrid({
             <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
               <button
                 onClick={() => setIsDoubleColumn(false)}
-                className={`p-1.5 sm:p-2 transition-colors ${
-                  !isDoubleColumn
+                className={`p-1.5 sm:p-2 transition-colors ${!isDoubleColumn
                     ? "bg-primary text-inverse"
                     : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                }`}
+                  }`}
                 aria-label="Single column view"
               >
                 <List className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={() => setIsDoubleColumn(true)}
-                className={`p-1.5 sm:p-2 transition-colors ${
-                  isDoubleColumn
+                className={`p-1.5 sm:p-2 transition-colors ${isDoubleColumn
                     ? "bg-primary text-inverse"
                     : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                }`}
+                  }`}
                 aria-label="Double column view"
               >
                 <Grid className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -336,9 +331,8 @@ export default function ProductGrid({
           />
         )}
         <div
-          className={`fixed top-0 right-0 h-full w-full sm:w-[25rem] bg-surface z-50 transition-transform duration-300 ease-in-out ${
-            showFilter ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`fixed top-0 right-0 h-full w-full sm:w-[25rem] bg-surface z-50 transition-transform duration-300 ease-in-out ${showFilter ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           <div className="flex flex-col h-full">
             {/* Header */}
@@ -496,11 +490,10 @@ export default function ProductGrid({
 
         {/* Product Grid */}
         <div
-          className={`grid gap-3 sm:gap-4 md:gap-6 ${
-            isDoubleColumn
+          className={`grid gap-3 sm:gap-4 md:gap-6 ${isDoubleColumn
               ? "grid-cols-2 lg:grid-cols-4"
               : "grid-cols-1"
-          }`}
+            }`}
         >
           {filteredProducts.map((product) => {
             const discountPercent = product.originalPrice
@@ -527,11 +520,10 @@ export default function ProductGrid({
                   {(product.isSale || product.isNew) && (
                     <div className="absolute top-2.5 left-0 z-10">
                       <span
-                        className={`inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-bold text-white ${
-                          product.isSale
+                        className={`inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-bold text-white ${product.isSale
                             ? "bg-green-600"
                             : "bg-blue-600"
-                        }`}
+                          }`}
                       >
                         {product.isSale ? "Best Seller" : "New"}
                       </span>
@@ -549,17 +541,15 @@ export default function ProductGrid({
                         addToWishlist(product.id);
                       }
                     }}
-                    className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-300 cursor-pointer ${
-                      isInWishlist(product.id)
+                    className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-300 cursor-pointer ${isInWishlist(product.id)
                         ? "bg-red-50 text-red-500 hover:bg-red-100"
                         : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white"
-                    }`}
+                      }`}
                     aria-label={`Add ${product.name} to wishlist`}
                   >
                     <Heart
-                      className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-300 ${
-                        isInWishlist(product.id) ? "fill-current" : ""
-                      }`}
+                      className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-300 ${isInWishlist(product.id) ? "fill-current" : ""
+                        }`}
                     />
                   </button>
 
@@ -633,13 +623,12 @@ export default function ProductGrid({
                       }
                     }}
                     disabled={product.isSale}
-                    className={`w-full mt-3 flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                      product.isSale
+                    className={`w-full mt-3 flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${product.isSale
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : clickedProductId === product.id
                           ? "bg-green-50 border border-green-500 text-green-600"
                           : "bg-primary text-inverse hover:opacity-90"
-                    }`}
+                      }`}
                     aria-label={`Add ${product.name} to cart`}
                   >
                     <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

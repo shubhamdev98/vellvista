@@ -1,18 +1,15 @@
-
-
 import Link from 'next/link';
 
 export default function Hero() {
   return (
-    <div
+        <div
       id="home"
-      className="relative h-screen md:h-[88vh] text-inverse overflow-hidden"
+      className="relative h-[90vh] md:h-[88vh] text-inverse"
     >
       {/* Background Video */}
         <div className="absolute inset-0 z-0">
           <video
             className="object-cover w-full h-full"
-            autoPlay
             muted
             loop
             playsInline
@@ -34,7 +31,7 @@ export default function Hero() {
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight text-inverse">
                 The Art of Fragrance
             </h1>
-            <Link href="/shop" className="inline-block mt-6 bg-white text-primary font-medium py-3 px-6 transition-colors duration-300">
+            <Link href="/products" className="inline-block mt-6 bg-white text-primary font-medium py-3 px-6 transition-colors duration-300">
                 Shop Now
             </Link>
           </div>
