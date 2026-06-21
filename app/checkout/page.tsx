@@ -228,7 +228,7 @@ export default function CheckoutPage() {
 
   const handleRemoveCouponCode = () => {
     removeCoupon();
-    showToast("Coupon removed", "info");
+    showToast("Coupon removed", "success");
   };
 
   const executePayment = async () => {
@@ -283,7 +283,7 @@ export default function CheckoutPage() {
 
       // If mock payment mode is enabled or Razorpay is not configured (indicated by key/dev mode)
       if (isMockMode || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID === "placeholder") {
-        showToast("Processing simulated payment...", "info");
+        showToast("Processing simulated payment...", "warning");
         // Simulate latency
         await new Promise(resolve => setTimeout(resolve, 1500));
 
