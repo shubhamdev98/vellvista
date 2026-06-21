@@ -205,7 +205,7 @@ export const trpc = {
     (client as any).getUserOrders.query(input),
 
   // Razorpay operations
-  createRazorpayOrder: (input: { orderId: number; amount: number; currency?: string }) =>
+  createRazorpayOrder: (input: { orderId: number; amount: number; currency?: string; paymentMethod?: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).createRazorpayOrder.mutate(input),
 

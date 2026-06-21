@@ -1474,6 +1474,7 @@ export const appRouter = router({
       orderId: z.number(),
       amount: z.number(),
       currency: z.string().default('INR'),
+      paymentMethod: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       try {
@@ -1483,7 +1484,7 @@ export const appRouter = router({
         // Create a pending payment entry
         await db.insert(payments).values({
           orderId: input.orderId,
-          paymentMethod: 'Razorpay',
+          paymentMethod: input.paymentMethod || 'Razorpay',
           amount: input.amount.toFixed(2),
           currency: input.currency,
           status: 'pending',

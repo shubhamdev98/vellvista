@@ -339,10 +339,10 @@ export default function CheckoutPage() {
       }
 
       const activePaymentMethod = paymentMethodsList.find(pm => pm.code === selectedPaymentMethodCode);
-      const isRealRazorpay = selectedPaymentMethodCode === "razorpay" && !isMockMode && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID !== "placeholder";
+      const isRealPayment = !isMockMode;
 
-      // If mock payment mode is enabled or choosing any payment option other than real Razorpay
-      if (!isRealRazorpay) {
+      // If mock payment mode is enabled
+      if (!isRealPayment) {
         showToast(`Processing simulated payment via ${activePaymentMethod?.name || "Payment Method"}...`, "warning");
         // Simulate latency
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -391,6 +391,7 @@ export default function CheckoutPage() {
         orderId,
         amount: amountInINR,
         currency: "INR",
+        paymentMethod: activePaymentMethod?.name || "Razorpay",
       });
 
       const options = {
@@ -437,6 +438,13 @@ export default function CheckoutPage() {
           name: activeAddress.fullName,
           email: user.email,
           contact: activeAddress.phone || "",
+          method: selectedPaymentMethodCode === "credit_card" || selectedPaymentMethodCode === "debit_card"
+            ? "card"
+            : selectedPaymentMethodCode === "upi" || selectedPaymentMethodCode === "gpay"
+            ? "upi"
+            : selectedPaymentMethodCode === "net_banking"
+            ? "netbanking"
+            : undefined,
         },
         theme: {
           color: "#020202",
