@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Script from "next/script";
+import Image from "next/image";
+import { getProductImageUrl } from "@/app/utils/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
@@ -11,7 +13,7 @@ import { useToast } from "@/context/ToastProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { trpc } from "@/app/utils/trpc";
-import { ShoppingBag, Lock, MapPin, CreditCard, ChevronLeft, ShieldCheck, Sparkles, Loader2, Plus, Check } from "lucide-react";
+import { ShoppingBag, Lock, MapPin, CreditCard, ChevronLeft, ShieldCheck, Sparkles, Loader2, Plus, Check, Smartphone, Landmark, Wallet, QrCode } from "lucide-react";
 
 interface Address {
   id: number;
@@ -28,9 +30,25 @@ interface Address {
   addressType?: string;
 }
 
+const getPaymentIcon = (code: string) => {
+  switch (code.toLowerCase()) {
+    case 'credit_card':
+    case 'debit_card':
+      return <CreditCard className="h-5 w-5 text-primary shrink-0" />;
+    case 'gpay':
+      return <Smartphone className="h-5 w-5 text-primary shrink-0" />;
+    case 'upi':
+      return <QrCode className="h-5 w-5 text-primary shrink-0" />;
+    case 'net_banking':
+      return <Landmark className="h-5 w-5 text-primary shrink-0" />;
+    default:
+      return <Wallet className="h-5 w-5 text-primary shrink-0" />;
+  }
+};
+
 export default function CheckoutPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { items, clearCart, couponCode, discountRate, applyCoupon, removeCoupon } = useCart();
+  const { items, clearCart, couponCode, discountRate, applyCoupon, removeCoupon, isLoading: isCartLoading } = useCart();
   const { currency, formatPrice, convertPrice } = useCurrency();
   const { showToast } = useToast();
   const router = useRouter();
@@ -45,7 +63,10 @@ export default function CheckoutPage() {
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
-  const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
+  const [shippingMethodsList, setShippingMethodsList] = useState<{ id: number; name: string; description: string | null; cost: string; estimatedDays: number | null; isActive: boolean }[]>([]);
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<number | null>(null);
+  const [paymentMethodsList, setPaymentMethodsList] = useState<{ id: number; name: string; code: string; description: string | null; isActive: boolean }[]>([]);
+  const [selectedPaymentMethodCode, setSelectedPaymentMethodCode] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMockMode, setIsMockMode] = useState(false);
   const [couponInput, setCouponInput] = useState("");
@@ -62,12 +83,48 @@ export default function CheckoutPage() {
     isDefault: false,
   });
 
+  // Fetch shipping methods from DB
+  useEffect(() => {
+    const fetchShippingMethods = async () => {
+      try {
+        const data = await trpc.getShippingMethods();
+        setShippingMethodsList(data);
+        if (data.length > 0) {
+          setSelectedShippingMethodId(data[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching shipping methods:", err);
+      }
+    };
+    fetchShippingMethods();
+  }, []);
+
+  // Fetch payment methods from DB
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const data = await trpc.getPaymentMethods();
+        setPaymentMethodsList(data);
+        if (data.length > 0) {
+          setSelectedPaymentMethodCode(data[0].code);
+        }
+      } catch (err) {
+        console.error("Error fetching payment methods:", err);
+      }
+    };
+    fetchPaymentMethods();
+  }, []);
+
   // Calculate pricing summary
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const TAX_RATE = 0.08;
   const tax = subtotal * TAX_RATE;
   const discount = subtotal * discountRate;
-  const shippingCost = subtotal >= 50 && shippingMethod === "standard" ? 0 : (shippingMethod === "standard" ? 5.00 : 15.00);
+
+  const activeShippingMethod = shippingMethodsList.find(m => m.id === selectedShippingMethodId);
+  const isFreeStandard = activeShippingMethod && subtotal >= 50 && activeShippingMethod.name.toLowerCase().includes("standard");
+  const shippingCost = activeShippingMethod ? (isFreeStandard ? 0 : parseFloat(activeShippingMethod.cost)) : 0;
+
   const total = subtotal + tax - discount + shippingCost;
 
   // Check login requirement
@@ -268,7 +325,7 @@ export default function CheckoutPage() {
       // Save shipping details
       await trpc.createOrderShipping({
         orderId,
-        shippingMethodId: shippingMethod === "standard" ? 1 : 2,
+        shippingMethodId: selectedShippingMethodId || 1,
         shippingAddress: shippingAddressString,
       });
 
@@ -281,25 +338,28 @@ export default function CheckoutPage() {
         });
       }
 
-      // If mock payment mode is enabled or Razorpay is not configured (indicated by key/dev mode)
-      if (isMockMode || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID === "placeholder") {
-        showToast("Processing simulated payment...", "warning");
+      const activePaymentMethod = paymentMethodsList.find(pm => pm.code === selectedPaymentMethodCode);
+      const isRealRazorpay = selectedPaymentMethodCode === "razorpay" && !isMockMode && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID !== "placeholder";
+
+      // If mock payment mode is enabled or choosing any payment option other than real Razorpay
+      if (!isRealRazorpay) {
+        showToast(`Processing simulated payment via ${activePaymentMethod?.name || "Payment Method"}...`, "warning");
         // Simulate latency
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Create mock payment record
+        // Create payment record
         const paymentRes = await trpc.createPayment({
           orderId,
-          paymentMethod: "Razorpay (Mock)",
+          paymentMethod: activePaymentMethod ? activePaymentMethod.name : "Simulated Payment",
           amount: total.toFixed(2),
-          transactionId: "pay_mock_" + Math.random().toString(36).substring(2, 11),
+          transactionId: "pay_" + selectedPaymentMethodCode + "_" + Math.random().toString(36).substring(2, 11),
         });
 
         // Verify/complete payment status
         await trpc.updatePaymentStatus({
           id: paymentRes.paymentId,
           status: "completed",
-          transactionId: "pay_mock_" + Math.random().toString(36).substring(2, 11),
+          transactionId: "pay_" + selectedPaymentMethodCode + "_" + Math.random().toString(36).substring(2, 11),
         });
 
         // Update order status to paid (processing)
@@ -412,6 +472,10 @@ export default function CheckoutPage() {
     );
   }
 
+  if (isCartLoading) {
+    return <CheckoutSkeleton />;
+  }
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -444,9 +508,9 @@ export default function CheckoutPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-light">
         {/* Navigation Breadcrumb back to cart */}
         <div className="mb-8">
-          <Link href="/cart" className="inline-flex items-center text-sm text-secondary hover:text-primary transition-colors">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Cart
+          <Link href="/cart" className="inline-flex items-center text-sm text-secondary hover:text-primary transition-colors gap-1.5">
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            <span>Back to Cart</span>
           </Link>
         </div>
 
@@ -460,8 +524,9 @@ export default function CheckoutPage() {
               </h2>
 
               {isLoadingAddresses ? (
-                <div className="flex items-center justify-center py-6 text-sm text-secondary">
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading saved addresses...
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="h-32 bg-background-alt animate-pulse border border-light" />
+                  <div className="h-32 bg-background-alt animate-pulse border border-light" />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -504,10 +569,12 @@ export default function CheckoutPage() {
                   {!showAddressForm && (
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="w-full flex items-center justify-center gap-2 border border-dashed border-dark py-4 text-sm font-light text-secondary hover:text-primary hover:border-primary transition-all bg-surface"
+                      className="w-full border border-dashed border-dark py-4 text-sm font-light text-secondary hover:text-primary hover:border-primary transition-all bg-surface"
                     >
-                      <Plus className="h-4 w-4" />
-                      Add a New Shipping Address
+                      <span className="flex items-center justify-center gap-2">
+                        <Plus className="h-4 w-4 shrink-0" />
+                        <span>Add a New Shipping Address</span>
+                      </span>
                     </button>
                   )}
 
@@ -676,10 +743,12 @@ export default function CheckoutPage() {
                       <button
                         type="submit"
                         disabled={isProcessing}
-                        className="w-full bg-primary text-inverse py-2.5 text-sm hover:bg-primary-light transition-all flex items-center justify-center"
+                        className="w-full bg-primary text-inverse py-2.5 text-sm hover:bg-primary-light transition-all"
                       >
-                        {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Save and Use Address
+                        <span className="flex items-center justify-center gap-2">
+                          {isProcessing && <Loader2 className="h-4 w-4 animate-spin shrink-0" />}
+                          <span>Save and Use Address</span>
+                        </span>
                       </button>
                     </form>
                   )}
@@ -695,33 +764,82 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="space-y-4">
-                <div
-                  onClick={() => setShippingMethod("standard")}
-                  className={`p-4 border cursor-pointer flex justify-between items-center transition-all ${
-                    shippingMethod === "standard" ? "border-primary bg-background-alt" : "border-light"
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-primary">Standard Shipping</p>
-                    <p className="text-xs text-secondary mt-1">Delivered within 3-5 business days</p>
+                {shippingMethodsList.length === 0 ? (
+                  <div className="space-y-4">
+                    <div className="h-16 bg-background-alt animate-pulse border border-light" />
+                    <div className="h-16 bg-background-alt animate-pulse border border-light" />
                   </div>
-                  <span className="text-sm font-semibold">
-                    {subtotal >= 50 ? "FREE" : formatPrice(5.00)}
-                  </span>
-                </div>
+                ) : (
+                  shippingMethodsList.map((method) => {
+                    const isFree = subtotal >= 50 && method.name.toLowerCase().includes("standard");
+                    return (
+                      <div
+                        key={method.id}
+                        onClick={() => setSelectedShippingMethodId(method.id)}
+                        className={`p-4 border cursor-pointer flex justify-between items-center transition-all ${
+                          selectedShippingMethodId === method.id ? "border-primary bg-background-alt" : "border-light hover:border-dark-borders"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-primary">{method.name}</p>
+                          {method.description && (
+                            <p className="text-xs text-secondary mt-1">{method.description}</p>
+                          )}
+                        </div>
+                        <span className="text-sm font-semibold">
+                          {isFree ? "FREE" : formatPrice(parseFloat(method.cost))}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
 
-                <div
-                  onClick={() => setShippingMethod("express")}
-                  className={`p-4 border cursor-pointer flex justify-between items-center transition-all ${
-                    shippingMethod === "express" ? "border-primary bg-background-alt" : "border-light"
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-primary">Express Shipping</p>
-                    <p className="text-xs text-secondary mt-1">Delivered within 1-2 business days</p>
-                  </div>
-                  <span className="text-sm font-semibold">{formatPrice(15.00)}</span>
-                </div>
+            {/* Payment Methods */}
+            <section className="bg-surface p-6 border border-light">
+              <h2 className="text-2xl font-light mb-6 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Payment Options
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {paymentMethodsList.length === 0 ? (
+                  <>
+                    <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                    <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                    <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                    <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                  </>
+                ) : (
+                  paymentMethodsList.map((method) => {
+                    const isSelected = selectedPaymentMethodCode === method.code;
+                    return (
+                      <div
+                        key={method.id}
+                        onClick={() => setSelectedPaymentMethodCode(method.code)}
+                        className={`p-4 border cursor-pointer flex gap-3 transition-all relative select-none ${
+                          isSelected ? "border-primary bg-background-alt font-medium" : "border-light hover:border-dark-borders"
+                        }`}
+                      >
+                        <div className="mt-0.5">
+                          {getPaymentIcon(method.code)}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <p className="text-sm font-semibold text-primary">{method.name}</p>
+                          {method.description && (
+                            <p className="text-xs text-secondary mt-1 leading-snug">{method.description}</p>
+                          )}
+                        </div>
+                        <div className="absolute top-4 right-4 h-4 w-4 border border-primary rounded-full flex items-center justify-center shrink-0">
+                          {isSelected && (
+                            <div className="h-2 w-2 bg-primary rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </section>
 
@@ -736,32 +854,41 @@ export default function CheckoutPage() {
                   Simulate checkout payment success without active Razorpay API keys.
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isMockMode}
                   onChange={(e) => setIsMockMode(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                <div className="w-10 h-6 bg-white border border-black rounded-full transition-all duration-200 ease-in-out peer-checked:bg-black relative after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all duration-200 ease-in-out peer-checked:after:translate-x-4 peer-checked:after:bg-white"></div>
               </label>
             </section>
           </div>
 
           {/* RIGHT: Order Summary (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-surface p-6 border border-light sticky top-6">
+          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+            <div className="bg-surface p-6 border border-light">
               <h2 className="text-lg font-semibold border-b border-light pb-4 mb-6">Order Summary</h2>
 
               {/* Items List */}
               <div className="max-h-60 overflow-y-auto no-scrollbar space-y-4 mb-6">
                 {items.map((item) => (
-                  <div key={item.cartItemId} className="flex justify-between items-start gap-4">
+                  <div key={item.cartItemId} className="flex items-center gap-4">
+                    <div className="w-12 h-12 relative flex-shrink-0 border border-light bg-background-alt">
+                      <Image
+                        src={getProductImageUrl(item.image)}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate text-primary">{item.name}</p>
                       <p className="text-xs text-secondary mt-1">Qty: {item.quantity}</p>
                     </div>
-                    <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>
+                    <span className="text-sm font-medium shrink-0">{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
@@ -828,18 +955,18 @@ export default function CheckoutPage() {
               <button
                 onClick={executePayment}
                 disabled={isProcessing || addresses.length === 0 && !showAddressForm}
-                className="w-full bg-primary text-inverse py-3 hover:bg-primary-light transition-all flex items-center justify-center font-light uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-inverse py-3 hover:bg-primary-light transition-all font-light uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Processing Secure Payment...
-                  </>
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <span>Processing Secure Payment...</span>
+                  </span>
                 ) : (
-                  <>
-                    <Lock className="h-4 w-4 mr-2 text-xs" />
-                    Pay {formatPrice(total)}
-                  </>
+                  <span className="flex items-center justify-center gap-2">
+                    <Lock className="h-4 w-4 shrink-0" />
+                    <span>Pay {formatPrice(total)}</span>
+                  </span>
                 )}
               </button>
 
@@ -852,6 +979,99 @@ export default function CheckoutPage() {
         </div>
       </main>
 
+      <Footer />
+    </div>
+  );
+}
+
+function CheckoutSkeleton() {
+  return (
+    <div className="min-h-screen bg-background text-primary">
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-light">
+        <div className="mb-8">
+          <div className="h-4 w-24 bg-background-alt animate-pulse" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* LEFT: Checkout Info & Shipping Form (8 Cols) */}
+          <div className="lg:col-span-7 space-y-8">
+            <section className="bg-surface p-6 border border-light">
+              <div className="h-6 w-48 bg-background-alt animate-pulse mb-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="h-32 bg-background-alt animate-pulse border border-light" />
+                <div className="h-32 bg-background-alt animate-pulse border border-light" />
+              </div>
+            </section>
+
+            <section className="bg-surface p-6 border border-light">
+              <div className="h-6 w-48 bg-background-alt animate-pulse mb-6" />
+              <div className="space-y-4">
+                <div className="h-16 bg-background-alt animate-pulse border border-light" />
+                <div className="h-16 bg-background-alt animate-pulse border border-light" />
+              </div>
+            </section>
+
+            <section className="bg-surface p-6 border border-light">
+              <div className="h-6 w-48 bg-background-alt animate-pulse mb-6" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                <div className="h-20 bg-background-alt animate-pulse border border-light" />
+                <div className="h-20 bg-background-alt animate-pulse border border-light" />
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT: Order Summary (5 Cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-surface p-6 border border-light space-y-6">
+              <div className="h-6 w-36 bg-background-alt animate-pulse pb-4" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-background-alt animate-pulse flex-shrink-0 border border-light" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 bg-background-alt animate-pulse" />
+                    <div className="h-3 w-16 bg-background-alt animate-pulse" />
+                  </div>
+                  <div className="h-4 w-12 bg-background-alt animate-pulse shrink-0" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-background-alt animate-pulse flex-shrink-0 border border-light" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-24 bg-background-alt animate-pulse" />
+                    <div className="h-3 w-16 bg-background-alt animate-pulse" />
+                  </div>
+                  <div className="h-4 w-12 bg-background-alt animate-pulse shrink-0" />
+                </div>
+              </div>
+
+              <div className="border-t border-light pt-6 flex gap-2">
+                <div className="h-10 bg-background-alt animate-pulse flex-1 border border-light" />
+                <div className="h-10 w-20 bg-background-alt animate-pulse" />
+              </div>
+
+              <div className="border-t border-light pt-6 space-y-3">
+                <div className="flex justify-between">
+                  <div className="h-4 w-16 bg-background-alt animate-pulse" />
+                  <div className="h-4 w-12 bg-background-alt animate-pulse" />
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-16 bg-background-alt animate-pulse" />
+                  <div className="h-4 w-12 bg-background-alt animate-pulse" />
+                </div>
+                <div className="flex justify-between border-t border-light pt-3">
+                  <div className="h-5 w-24 bg-background-alt animate-pulse" />
+                  <div className="h-5 w-16 bg-background-alt animate-pulse" />
+                </div>
+              </div>
+
+              <div className="h-12 bg-background-alt animate-pulse w-full" />
+            </div>
+          </div>
+        </div>
+      </main>
       <Footer />
     </div>
   );

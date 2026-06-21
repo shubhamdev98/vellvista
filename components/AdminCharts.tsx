@@ -245,6 +245,8 @@ export default function AdminCharts({ orders, products }: AdminChartsProps) {
       men: "#3b82f6",   // blue
       unisex: "#10b981", // green
       fragrance: "#f59e0b", // amber
+      candle: "#f97316", // warm orange
+      gift: "#0d9488", // dark teal
     };
 
     return Object.keys(counts).map(key => ({

@@ -244,6 +244,18 @@ export const shippingMethods = pgTable('shipping_methods', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Payment methods table
+export const paymentMethods = pgTable('payment_methods', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(), // e.g. "Google Pay", "Debit Card", "Credit Card", "UPI"
+  code: text('code').notNull().unique(), // e.g. "gpay", "debit_card", "credit_card", "upi"
+  description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+
 // Order shipping details table
 export const orderShippingDetails = pgTable('order_shipping_details', {
   id: serial('id').primaryKey(),
@@ -317,4 +329,7 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Country = typeof countries.$inferSelect;
 export type NewCountry = typeof countries.$inferInsert;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
+
 

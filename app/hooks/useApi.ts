@@ -180,6 +180,25 @@ export function useSubscribeToNewsletter() {
   );
 }
 
+export interface Order {
+  id: number;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: string;
+  status: string;
+  shippingAddress: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export function useUserOrders(email?: string) {
+  return useQueryWrapper<Order[], { email?: string }>(
+    (input) => trpc.getUserOrders(input as { email: string }),
+    { email },
+    !!email
+  );
+}
+
 // Admin dashboard queries & mutations
 export function useAdminOrders() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -292,4 +311,106 @@ export function useDeleteCountry() {
     trpc.deleteCountry(input)
   );
 }
+
+// Shipping method operations
+export interface ShippingMethod {
+  id: number;
+  name: string;
+  description?: string | null;
+  cost: string;
+  estimatedDays?: number | null;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export function useAdminShippingMethods(adminId?: string) {
+  return useQueryWrapper<ShippingMethod[], { adminId?: string }>(
+    (input) => trpc.adminGetShippingMethods(input as { adminId: string }),
+    { adminId },
+    !!adminId
+  );
+}
+
+export function useAdminCreateShippingMethod() {
+  return useMutationWrapper<{ success: boolean; method: ShippingMethod }, {
+    adminId: string;
+    name: string;
+    description?: string;
+    cost: string;
+    estimatedDays?: number;
+  }>((input) => trpc.adminCreateShippingMethod(input));
+}
+
+export function useAdminUpdateShippingMethod() {
+  return useMutationWrapper<{ success: boolean; method: ShippingMethod }, {
+    adminId: string;
+    id: number;
+    name: string;
+    description?: string;
+    cost: string;
+    estimatedDays?: number;
+    isActive: boolean;
+  }>((input) => trpc.adminUpdateShippingMethod(input));
+}
+
+export function useAdminDeleteShippingMethod() {
+  return useMutationWrapper<{ success: boolean }, { adminId: string; id: number }>((input) =>
+    trpc.adminDeleteShippingMethod(input)
+  );
+}
+
+// Payment method operations
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  code: string;
+  description?: string | null;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export function usePaymentMethods() {
+  return useQueryWrapper<PaymentMethod[], undefined>(
+    () => trpc.getPaymentMethods(),
+    undefined
+  );
+}
+
+export function useAdminPaymentMethods(adminId?: string) {
+  return useQueryWrapper<PaymentMethod[], { adminId?: string }>(
+    (input) => trpc.adminGetPaymentMethods(input as { adminId: string }),
+    { adminId },
+    !!adminId
+  );
+}
+
+export function useAdminCreatePaymentMethod() {
+  return useMutationWrapper<{ success: boolean; method: PaymentMethod }, {
+    adminId: string;
+    name: string;
+    code: string;
+    description?: string;
+  }>((input) => trpc.adminCreatePaymentMethod(input));
+}
+
+export function useAdminUpdatePaymentMethod() {
+  return useMutationWrapper<{ success: boolean; method: PaymentMethod }, {
+    adminId: string;
+    id: number;
+    name: string;
+    code: string;
+    description?: string;
+    isActive: boolean;
+  }>((input) => trpc.adminUpdatePaymentMethod(input));
+}
+
+export function useAdminDeletePaymentMethod() {
+  return useMutationWrapper<{ success: boolean }, { adminId: string; id: number }>((input) =>
+    trpc.adminDeletePaymentMethod(input)
+  );
+}
+
+
 

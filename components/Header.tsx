@@ -274,11 +274,13 @@ function CartSidebar({
                   >
                     Clear
                   </button>
-                  <button
-                    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light"
+                  <Link
+                    href="/checkout"
+                    onClick={onClose}
+                    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light text-center flex items-center justify-center"
                   >
                     Checkout
-                  </button>
+                  </Link>
                 </div>
               </div>
             )}

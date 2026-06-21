@@ -1,5 +1,5 @@
 import { db } from './db';
-import { products, categories, user, countries } from './schema';
+import { products, categories, user, countries, paymentMethods } from './schema';
 import bcrypt from 'bcryptjs';
 
 async function seed() {
@@ -202,6 +202,27 @@ async function seed() {
     }
   }
   console.log('Countries seeded / verified');
+
+  // Seed payment methods
+  const paymentMethodData = [
+    { name: 'Google Pay', code: 'gpay', description: 'Pay via Google Pay app or UPI code', isActive: true },
+    { name: 'Credit Card', code: 'credit_card', description: 'Pay with Visa, Mastercard, AMEX', isActive: true },
+    { name: 'Debit Card', code: 'debit_card', description: 'Pay with standard Debit Card', isActive: true },
+    { name: 'UPI / QR', code: 'upi', description: 'Pay with PhonePe, Paytm, or BHIM UPI', isActive: true },
+    { name: 'Net Banking', code: 'net_banking', description: 'Pay directly via your bank portal', isActive: true },
+    { name: 'Razorpay', code: 'razorpay', description: 'All-in-one payment gateway integration', isActive: true },
+  ];
+
+  for (const pm of paymentMethodData) {
+    try {
+      await db.insert(paymentMethods)
+        .values(pm)
+        .onConflictDoNothing();
+    } catch (err) {
+      console.warn(`Payment Method '${pm.name}' could not be inserted:`, err);
+    }
+  }
+  console.log('Payment Methods seeded / verified');
 
   console.log('Database seeded successfully!');
   process.exit(0);

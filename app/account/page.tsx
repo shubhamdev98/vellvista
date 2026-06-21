@@ -11,6 +11,7 @@ import { useCurrency } from "../../context/CurrencyProvider";
 import { getProductImageUrl } from "../utils/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import AccountLayout from "../../components/AccountLayout";
+import { useUserOrders } from "../hooks/useApi";
 
 function AccountPageContent() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist">("orders");
+  const { data: userOrders, isLoading: isLoadingOrders } = useUserOrders(user?.email || undefined);
 
   useEffect(() => {
     if (!user) return;
@@ -49,63 +51,82 @@ function AccountPageContent() {
         return (
           <div className="bg-surface p-6 border border-light">
             <h3 className="text-xl font-semibold text-primary mb-6">Order History</h3>
-            <div className="space-y-4">
-              {[
-                { id: "ORD-1001", date: "May 9, 2026", status: "Shipped", amount: 149.99, product: "Chanel No. 5", qty: 1 },
-                { id: "ORD-1002", date: "May 8, 2026", status: "Delivered", amount: 89.99, product: "Dior Sauvage", qty: 1 },
-                { id: "ORD-1003", date: "May 7, 2026", status: "Processing", amount: 199.99, product: "Tom Ford Black Orchid", qty: 2 },
-                { id: "ORD-1004", date: "May 6, 2026", status: "Shipped", amount: 129.99, product: "Yves Saint Laurent", qty: 1 },
-                { id: "ORD-1005", date: "May 5, 2026", status: "Delivered", amount: 79.99, product: "Gucci Guilty", qty: 1 },
-              ].map((order) => (
-                <div
-                  key={order.id}
-                  className="border border-default rounded-none p-6 hover:border-dark transition-colors"
+            
+            {isLoadingOrders ? (
+              <div className="space-y-4">
+                <div className="h-32 bg-background-alt animate-pulse border border-light" />
+                <div className="h-32 bg-background-alt animate-pulse border border-light" />
+              </div>
+            ) : !userOrders || userOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <ShoppingBag className="h-12 w-12 text-muted mx-auto mb-4" />
+                <p className="text-secondary mb-4">You have not placed any orders yet</p>
+                <Link
+                  href="/products"
+                  className="inline-block border border-primary text-primary px-6 py-2 hover:bg-primary hover:text-inverse transition-colors text-sm font-light"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="font-semibold text-primary text-sm">Order #{order.id}</div>
-                        <span
-                          className={`inline-block px-2 py-1 text-xs font-light ${
-                            order.status === "Delivered"
-                              ? "bg-success-light text-success-dark"
-                              : order.status === "Shipped"
-                              ? "bg-info-light text-info-dark"
-                              : "bg-warning-light text-warning-dark"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
+                  Start Shopping
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userOrders.map((order) => {
+                  const orderDate = order.createdAt 
+                    ? new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : "N/A";
+                  const displayStatus = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+                  const isCompleted = order.status === "completed" || order.status === "shipped" || order.status === "delivered";
+                  const isCancelled = order.status === "cancelled";
+                  
+                  return (
+                    <div
+                      key={order.id}
+                      className="border border-default rounded-none p-6 hover:border-dark transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="font-semibold text-primary text-sm">Order #{order.id}</div>
+                            <span
+                              className={`inline-block px-2 py-1 text-xs font-light ${
+                                isCompleted
+                                  ? "bg-success-light text-success-dark"
+                                  : isCancelled
+                                  ? "bg-error-light text-error-dark"
+                                  : "bg-warning-light text-warning-dark"
+                              }`}
+                            >
+                              {displayStatus}
+                            </span>
+                          </div>
+                          <div className="text-xs text-secondary">Placed on {orderDate}</div>
+                        </div>
+                        <div className="text-right ml-4">
+                          <div className="font-semibold text-primary text-sm">{formatPrice(parseFloat(order.totalAmount))}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-secondary">Placed on {order.date}</div>
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="w-16 h-16 bg-surface-alt rounded-none flex items-center justify-center">
+                          <ShoppingBag className="h-8 w-8 text-muted" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-light text-primary text-sm">Luxury Fragrance Selection</div>
+                          <div className="text-xs text-secondary">Shipment Address: {order.shippingAddress}</div>
+                        </div>
+                      </div>
+                      <div className="flex space-x-3 pt-4 border-t border-light">
+                        <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
+                          View Details
+                        </button>
+                        <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
+                          Track Order
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-right ml-4">
-                      <div className="font-semibold text-primary text-sm">{formatPrice(order.amount)}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="w-16 h-16 bg-surface-alt rounded-none flex items-center justify-center">
-                      <ShoppingBag className="h-8 w-8 text-muted" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-light text-primary text-sm">{order.product}</div>
-                      <div className="text-xs text-secondary">Quantity: {order.qty}</div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3 pt-4 border-t border-light">
-                    <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
-                      View Details
-                    </button>
-                    <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
-                      Track Order
-                    </button>
-                    <button className="px-4 py-2 bg-surface border border-dark text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
-                      Reorder
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
 

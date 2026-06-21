@@ -9,10 +9,15 @@ import crypto from 'crypto';
  * Wrapper around Razorpay SDK for order creation and signature verification.
  */
 export class RazorpayService {
-  private static instance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || '',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || ''
-  });
+  // Lazily create Razorpay instance only when credentials are present
+  private static getInstance(): Razorpay {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      throw new Error('Razorpay credentials are not set. Provide RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
+    }
+    return new Razorpay({ key_id: keyId, key_secret: keySecret });
+  }
 
   /**
    * Create a Razorpay order.
@@ -26,7 +31,7 @@ export class RazorpayService {
       receipt: `receipt_${Date.now()}`,
       payment_capture: 1 // auto capture
     };
-    return await RazorpayService.instance.orders.create(options);
+    return await RazorpayService.getInstance().orders.create(options);
   }
 
   /**

@@ -6,7 +6,7 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
@@ -757,11 +757,20 @@ export const appRouter = router({
       return methods;
     }),
 
+  // Payment methods operations
+  getPaymentMethods: publicProcedure
+    .query(async () => {
+      return await db.select()
+        .from(paymentMethods)
+        .where(eq(paymentMethods.isActive, true))
+        .orderBy(asc(paymentMethods.id));
+    }),
+
   // Razorpay payment creation
   createPayment: publicProcedure
     .input(z.object({
       orderId: z.number(),
-      paymentMethod: z.literal('razorpay'),
+      paymentMethod: z.string(),
       amount: z.string()
     }))
     .mutation(async ({ input }) => {
@@ -829,6 +838,18 @@ export const appRouter = router({
       carrier: z.string().optional()
     }))
     .mutation(async ({ input }) => {
+      // Validate that the order exists
+      const order = await db.select().from(orders).where(eq(orders.id, input.orderId)).limit(1);
+      if (order.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Order not found' });
+      }
+
+      // Validate that the shipping method exists
+      const method = await db.select().from(shippingMethods).where(eq(shippingMethods.id, input.shippingMethodId)).limit(1);
+      if (method.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Shipping method not found' });
+      }
+
       await db.insert(orderShippingDetails).values({
         orderId: input.orderId,
         shippingMethodId: input.shippingMethodId,
@@ -1258,6 +1279,170 @@ export const appRouter = router({
       return { success: true };
     }),
 
+  // Admin shipping methods management
+  adminGetShippingMethods: publicProcedure
+    .input(z.object({ adminId: z.string() }))
+    .query(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to view shipping methods.' });
+      }
+
+      return await db.select().from(shippingMethods).orderBy(asc(shippingMethods.id));
+    }),
+
+  adminCreateShippingMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      name: z.string(),
+      description: z.string().optional(),
+      cost: z.string(),
+      estimatedDays: z.number().optional()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create shipping methods.' });
+      }
+
+      const newMethod = await db.insert(shippingMethods).values({
+        name: input.name,
+        description: input.description,
+        cost: input.cost,
+        estimatedDays: input.estimatedDays,
+        isActive: true
+      }).returning();
+
+      return { success: true, method: newMethod[0] };
+    }),
+
+  adminUpdateShippingMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      name: z.string(),
+      description: z.string().optional(),
+      cost: z.string(),
+      estimatedDays: z.number().optional(),
+      isActive: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update shipping methods.' });
+      }
+
+      const updated = await db.update(shippingMethods)
+        .set({
+          name: input.name,
+          description: input.description,
+          cost: input.cost,
+          estimatedDays: input.estimatedDays,
+          isActive: input.isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(shippingMethods.id, input.id))
+        .returning();
+
+      return { success: true, method: updated[0] };
+    }),
+
+  adminDeleteShippingMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete shipping methods.' });
+      }
+
+      await db.delete(shippingMethods).where(eq(shippingMethods.id, input.id));
+      return { success: true };
+    }),
+
+  // Admin payment methods management
+  adminGetPaymentMethods: publicProcedure
+    .input(z.object({ adminId: z.string() }))
+    .query(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to view payment methods.' });
+      }
+
+      return await db.select().from(paymentMethods).orderBy(asc(paymentMethods.id));
+    }),
+
+  adminCreatePaymentMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      name: z.string(),
+      code: z.string(),
+      description: z.string().optional()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create payment methods.' });
+      }
+
+      const newMethod = await db.insert(paymentMethods).values({
+        name: input.name,
+        code: input.code,
+        description: input.description,
+        isActive: true
+      }).returning();
+
+      return { success: true, method: newMethod[0] };
+    }),
+
+  adminUpdatePaymentMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      name: z.string(),
+      code: z.string(),
+      description: z.string().optional(),
+      isActive: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update payment methods.' });
+      }
+
+      const updated = await db.update(paymentMethods)
+        .set({
+          name: input.name,
+          code: input.code,
+          description: input.description,
+          isActive: input.isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(paymentMethods.id, input.id))
+        .returning();
+
+      return { success: true, method: updated[0] };
+    }),
+
+  adminDeletePaymentMethod: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete payment methods.' });
+      }
+
+      await db.delete(paymentMethods).where(eq(paymentMethods.id, input.id));
+      return { success: true };
+    }),
+
+
+
   createOrder: publicProcedure
     .input(z.object({
       customerName: z.string(),
@@ -1376,6 +1561,26 @@ export const appRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: err.message || 'Payment verification failed',
+        });
+      }
+    }),
+
+  getUserOrders: publicProcedure
+    .input(z.object({
+      email: z.string(),
+    }))
+    .query(async ({ input }) => {
+      try {
+        return await db
+          .select()
+          .from(orders)
+          .where(eq(orders.customerEmail, input.email))
+          .orderBy(desc(orders.createdAt));
+      } catch (err: any) {
+        console.error('Error fetching user orders:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to fetch user orders',
         });
       }
     }),

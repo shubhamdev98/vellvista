@@ -200,6 +200,9 @@ export const trpc = {
   createOrder: (input: { customerName: string; customerEmail: string; totalAmount: string; shippingAddress: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).createOrder.mutate(input),
+  getUserOrders: (input: { email: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getUserOrders.query(input),
 
   // Razorpay operations
   createRazorpayOrder: (input: { orderId: number; amount: number; currency?: string }) =>
@@ -294,5 +297,38 @@ export const trpc = {
   deleteCountry: (input: { adminId: string; countryId: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).deleteCountry.mutate(input),
+
+  // Admin shipping methods operations
+  adminGetShippingMethods: (input: { adminId: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminGetShippingMethods.query(input),
+  adminCreateShippingMethod: (input: { adminId: string; name: string; description?: string; cost: string; estimatedDays?: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminCreateShippingMethod.mutate(input),
+  adminUpdateShippingMethod: (input: { adminId: string; id: number; name: string; description?: string; cost: string; estimatedDays?: number; isActive: boolean }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminUpdateShippingMethod.mutate(input),
+  adminDeleteShippingMethod: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminDeleteShippingMethod.mutate(input),
+
+  // Public payment methods
+  getPaymentMethods: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getPaymentMethods.query(),
+
+  // Admin payment methods operations
+  adminGetPaymentMethods: (input: { adminId: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminGetPaymentMethods.query(input),
+  adminCreatePaymentMethod: (input: { adminId: string; name: string; code: string; description?: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminCreatePaymentMethod.mutate(input),
+  adminUpdatePaymentMethod: (input: { adminId: string; id: number; name: string; code: string; description?: string; isActive: boolean }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminUpdatePaymentMethod.mutate(input),
+  adminDeletePaymentMethod: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminDeletePaymentMethod.mutate(input),
 };
 

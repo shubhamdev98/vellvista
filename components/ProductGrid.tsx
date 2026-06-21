@@ -647,8 +647,10 @@ export default function ProductGrid({
                           : "bg-primary text-inverse hover:bg-primary hover:text-inverse"}`}
                     aria-label={`Add ${product.name} to cart`}
                   >
-                    <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    {clickedProductId === product.id ? "Added!" : "Add to Cart"}
+                    <span className="flex items-center justify-center gap-2">
+                      <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      <span>{clickedProductId === product.id ? "Added!" : "Add to Cart"}</span>
+                    </span>
                   </button>
                 </div>
               </Link>
