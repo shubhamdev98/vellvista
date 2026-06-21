@@ -640,12 +640,11 @@ export default function ProductGrid({
                       }
                     }}
                     disabled={product.isSale}
-                    className={`w-full mt-3 flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${product.isSale
+                    className={`w-full mt-3 flex items-center justify-center gap-2 border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light transition-colors cursor-pointer ${product.isSale
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : clickedProductId === product.id
                           ? "bg-green-50 border border-green-500 text-green-600"
-                          : "bg-primary text-inverse hover:opacity-90"
-                      }`}
+                          : "bg-primary text-inverse hover:bg-primary hover:text-inverse"}`}
                     aria-label={`Add ${product.name} to cart`}
                   >
                     <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

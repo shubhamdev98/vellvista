@@ -12,6 +12,9 @@ import { wishlist, products, reviews, addresses, shoppingCart, payments, shippin
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
 import { eq, and, desc, asc } from 'drizzle-orm';
 import { transporter } from './auth';
+import { RazorpayService } from './services/razorpayService';
+
+// Razorpay integration is handled via RazorpayService
 
 // Create tRPC instance with proper types
 const t = initTRPC.create();
@@ -754,27 +757,31 @@ export const appRouter = router({
       return methods;
     }),
 
-  // Payment operations
+  // Razorpay payment creation
   createPayment: publicProcedure
     .input(z.object({
       orderId: z.number(),
-      paymentMethod: z.string(),
-      amount: z.string(),
-      transactionId: z.string().optional()
+      paymentMethod: z.literal('razorpay'),
+      amount: z.string()
     }))
     .mutation(async ({ input }) => {
+      // Convert amount (assumed in INR) to paise
+      const amountInPaise = Math.round(parseFloat(input.amount) * 100);
+      // Create Razorpay order
+      const razorpayOrder = await RazorpayService.createOrder(amountInPaise, 'INR');
+      // Store payment record with Razorpay order ID
       const payment = await db.insert(payments).values({
         orderId: input.orderId,
         paymentMethod: input.paymentMethod,
         amount: input.amount,
-        currency: 'USD',
-        status: 'pending',
-        transactionId: input.transactionId
+        currency: 'INR',
+        status: 'created',
+        transactionId: razorpayOrder.id
       }).returning();
-
-      return { success: true, paymentId: payment[0].id };
+      return { success: true, paymentId: payment[0].id, razorpayOrderId: razorpayOrder.id };
     }),
 
+  // Update existing payment status
   updatePaymentStatus: publicProcedure
     .input(z.object({
       id: z.number(),
@@ -793,6 +800,25 @@ export const appRouter = router({
       return { success: true, message: 'Payment status updated' };
     }),
 
+  // Verify Razorpay payment signature
+  verifyPaymentSignature: publicProcedure
+    .input(z.object({
+      razorpay_order_id: z.string(),
+      razorpay_payment_id: z.string(),
+      razorpay_signature: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        RazorpayService.verifySignature(input);
+        // Mark payment as completed based on Razorpay order ID
+        await db.update(payments)
+          .set({ status: 'completed', paymentDate: new Date() })
+          .where(eq(payments.transactionId, input.razorpay_order_id));
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: (err as Error).message };
+      }
+    }),
   // Order shipping details operations
   createOrderShipping: publicProcedure
     .input(z.object({
@@ -1230,6 +1256,128 @@ export const appRouter = router({
       await db.delete(countries)
         .where(eq(countries.id, input.countryId));
       return { success: true };
+    }),
+
+  createOrder: publicProcedure
+    .input(z.object({
+      customerName: z.string(),
+      customerEmail: z.string(),
+      totalAmount: z.string(),
+      shippingAddress: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const [newOrder] = await db.insert(orders).values({
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          totalAmount: input.totalAmount,
+          shippingAddress: input.shippingAddress,
+          status: 'pending',
+        }).returning();
+        return { success: true, orderId: newOrder.id };
+      } catch (err: any) {
+        console.error('Error creating order:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to create order',
+        });
+      }
+    }),
+
+  createRazorpayOrder: publicProcedure
+    .input(z.object({
+      orderId: z.number(),
+      amount: z.number(),
+      currency: z.string().default('INR'),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const rzOrder = await RazorpayService.createOrder(Math.round(input.amount * 100), input.currency);
+
+
+        // Create a pending payment entry
+        await db.insert(payments).values({
+          orderId: input.orderId,
+          paymentMethod: 'Razorpay',
+          amount: input.amount.toFixed(2),
+          currency: input.currency,
+          status: 'pending',
+          transactionId: rzOrder.id,
+        });
+
+        return {
+          success: true,
+          razorpayOrderId: rzOrder.id,
+          amount: rzOrder.amount,
+          currency: rzOrder.currency,
+          keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+        };
+      } catch (err: any) {
+        console.error('Razorpay order creation error:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to initialize Razorpay payment',
+        });
+      }
+    }),
+
+  verifyRazorpayPayment: publicProcedure
+    .input(z.object({
+      orderId: z.number(),
+      razorpayPaymentId: z.string(),
+      razorpayOrderId: z.string(),
+      razorpaySignature: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const text = input.razorpayOrderId + "|" + input.razorpayPaymentId;
+        const secret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret';
+        const generated_signature = crypto
+          .createHmac('sha256', secret)
+          .update(text)
+          .digest('hex');
+
+        if (generated_signature === input.razorpaySignature) {
+          // Update payment record to completed
+          await db.update(payments)
+            .set({
+              status: 'completed',
+              transactionId: input.razorpayPaymentId,
+              paymentDate: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(payments.transactionId, input.razorpayOrderId));
+
+          // Update order status to paid (processing)
+          await db.update(orders)
+            .set({
+              status: 'processing',
+              updatedAt: new Date(),
+            })
+            .where(eq(orders.id, input.orderId));
+
+          return { success: true };
+        } else {
+          // Update payment record to failed
+          await db.update(payments)
+            .set({
+              status: 'failed',
+              updatedAt: new Date(),
+            })
+            .where(eq(payments.transactionId, input.razorpayOrderId));
+
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Signature verification failed',
+          });
+        }
+      } catch (err: any) {
+        console.error('Razorpay payment verification error:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Payment verification failed',
+        });
+      }
     }),
 
   // Health check

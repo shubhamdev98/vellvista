@@ -196,6 +196,20 @@ export const trpc = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).createOrderShipping.mutate(input),
 
+  // Order operations
+  createOrder: (input: { customerName: string; customerEmail: string; totalAmount: string; shippingAddress: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).createOrder.mutate(input),
+
+  // Razorpay operations
+  createRazorpayOrder: (input: { orderId: number; amount: number; currency?: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).createRazorpayOrder.mutate(input),
+
+  verifyRazorpayPayment: (input: { orderId: number; razorpayPaymentId: string; razorpayOrderId: string; razorpaySignature: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).verifyRazorpayPayment.mutate(input),
+
   // Coupon operations
   validateCoupon: (input: { code: string; orderAmount: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
