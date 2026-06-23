@@ -21,6 +21,7 @@ import { useToast } from "../../../context/ToastProvider";
 import { useCurrency } from "../../../context/CurrencyProvider";
 import { trpc } from "../../utils/trpc";
 import { getImageUrl } from "../../utils/image";
+import { ProductDetailSkeleton } from "../../../components/ui/Skeleton";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -266,11 +267,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     <div className="min-h-screen bg-surface">
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        )}
+        {loading && <ProductDetailSkeleton />}
 
         {error && (
           <div className="text-center py-20">

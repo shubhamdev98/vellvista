@@ -366,6 +366,7 @@ export interface PaymentMethod {
   name: string;
   code: string;
   description?: string | null;
+  image?: string | null;
   isActive: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -392,6 +393,7 @@ export function useAdminCreatePaymentMethod() {
     name: string;
     code: string;
     description?: string;
+    image?: string;
   }>((input) => trpc.adminCreatePaymentMethod(input));
 }
 
@@ -402,6 +404,7 @@ export function useAdminUpdatePaymentMethod() {
     name: string;
     code: string;
     description?: string;
+    image?: string;
     isActive: boolean;
   }>((input) => trpc.adminUpdatePaymentMethod(input));
 }
@@ -409,6 +412,96 @@ export function useAdminUpdatePaymentMethod() {
 export function useAdminDeletePaymentMethod() {
   return useMutationWrapper<{ success: boolean }, { adminId: string; id: number }>((input) =>
     trpc.adminDeletePaymentMethod(input)
+  );
+}
+
+// Social links operations
+export interface SocialLink {
+  id: number;
+  name: string;
+  url: string;
+  image: string;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export function useSocialLinks() {
+  return useQueryWrapper<SocialLink[], undefined>(
+    () => trpc.getSocialLinks(),
+    undefined
+  );
+}
+
+export function useAdminSocialLinks(adminId?: string) {
+  return useQueryWrapper<SocialLink[], { adminId?: string }>(
+    (input) => trpc.adminGetSocialLinks(input as { adminId: string }),
+    { adminId },
+    !!adminId
+  );
+}
+
+export function useAdminCreateSocialLink() {
+  return useMutationWrapper<{ success: boolean; link: SocialLink }, {
+    adminId: string;
+    name: string;
+    url: string;
+    image: string;
+  }>((input) => trpc.adminCreateSocialLink(input));
+}
+
+export function useAdminUpdateSocialLink() {
+  return useMutationWrapper<{ success: boolean; link: SocialLink }, {
+    adminId: string;
+    id: number;
+    name: string;
+    url: string;
+    image: string;
+    isActive: boolean;
+  }>((input) => trpc.adminUpdateSocialLink(input));
+}
+
+export function useAdminDeleteSocialLink() {
+  return useMutationWrapper<{ success: boolean }, { adminId: string; id: number }>((input) =>
+    trpc.adminDeleteSocialLink(input)
+  );
+}
+
+// Notification hooks
+export interface AppNotification {
+  id: number;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean | null;
+  actionUrl?: string | null;
+  createdAt: string | Date;
+}
+
+export function useNotifications(userId?: string) {
+  return useQueryWrapper<AppNotification[], { userId?: string }>(
+    (input) => trpc.getNotifications(input as { userId: string }),
+    { userId },
+    !!userId
+  );
+}
+
+export function useCreateNotification() {
+  return useMutationWrapper<any, { userId: string; type: string; title: string; message: string; actionUrl?: string }>((input) =>
+    trpc.createNotification(input)
+  );
+}
+
+export function useMarkNotificationAsRead() {
+  return useMutationWrapper<{ success: boolean; message?: string }, { id: number }>((input) =>
+    trpc.markNotificationAsRead(input)
+  );
+}
+
+export function useMarkAllNotificationsAsRead() {
+  return useMutationWrapper<{ success: boolean; message?: string }, { userId: string }>((input) =>
+    trpc.markAllNotificationsAsRead(input)
   );
 }
 

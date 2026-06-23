@@ -250,6 +250,18 @@ export const paymentMethods = pgTable('payment_methods', {
   name: text('name').notNull(), // e.g. "Google Pay", "Debit Card", "Credit Card", "UPI"
   code: text('code').notNull().unique(), // e.g. "gpay", "debit_card", "credit_card", "upi"
   description: text('description'),
+  image: text('image'), // custom gateway image/logo uploaded by admin
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Social links table
+export const socialLinks = pgTable('social_links', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(), // e.g. "Facebook", "Instagram", "Twitter", "YouTube"
+  url: text('url').notNull(),
+  image: text('image').notNull(), // icon image URL (uploaded by admin)
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -331,5 +343,7 @@ export type Country = typeof countries.$inferSelect;
 export type NewCountry = typeof countries.$inferInsert;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
+export type SocialLink = typeof socialLinks.$inferSelect;
+export type NewSocialLink = typeof socialLinks.$inferInsert;
 
 

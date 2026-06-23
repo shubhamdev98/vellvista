@@ -32,8 +32,51 @@ export default function AccountLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-muted">
-        <p className="text-secondary text-sm">Loading account...</p>
+      <div className="min-h-screen bg-white flex flex-col animate-pulse">
+        {/* Header placeholder */}
+        <div className="h-16 border-b border-light bg-surface" />
+
+        <main className="flex-1 bg-background-muted py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 space-y-2">
+              <div className="h-8 bg-surface-alt rounded w-48" />
+              <div className="h-4 bg-surface-alt rounded w-80" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Sidebar Skeleton */}
+              <div className="lg:col-span-1">
+                <div className="bg-surface p-6 border border-light space-y-6">
+                  <div className="flex items-center space-x-4 border-b border-light pb-6">
+                    <div className="w-14 h-14 bg-surface-alt rounded-full shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-surface-alt rounded w-3/4" />
+                      <div className="h-3 bg-surface-alt rounded w-1/2" />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-10 bg-surface-alt rounded w-full" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Skeleton */}
+              <div className="lg:col-span-3 space-y-6">
+                <div className="bg-surface p-6 border border-light space-y-4">
+                  <div className="h-6 bg-surface-alt rounded w-1/3 mb-6" />
+                  <div className="h-4 bg-surface-alt rounded w-full" />
+                  <div className="h-4 bg-surface-alt rounded w-5/6" />
+                  <div className="h-4 bg-surface-alt rounded w-4/5" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        
+        {/* Footer placeholder */}
+        <div className="h-48 bg-primary-light" />
       </div>
     );
   }

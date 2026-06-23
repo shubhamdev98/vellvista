@@ -12,8 +12,8 @@ import path from 'path';
 
 import { db } from './db';
 import fs from 'fs';
-import { reviews } from './schema';
-import { eq } from 'drizzle-orm';
+import { reviews, user, notifications } from './schema';
+import { eq, or } from 'drizzle-orm';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
 import { v2 as cloudinary } from 'cloudinary';
@@ -243,6 +243,20 @@ app.post('/api/upload-product-image', uploadProductImage.single('image'), async 
   }
 });
 
+app.post('/api/upload-image', uploadProductImage.single('image'), async (req: Request & { file?: Express.Multer.File }, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: 'No file uploaded' });
+  }
+  const folder = (req.query.folder as string) || 'general';
+  try {
+    const fileUrl = await uploadToCloudinary(req.file, folder);
+    res.json({ success: true, url: fileUrl });
+  } catch (error) {
+    console.error('Failed to upload image to Cloudinary:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image to Cloudinary' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -316,6 +330,35 @@ app.post('/api/reviews', upload.single('image'), async (req: Request & { file?: 
 
     // Emit review to all clients viewing this product
     io.to(`product-${productId}`).emit('new-review', formattedReview);
+
+    // Create DB notifications for all admins
+    try {
+      const admins = await db.select()
+        .from(user)
+        .where(or(eq(user.role, 'ADMIN'), eq(user.role, 'SUPER_ADMIN')));
+
+      for (const adminUser of admins) {
+        await db.insert(notifications).values({
+          userId: adminUser.id,
+          type: 'review',
+          title: 'New Review Submitted',
+          message: `A new ${rating}-star review was submitted for product ID #${productId} by ${newReview.userName || 'Anonymous'}.`,
+          actionUrl: `/admin/reviews`,
+          isRead: false
+        });
+      }
+
+      // Emit real-time notification to all connected admins
+      io.emit('admin-notification', {
+        type: 'review',
+        title: 'New Review Submitted',
+        message: `A new ${rating}-star review was submitted for product ID #${productId} by ${newReview.userName || 'Anonymous'}.`,
+        actionUrl: `/admin/reviews`,
+        createdAt: new Date().toISOString()
+      });
+    } catch (notifError) {
+      console.error('Failed to create admin notification for review:', notifError);
+    }
 
     res.json({ success: true, review: formattedReview });
   } catch (error) {

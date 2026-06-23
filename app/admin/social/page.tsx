@@ -2,15 +2,15 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { 
-  useAdminPaymentMethods, 
-  useAdminCreatePaymentMethod, 
-  useAdminUpdatePaymentMethod, 
-  useAdminDeletePaymentMethod,
-  type PaymentMethod
+  useAdminSocialLinks, 
+  useAdminCreateSocialLink, 
+  useAdminUpdateSocialLink, 
+  useAdminDeleteSocialLink,
+  type SocialLink
 } from "../../hooks/useApi";
 import { 
   Search, 
-  CreditCard, 
+  Share2, 
   Plus, 
   Edit2, 
   Trash2, 
@@ -18,21 +18,22 @@ import {
   Loader2, 
   X, 
   AlertCircle,
-  ChevronDown
+  ChevronDown,
+  Globe
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
 import Skeleton, { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
-export default function AdminPaymentMethodsPage() {
+export default function AdminSocialLinksPage() {
   const { user: currentUser } = useAuth();
-  const { data: rawMethods, isLoading, error: fetchError } = useAdminPaymentMethods(currentUser?.id);
-  const [methodsList, setMethodsList] = useState<PaymentMethod[]>([]);
+  const { data: rawLinks, isLoading, error: fetchError } = useAdminSocialLinks(currentUser?.id);
+  const [linksList, setLinksList] = useState<SocialLink[]>([]);
   const { showToast } = useToast();
 
-  const { mutate: createMethod, isPending: isAdding } = useAdminCreatePaymentMethod();
-  const { mutate: updateMethod, isPending: isUpdating } = useAdminUpdatePaymentMethod();
-  const { mutate: deleteMethod } = useAdminDeletePaymentMethod();
+  const { mutate: createLink, isPending: isAdding } = useAdminCreateSocialLink();
+  const { mutate: updateLink, isPending: isUpdating } = useAdminUpdateSocialLink();
+  const { mutate: deleteLink } = useAdminDeleteSocialLink();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -40,11 +41,23 @@ export default function AdminPaymentMethodsPage() {
   // Add/Edit modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
-  const [formData, setFormData] = useState({ name: "", code: "", description: "", image: "" });
+  const [selectedLink, setSelectedLink] = useState<SocialLink | null>(null);
+  const [formData, setFormData] = useState({ name: "", url: "", image: "" });
   const [formError, setFormError] = useState("");
+  
+  // Image Upload State
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+
+  // Delete confirmation state
+  const [pendingDelete, setPendingDelete] = useState<SocialLink | null>(null);
+
+  // Map backend data to local state
+  useEffect(() => {
+    if (rawLinks) {
+      setLinksList(rawLinks);
+    }
+  }, [rawLinks]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,7 +72,7 @@ export default function AdminPaymentMethodsPage() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
 
     try {
-      const response = await fetch(`${backendUrl}/api/upload-image?folder=payment`, {
+      const response = await fetch(`${backendUrl}/api/upload-image?folder=social`, {
         method: "POST",
         body: uploadData,
       });
@@ -71,7 +84,7 @@ export default function AdminPaymentMethodsPage() {
       const result = await response.json();
       if (result.success && result.url) {
         setFormData((prev) => ({ ...prev, image: result.url }));
-        showToast("Logo uploaded successfully!", "success");
+        showToast("Social media icon uploaded successfully!", "success");
       } else {
         throw new Error(result.error || "Failed to upload image");
       }
@@ -84,33 +97,23 @@ export default function AdminPaymentMethodsPage() {
     }
   };
 
-  // Delete confirmation state
-  const [pendingDelete, setPendingDelete] = useState<PaymentMethod | null>(null);
-
-  // Map backend data to local state
-  useEffect(() => {
-    if (rawMethods) {
-      setMethodsList(rawMethods);
-    }
-  }, [rawMethods]);
-
   // Handle toggle status change
-  const handleToggleStatus = async (method: PaymentMethod) => {
+  const handleToggleStatus = async (link: SocialLink) => {
     if (!currentUser) return;
     try {
-      const nextStatus = !method.isActive;
-      await updateMethod({
+      const nextStatus = !link.isActive;
+      await updateLink({
         adminId: currentUser.id,
-        id: method.id,
-        name: method.name,
-        code: method.code,
-        description: method.description || "",
+        id: link.id,
+        name: link.name,
+        url: link.url,
+        image: link.image,
         isActive: nextStatus
       });
-      setMethodsList(prev => 
-        prev.map(m => m.id === method.id ? { ...m, isActive: nextStatus } : m)
+      setLinksList(prev => 
+        prev.map(l => l.id === link.id ? { ...l, isActive: nextStatus } : l)
       );
-      showToast(`Payment method status successfully updated.`, "success");
+      showToast(`Social link status successfully updated.`, "success");
     } catch (err: any) {
       console.error(err);
       showToast(err.message || "Failed to update status.", "error");
@@ -120,22 +123,21 @@ export default function AdminPaymentMethodsPage() {
   // Open modal for add
   const handleOpenAdd = () => {
     setModalMode("add");
-    setSelectedMethod(null);
-    setFormData({ name: "", code: "", description: "", image: "" });
+    setSelectedLink(null);
+    setFormData({ name: "", url: "", image: "" });
     setFormError("");
     setUploadError("");
     setIsModalOpen(true);
   };
 
   // Open modal for edit
-  const handleOpenEdit = (method: PaymentMethod) => {
+  const handleOpenEdit = (link: SocialLink) => {
     setModalMode("edit");
-    setSelectedMethod(method);
+    setSelectedLink(link);
     setFormData({ 
-      name: method.name, 
-      code: method.code, 
-      description: method.description || "",
-      image: method.image || ""
+      name: link.name, 
+      url: link.url, 
+      image: link.image
     });
     setFormError("");
     setUploadError("");
@@ -149,44 +151,45 @@ export default function AdminPaymentMethodsPage() {
     setFormError("");
 
     const name = formData.name.trim();
-    const code = formData.code.trim().toLowerCase();
-    const description = formData.description.trim();
+    const url = formData.url.trim();
+    const image = formData.image.trim();
 
     if (!name) {
-      setFormError("Payment method name is required.");
+      setFormError("Social platform name is required.");
       return;
     }
-    if (!code) {
-      setFormError("Payment method code is required.");
+    if (!url) {
+      setFormError("Platform profile URL is required.");
+      return;
+    }
+    if (!image) {
+      setFormError("Platform icon image is required.");
       return;
     }
 
     try {
       if (modalMode === "add") {
-        await createMethod({
+        await createLink({
           adminId: currentUser.id,
           name,
-          code,
-          description: description || undefined,
-          image: formData.image || undefined
+          url,
+          image
         });
-        showToast(`Payment method "${name}" created successfully.`, "success");
+        showToast(`Social link for "${name}" created successfully.`, "success");
       } else {
-        if (!selectedMethod) return;
-        await updateMethod({
+        if (!selectedLink) return;
+        await updateLink({
           adminId: currentUser.id,
-          id: selectedMethod.id,
+          id: selectedLink.id,
           name,
-          code,
-          description: description || undefined,
-          image: formData.image || undefined,
-          isActive: selectedMethod.isActive
+          url,
+          image,
+          isActive: selectedLink.isActive
         });
-        showToast(`Payment method "${name}" updated successfully.`, "success");
+        showToast(`Social link for "${name}" updated successfully.`, "success");
       }
       
       setIsModalOpen(false);
-      // Wait briefly for toast to show and force reload/refresh
       setTimeout(() => {
         window.location.reload();
       }, 500);
@@ -196,55 +199,54 @@ export default function AdminPaymentMethodsPage() {
     }
   };
 
-  // Handle Delete Method
-  const handleDeleteMethod = async () => {
+  // Handle Delete Link
+  const handleDeleteLink = async () => {
     if (!pendingDelete || !currentUser) return;
     try {
-      await deleteMethod({
+      await deleteLink({
         adminId: currentUser.id,
         id: pendingDelete.id
       });
-      setMethodsList(prev => prev.filter(m => m.id !== pendingDelete.id));
-      showToast(`Payment method "${pendingDelete.name}" deleted successfully.`, "success");
+      setLinksList(prev => prev.filter(l => l.id !== pendingDelete.id));
+      showToast(`Social link for "${pendingDelete.name}" deleted successfully.`, "success");
       setPendingDelete(null);
     } catch (err: any) {
       console.error(err);
-      showToast(err.message || "Failed to delete payment method.", "error");
+      showToast(err.message || "Failed to delete social link.", "error");
       setPendingDelete(null);
     }
   };
 
   // Summary stats
   const stats = useMemo(() => {
-    const total = methodsList.length;
-    const active = methodsList.filter(m => m.isActive).length;
+    const total = linksList.length;
+    const active = linksList.filter(l => l.isActive).length;
     const inactive = total - active;
     return { total, active, inactive };
-  }, [methodsList]);
+  }, [linksList]);
 
-  // Filtered methods
-  const filteredMethods = useMemo(() => {
-    return methodsList.filter(m => {
-      const nameMatch = m.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const codeMatch = m.code.toLowerCase().includes(searchTerm.toLowerCase());
-      const descMatch = (m.description || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSearch = nameMatch || codeMatch || descMatch;
+  // Filtered links
+  const filteredLinks = useMemo(() => {
+    return linksList.filter(l => {
+      const nameMatch = l.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const urlMatch = l.url.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = nameMatch || urlMatch;
 
       const matchesStatus = 
         statusFilter === "all" || 
-        (statusFilter === "active" && m.isActive) ||
-        (statusFilter === "inactive" && !m.isActive);
+        (statusFilter === "active" && l.isActive) ||
+        (statusFilter === "inactive" && !l.isActive);
 
       return matchesSearch && matchesStatus;
     });
-  }, [methodsList, searchTerm, statusFilter]);
+  }, [linksList, searchTerm, statusFilter]);
 
   if (fetchError) {
     return (
       <div className="bg-error-light border border-error text-error p-6 flex items-start gap-3">
         <AlertCircle className="h-6 w-6 shrink-0" />
         <div>
-          <h3 className="font-semibold text-lg">Failed to Load Payment Methods</h3>
+          <h3 className="font-semibold text-lg">Failed to Load Social Links</h3>
           <p className="text-sm mt-1">{fetchError.message}</p>
         </div>
       </div>
@@ -256,15 +258,15 @@ export default function AdminPaymentMethodsPage() {
       {/* Title Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-primary mb-1">Payment Options Configuration</h2>
-          <p className="text-secondary text-sm">Configure and monitor checkout payment options, gateway identifiers, and active statuses.</p>
+          <h2 className="text-2xl font-semibold text-primary mb-1">Social Media Configuration</h2>
+          <p className="text-secondary text-sm">Configure, upload logos, and set links for your store's social media platforms shown in the footer.</p>
         </div>
         <button
           onClick={handleOpenAdd}
           className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-inverse hover:bg-primary-light px-5 py-2.5 transition-all text-sm font-light shrink-0 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          Add Payment Method
+          Add Social Link
         </button>
       </div>
 
@@ -274,14 +276,14 @@ export default function AdminPaymentMethodsPage() {
         <div className="bg-surface p-3 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
-              Total Options
+              Total Platforms
             </span>
             <div className="text-lg sm:text-2xl font-semibold text-primary">
               {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.total}
             </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-primary shrink-0 hidden sm:flex">
-            <CreditCard className="h-5 w-5" />
+            <Share2 className="h-5 w-5" />
           </div>
         </div>
 
@@ -289,7 +291,7 @@ export default function AdminPaymentMethodsPage() {
         <div className="bg-surface p-3 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
-              Active Options
+              Active Links
             </span>
             <div className="text-lg sm:text-2xl font-semibold text-success">
               {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.active}
@@ -304,14 +306,14 @@ export default function AdminPaymentMethodsPage() {
         <div className="bg-surface p-3 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
-              Disabled Options
+              Disabled Links
             </span>
             <div className="text-lg sm:text-2xl font-semibold text-secondary">
               {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.inactive}
             </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-secondary shrink-0 hidden sm:flex">
-            <CreditCard className="h-5 w-5 opacity-40" />
+            <Share2 className="h-5 w-5 opacity-40" />
           </div>
         </div>
       </div>
@@ -324,7 +326,7 @@ export default function AdminPaymentMethodsPage() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-secondary" />
             <input
               type="text"
-              placeholder="Search payment method name, code, or description..."
+              placeholder="Search platform name or profile URL..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
@@ -354,49 +356,46 @@ export default function AdminPaymentMethodsPage() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-light text-secondary font-light bg-surface-alt whitespace-nowrap">
-              <th className="p-4 w-16">Logo</th>
-              <th className="p-4">Name</th>
-              <th className="p-4">Gateway Code</th>
-              <th className="p-4">Description</th>
+              <th className="p-4 w-16">Icon</th>
+              <th className="p-4">Platform Name</th>
+              <th className="p-4">Profile Link (URL)</th>
               <th className="p-4">Status</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-light">
-            {isLoading && methodsList.length === 0 ? (
+            {isLoading && linksList.length === 0 ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRowSkeleton key={i} cols={5} showAction={true} />
               ))
-            ) : filteredMethods.length === 0 ? (
+            ) : filteredLinks.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-12 text-center text-secondary">
-                  No matching payment records found.
+                <td colSpan={5} className="p-12 text-center text-secondary">
+                  No social media platforms configured.
                 </td>
               </tr>
             ) : (
-              filteredMethods.map((m) => (
-                <tr key={m.id} className="text-primary hover:bg-surface-alt/40 transition-colors whitespace-nowrap">
-                  {/* Logo */}
+              filteredLinks.map((l) => (
+                <tr key={l.id} className="text-primary hover:bg-surface-alt/40 transition-colors whitespace-nowrap">
+                  {/* Icon */}
                   <td className="p-4">
-                    {m.image ? (
-                      <img src={m.image} alt={m.name} className="h-6 max-w-[60px] object-contain border border-light p-0.5 bg-surface-alt" />
-                    ) : (
-                      <span className="text-xs text-secondary italic">No Logo</span>
-                    )}
+                    <img src={l.image} alt={l.name} className="h-6 w-6 object-contain border border-light p-0.5 bg-primary brightness-0 invert" />
                   </td>
 
                   {/* Name */}
-                  <td className="p-4 font-semibold">{m.name}</td>
+                  <td className="p-4 font-semibold">{l.name}</td>
 
-                  {/* Gateway Code */}
-                  <td className="p-4 text-xs font-mono bg-surface-alt/20 select-all">{m.code}</td>
-
-                  {/* Description */}
-                  <td className="p-4 text-secondary max-w-xs truncate">{m.description || "N/A"}</td>
+                  {/* URL */}
+                  <td className="p-4 text-secondary max-w-sm truncate">
+                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1.5 text-xs text-primary">
+                      <Globe className="h-3 w-3 shrink-0" />
+                      <span>{l.url}</span>
+                    </a>
+                  </td>
 
                   {/* Status */}
                   <td className="p-4">
-                    {m.isActive ? (
+                    {l.isActive ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold bg-success-light text-success-dark rounded-full">
                         Active
                       </span>
@@ -412,31 +411,31 @@ export default function AdminPaymentMethodsPage() {
                     <div className="flex justify-end gap-1 sm:gap-2">
                       {/* Toggle status */}
                       <button
-                        onClick={() => handleToggleStatus(m)}
+                        onClick={() => handleToggleStatus(l)}
                         className={`p-1.5 rounded transition-all select-none cursor-pointer ${
-                          m.isActive
+                          l.isActive
                             ? "text-success hover:bg-success/10"
                             : "text-secondary hover:bg-surface-alt hover:text-primary"
                         }`}
-                        title={m.isActive ? "Disable Option" : "Enable Option"}
+                        title={l.isActive ? "Disable Link" : "Enable Link"}
                       >
                         <CheckCircle className="h-4 w-4" />
                       </button>
 
                       {/* Edit */}
                       <button
-                        onClick={() => handleOpenEdit(m)}
+                        onClick={() => handleOpenEdit(l)}
                         className="p-1.5 rounded transition-all select-none text-secondary hover:bg-surface-alt hover:text-primary cursor-pointer"
-                        title="Edit Option"
+                        title="Edit Link"
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
 
                       {/* Delete */}
                       <button
-                        onClick={() => setPendingDelete(m)}
+                        onClick={() => setPendingDelete(l)}
                         className="p-1.5 rounded transition-all select-none text-secondary hover:text-error hover:bg-error-light cursor-pointer"
-                        title="Delete Option"
+                        title="Delete Link"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -469,7 +468,7 @@ export default function AdminPaymentMethodsPage() {
             </button>
 
             <h2 className="text-2xl text-primary mb-6 pr-8 font-light capitalize">
-              {modalMode === "add" ? "Create Payment Option" : "Edit Payment Option"}
+              {modalMode === "add" ? "Create Social Platform" : "Edit Social Platform"}
             </h2>
 
             {formError && (
@@ -482,12 +481,12 @@ export default function AdminPaymentMethodsPage() {
             <form onSubmit={handleFormSubmit} className="space-y-6">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-                  Payment Method Name *
+                  Platform Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Google Pay, Debit Card"
+                  placeholder="e.g. Facebook, Instagram, Twitter"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all"
@@ -496,34 +495,21 @@ export default function AdminPaymentMethodsPage() {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-                  Gateway Identifier Code *
+                  Profile URL Link *
                 </label>
                 <input
-                  type="text"
+                  type="url"
                   required
-                  placeholder="e.g. gpay, debit_card, credit_card, upi"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
-                  className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all font-mono text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Pay securely via card details"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="e.g. https://facebook.com/yourbrand"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-                  Logo Image Icon
+                  Platform Icon (Image) *
                 </label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -538,7 +524,7 @@ export default function AdminPaymentMethodsPage() {
                       />
                     </label>
                     {formData.image && (
-                      <span className="text-xs text-success font-light">✓ Image Selected</span>
+                      <span className="text-xs text-success font-light">✓ Icon Uploaded</span>
                     )}
                   </div>
 
@@ -546,7 +532,7 @@ export default function AdminPaymentMethodsPage() {
                     <span className="text-xs text-secondary block mb-1">Or enter image URL:</span>
                     <input
                       type="text"
-                      placeholder="e.g. https://example.com/logo.png"
+                      placeholder="e.g. https://example.com/social-icon.png"
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all"
@@ -558,12 +544,12 @@ export default function AdminPaymentMethodsPage() {
                   )}
 
                   {formData.image && (
-                    <div className="mt-2 border border-light p-2 bg-surface-alt rounded inline-block">
+                    <div className="mt-2 border border-light p-2 bg-primary rounded inline-block">
                       <p className="text-xs text-secondary mb-1">Preview:</p>
                       <img
                         src={formData.image}
                         alt="Preview"
-                        className="h-8 object-contain border border-default max-w-[100px]"
+                        className="h-8 w-8 object-contain brightness-0 invert"
                       />
                     </div>
                   )}
@@ -612,12 +598,12 @@ export default function AdminPaymentMethodsPage() {
             </button>
 
             <h2 className="text-2xl text-primary mb-6 pr-8 font-light capitalize">
-              Delete Payment Method
+              Delete Social Link
             </h2>
 
             <div className="text-secondary text-base leading-relaxed mb-8 font-light">
               <p>
-                Are you sure you want to permanently delete payment method <strong>{pendingDelete.name}</strong>? This action cannot be undone and may affect active user checkouts.
+                Are you sure you want to permanently delete the social media link for <strong>{pendingDelete.name}</strong>? This action cannot be undone.
               </p>
             </div>
 
@@ -629,7 +615,7 @@ export default function AdminPaymentMethodsPage() {
                 Cancel
               </button>
               <button
-                onClick={handleDeleteMethod}
+                onClick={handleDeleteLink}
                 className="flex-1 bg-error hover:bg-error-light text-inverse py-3 px-6 font-light transition-colors duration-300 cursor-pointer"
               >
                 Confirm

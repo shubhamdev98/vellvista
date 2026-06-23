@@ -3,9 +3,37 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, MessageCircle, Send, CreditCard, Truck, Shield, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
+import { useSocialLinks, usePaymentMethods } from '../app/hooks/useApi';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
+  const { data: socialLinks } = useSocialLinks();
+  const { data: paymentMethods } = usePaymentMethods();
+
+  const defaultSocials = [
+    { name: 'Facebook', url: '#', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626184/vellvista/social/kiqgvb4hhcu5tfiovv0s.png' },
+    { name: 'Instagram', url: '#', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626185/vellvista/social/wylukhgkcug0nujiqxjh.png' },
+    { name: 'Twitter', url: '#', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626187/vellvista/social/pbji7av8mmfwri9od5ad.png' },
+    { name: 'YouTube', url: '#', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626188/vellvista/social/m5uihnucyhkmogwcxesx.png' }
+  ];
+
+  const displayedSocials = (socialLinks && socialLinks.length > 0)
+    ? socialLinks
+    : defaultSocials;
+
+  const defaultPayments = [
+    { name: 'Visa', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626153/vellvista/payment/zagvhixwwwtgfnqrmsax.png', width: 38 },
+    { name: 'American Express', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626150/vellvista/payment/nmbvo0aahkdfskrzfjwh.png', width: 38 },
+    { name: 'Google Pay', image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626151/vellvista/payment/gejoim9tohpazotl8zqg.png', width: 42 }
+  ];
+
+  const displayedPayments = (paymentMethods && paymentMethods.filter(p => p.isActive && p.image).length > 0)
+    ? paymentMethods.filter(p => p.isActive && p.image).map(p => ({
+        name: p.name,
+        image: p.image!,
+        width: p.name.toLowerCase().includes('google') ? 42 : 38
+      }))
+    : defaultPayments;
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,42 +137,24 @@ const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-inverse mb-4">Follow Us</h3>
               <div className="flex space-x-4">
-                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Facebook">
-                  <Image
-                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626184/vellvista/social/kiqgvb4hhcu5tfiovv0s.png"
-                    alt="Facebook"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                  />
-                </a>
-                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Instagram">
-                  <Image
-                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626185/vellvista/social/wylukhgkcug0nujiqxjh.png"
-                    alt="Instagram"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                  />
-                </a>
-                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="Twitter">
-                  <Image
-                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626187/vellvista/social/pbji7av8mmfwri9od5ad.png"
-                    alt="Twitter"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                  />
-                </a>
-                <a href="#" className="hover:opacity-85 transition-opacity" aria-label="YouTube">
-                  <Image
-                    src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626188/vellvista/social/m5uihnucyhkmogwcxesx.png"
-                    alt="YouTube"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                  />
-                </a>
+                {displayedSocials.map((link, idx) => (
+                  <a
+                    key={idx}
+                    href={link.url}
+                    target={link.url === '#' ? undefined : '_blank'}
+                    rel="noopener noreferrer"
+                    className="hover:opacity-85 transition-opacity"
+                    aria-label={link.name}
+                  >
+                    <Image
+                      src={link.image}
+                      alt={link.name}
+                      width={20}
+                      height={20}
+                      className="object-contain brightness-0 invert"
+                    />
+                  </a>
+                ))}
               </div>
             </div>
           </div>
@@ -195,27 +205,16 @@ const Footer = () => {
             <div className="flex items-center space-x-4">
               <span className="text-muted text-sm">We accept:</span>
               <div className="flex items-center space-x-4">
-                <Image
-                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626153/vellvista/payment/zagvhixwwwtgfnqrmsax.png"
-                  alt="Visa"
-                  width={38}
-                  height={24}
-                  className="object-contain"
-                />
-                <Image
-                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626150/vellvista/payment/nmbvo0aahkdfskrzfjwh.png"
-                  alt="American Express"
-                  width={38}
-                  height={24}
-                  className="object-contain"
-                />
-                <Image
-                  src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626151/vellvista/payment/gejoim9tohpazotl8zqg.png"
-                  alt="Google Pay"
-                  width={42}
-                  height={24}
-                  className="object-contain"
-                />
+                {displayedPayments.map((pm, idx) => (
+                  <Image
+                    key={idx}
+                    src={pm.image}
+                    alt={pm.name}
+                    width={pm.width}
+                    height={24}
+                    className="object-contain"
+                  />
+                ))}
               </div>
             </div>
           </div>

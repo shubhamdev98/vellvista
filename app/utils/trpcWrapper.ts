@@ -321,15 +321,32 @@ export const trpc = {
   adminGetPaymentMethods: (input: { adminId: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminGetPaymentMethods.query(input),
-  adminCreatePaymentMethod: (input: { adminId: string; name: string; code: string; description?: string }) =>
+  adminCreatePaymentMethod: (input: { adminId: string; name: string; code: string; description?: string; image?: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminCreatePaymentMethod.mutate(input),
-  adminUpdatePaymentMethod: (input: { adminId: string; id: number; name: string; code: string; description?: string; isActive: boolean }) =>
+  adminUpdatePaymentMethod: (input: { adminId: string; id: number; name: string; code: string; description?: string; image?: string; isActive: boolean }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminUpdatePaymentMethod.mutate(input),
   adminDeletePaymentMethod: (input: { adminId: string; id: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminDeletePaymentMethod.mutate(input),
+
+  // Social links operations
+  getSocialLinks: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getSocialLinks.query(),
+  adminGetSocialLinks: (input: { adminId: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminGetSocialLinks.query(input),
+  adminCreateSocialLink: (input: { adminId: string; name: string; url: string; image: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminCreateSocialLink.mutate(input),
+  adminUpdateSocialLink: (input: { adminId: string; id: number; name: string; url: string; image: string; isActive: boolean }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminUpdateSocialLink.mutate(input),
+  adminDeleteSocialLink: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminDeleteSocialLink.mutate(input),
 
   // Admin coupon/offer operations
   adminGetAllCoupons: (input: { adminId: string }) =>

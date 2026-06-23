@@ -6,11 +6,11 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc, asc, or } from 'drizzle-orm';
 import { transporter } from './auth';
 import { RazorpayService } from './services/razorpayService';
 
@@ -645,7 +645,7 @@ export const appRouter = router({
         return [];
       }
 
-      let cartItems;
+      let cartItems: any[];
       // FIX: Add ORDER BY to guarantee deterministic item order.
       // Without this, PostgreSQL returns rows in arbitrary physical order
       // which changes after UPDATEs (MVCC relocates updated rows).
@@ -949,7 +949,7 @@ export const appRouter = router({
       const userNotifications = await db.select()
         .from(notifications)
         .where(eq(notifications.userId, input.userId))
-        .orderBy(notifications.createdAt);
+        .orderBy(desc(notifications.createdAt));
 
       return userNotifications;
     }),
@@ -1379,7 +1379,8 @@ export const appRouter = router({
       adminId: z.string(),
       name: z.string(),
       code: z.string(),
-      description: z.string().optional()
+      description: z.string().optional(),
+      image: z.string().optional()
     }))
     .mutation(async ({ input }) => {
       const admin = await UserService.getUserById(input.adminId);
@@ -1391,6 +1392,7 @@ export const appRouter = router({
         name: input.name,
         code: input.code,
         description: input.description,
+        image: input.image,
         isActive: true
       }).returning();
 
@@ -1404,6 +1406,7 @@ export const appRouter = router({
       name: z.string(),
       code: z.string(),
       description: z.string().optional(),
+      image: z.string().optional(),
       isActive: z.boolean()
     }))
     .mutation(async ({ input }) => {
@@ -1417,6 +1420,7 @@ export const appRouter = router({
           name: input.name,
           code: input.code,
           description: input.description,
+          image: input.image,
           isActive: input.isActive,
           updatedAt: new Date()
         })
@@ -1441,6 +1445,84 @@ export const appRouter = router({
       return { success: true };
     }),
 
+  // Social links operations
+  getSocialLinks: publicProcedure
+    .query(async () => {
+      return await db.select().from(socialLinks).where(eq(socialLinks.isActive, true)).orderBy(asc(socialLinks.id));
+    }),
+
+  adminGetSocialLinks: publicProcedure
+    .input(z.object({ adminId: z.string() }))
+    .query(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to view social links.' });
+      }
+      return await db.select().from(socialLinks).orderBy(asc(socialLinks.id));
+    }),
+
+  adminCreateSocialLink: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      name: z.string(),
+      url: z.string(),
+      image: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create social links.' });
+      }
+      const newLink = await db.insert(socialLinks).values({
+        name: input.name,
+        url: input.url,
+        image: input.image,
+        isActive: true
+      }).returning();
+      return { success: true, link: newLink[0] };
+    }),
+
+  adminUpdateSocialLink: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      name: z.string(),
+      url: z.string(),
+      image: z.string(),
+      isActive: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update social links.' });
+      }
+      const updated = await db.update(socialLinks)
+        .set({
+          name: input.name,
+          url: input.url,
+          image: input.image,
+          isActive: input.isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(socialLinks.id, input.id))
+        .returning();
+      return { success: true, link: updated[0] };
+    }),
+
+  adminDeleteSocialLink: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number()
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete social links.' });
+      }
+      await db.delete(socialLinks).where(eq(socialLinks.id, input.id));
+      return { success: true };
+    }),
+
 
 
   createOrder: publicProcedure
@@ -1459,6 +1541,39 @@ export const appRouter = router({
           shippingAddress: input.shippingAddress,
           status: 'pending',
         }).returning();
+
+        // Retrieve all admin users to create DB notifications
+        try {
+          const admins = await db.select()
+            .from(user)
+            .where(or(eq(user.role, 'ADMIN'), eq(user.role, 'SUPER_ADMIN')));
+
+          for (const adminUser of admins) {
+            await db.insert(notifications).values({
+              userId: adminUser.id,
+              type: 'order',
+              title: 'New Order Placed',
+              message: `Order #${newOrder.id} has been placed by ${input.customerName} for $${input.totalAmount}`,
+              actionUrl: `/admin/orders`,
+              isRead: false
+            });
+          }
+
+          // Dynamic import to prevent circular dependency
+          const { io } = require('./index');
+          if (io) {
+            io.emit('admin-notification', {
+              type: 'order',
+              title: 'New Order Placed',
+              message: `Order #${newOrder.id} has been placed by ${input.customerName} for $${input.totalAmount}`,
+              actionUrl: `/admin/orders`,
+              createdAt: new Date().toISOString()
+            });
+          }
+        } catch (notifErr) {
+          console.error('Failed to create admin notification for order:', notifErr);
+        }
+
         return { success: true, orderId: newOrder.id };
       } catch (err: any) {
         console.error('Error creating order:', err);

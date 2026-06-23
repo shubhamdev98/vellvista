@@ -32,8 +32,23 @@ export default function WishlistPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-color-1">Loading wishlist...</div>
+      <div className="min-h-screen bg-color-5 py-12 animate-pulse">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-9 bg-surface-alt rounded w-48 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-color-5 p-4 border border-color-1 space-y-4">
+                <div className="w-full h-64 bg-surface-alt" />
+                <div className="h-5 bg-surface-alt rounded w-3/4" />
+                <div className="h-4 bg-surface-alt rounded w-1/2" />
+                <div className="flex items-center justify-between">
+                  <div className="h-6 bg-surface-alt rounded w-1/4" />
+                  <div className="h-8 bg-surface-alt rounded-full w-8" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

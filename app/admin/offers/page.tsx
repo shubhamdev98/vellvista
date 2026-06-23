@@ -355,36 +355,39 @@ export default function AdminOffersPage() {
             />
           </div>
 
-          {/* Status Filter */}
-          <div className="w-full sm:w-[150px] shrink-0 relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full pl-2 sm:pl-3 pr-8 py-2 border border-dark bg-background text-primary text-xs sm:text-sm focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none truncate bg-transparent"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Only</option>
-              <option value="inactive">Disabled Only</option>
-              <option value="expired">Expired Only</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-secondary">
-              <ChevronDown className="h-4 w-4" />
+          {/* Filters Group - side by side 50% on mobile, inline on desktop */}
+          <div className="flex gap-3 w-full sm:w-auto shrink-0">
+            {/* Status Filter */}
+            <div className="flex-1 sm:w-[150px] sm:flex-initial shrink-0 relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-2 sm:pl-3 pr-8 py-2 border border-dark bg-background text-primary text-xs sm:text-sm focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none truncate bg-transparent"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Disabled Only</option>
+                <option value="expired">Expired Only</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-secondary">
+                <ChevronDown className="h-4 w-4" />
+              </div>
             </div>
-          </div>
 
-          {/* Type Filter */}
-          <div className="w-full sm:w-[150px] shrink-0 relative">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full pl-2 sm:pl-3 pr-8 py-2 border border-dark bg-background text-primary text-xs sm:text-sm focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none truncate bg-transparent"
-            >
-              <option value="all">All Types</option>
-              <option value="percentage">Percentage (%)</option>
-              <option value="fixed_amount">Fixed Amount ($)</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-secondary">
-              <ChevronDown className="h-4 w-4" />
+            {/* Type Filter */}
+            <div className="flex-1 sm:w-[150px] sm:flex-initial shrink-0 relative">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full pl-2 sm:pl-3 pr-8 py-2 border border-dark bg-background text-primary text-xs sm:text-sm focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none truncate bg-transparent"
+              >
+                <option value="all">All Types</option>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed_amount">Fixed Amount ($)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-secondary">
+                <ChevronDown className="h-4 w-4" />
+              </div>
             </div>
           </div>
         </div>

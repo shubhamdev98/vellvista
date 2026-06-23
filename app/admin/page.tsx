@@ -111,9 +111,23 @@ export default function AdminDashboard() {
       </div>
 
       {ordersLoading || productsLoading ? (
-        <div className="h-[300px] w-full bg-surface border border-light animate-pulse flex flex-col items-center justify-center gap-2">
-          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <p className="text-secondary text-sm">Generating analytics visualization...</p>
+        <div className="h-[300px] w-full bg-surface border border-light animate-pulse p-6 flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-4 bg-surface-alt rounded w-1/3" />
+            <div className="flex gap-2">
+              <div className="h-8 bg-surface-alt rounded w-16" />
+              <div className="h-8 bg-surface-alt rounded w-16" />
+            </div>
+          </div>
+          <div className="flex items-end gap-3 h-[200px] w-full">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-surface-alt w-full rounded-t"
+                style={{ height: `${[60, 45, 80, 55, 70, 90, 65, 50, 75, 40, 85, 95][i]}%` }}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <AdminCharts orders={(orders as Order[]) || []} products={(products as any[]) || []} />

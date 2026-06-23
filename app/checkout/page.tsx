@@ -472,12 +472,7 @@ export default function CheckoutPage() {
   };
 
   if (authLoading || !user) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-secondary font-light">Loading secure checkout...</p>
-      </div>
-    );
+    return <CheckoutSkeleton />;
   }
 
   if (isCartLoading) {
