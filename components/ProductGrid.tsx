@@ -129,6 +129,175 @@ const products: Product[] = [
   },
 ];
 
+interface ProductCardProps {
+  product: Product;
+  formatPrice: (price: number) => string;
+  isInWishlist: (productId: number) => boolean;
+  addToWishlist: (productId: number) => Promise<void>;
+  removeFromWishlist: (productId: number) => Promise<void>;
+  addItem: (item: any) => Promise<void>;
+  showToast: (message: string, type?: "success" | "error" | "warning") => void;
+}
+
+function ProductCard({
+  product,
+  formatPrice,
+  isInWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  addItem,
+  showToast,
+}: ProductCardProps) {
+  const [clicked, setClicked] = useState(false);
+
+  const discountPercent = product.originalPrice
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setClicked(true);
+    const timer = setTimeout(() => setClicked(false), 1000);
+    try {
+      await addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      });
+    } catch (error: unknown) {
+      clearTimeout(timer);
+      setClicked(false);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "You cannot add product without login. You need to login first.";
+      showToast(message, "warning");
+    }
+  };
+
+  return (
+    <Link
+      href={`/products/${product.id}`}
+      className="block bg-surface overflow-hidden group transition-all duration-300 border border-gray-200"
+    >
+      {/* Image Section */}
+      <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+        <Image
+          src={getProductImageUrl(product.image)}
+          alt={product.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+
+        {/* Badge - Top Left */}
+        {(product.isSale || product.isNew) && (
+          <div className="absolute top-2.5 left-0 z-10">
+            <span
+              className={`inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-bold text-white ${
+                product.isSale ? "bg-green-600" : "bg-blue-600"
+              }`}
+            >
+              {product.isSale ? "Best Seller" : "New"}
+            </span>
+          </div>
+        )}
+
+        {/* Wishlist Heart - Top Right */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isInWishlist(product.id)) {
+              removeFromWishlist(product.id);
+            } else {
+              addToWishlist(product.id);
+            }
+          }}
+          className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-300 cursor-pointer ${
+            isInWishlist(product.id)
+              ? "bg-red-50 text-red-500 hover:bg-red-100"
+              : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white"
+          }`}
+          aria-label={`Add ${product.name} to wishlist`}
+        >
+          <Heart
+            className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-300 ${
+              isInWishlist(product.id) ? "fill-current" : ""
+            }`}
+          />
+        </button>
+
+        {/* Rating Badge - Bottom Right of Image (only if reviews exist) */}
+        {product.reviews > 0 && (
+          <div className="absolute bottom-2.5 right-2.5 z-10">
+            <div className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-md">
+              <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 fill-current" />
+              <span className="text-[11px] sm:text-xs font-bold text-gray-800">
+                {product.rating}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-gray-500">
+                ({product.reviews})
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Info Section */}
+      <div className="p-3 sm:p-4">
+        {/* Product Name */}
+        <h3 className="text-sm sm:text-[15px] font-semibold text-primary leading-snug line-clamp-2 mb-0.5">
+          {product.name}
+        </h3>
+
+        {/* Brand / Category */}
+        <p className="text-xs sm:text-[13px] text-muted mb-2.5 truncate">
+          {product.brand}
+        </p>
+
+        {/* Price Row */}
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="text-base sm:text-lg font-bold text-primary">
+            {formatPrice(product.price)}
+          </span>
+          {product.originalPrice && (
+            <>
+              <span className="text-xs sm:text-sm text-gray-400 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+              <span className="text-xs sm:text-sm font-semibold text-green-600">
+                {discountPercent}% off
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={handleAddToCart}
+          disabled={product.isSale}
+          className={`w-full mt-3 flex items-center justify-center gap-2 border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light transition-colors duration-75 cursor-pointer ${
+            product.isSale
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : clicked
+              ? "bg-green-50 border border-green-500 text-green-600"
+              : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
+          }`}
+          aria-label={`Add ${product.name} to cart`}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span>{clicked ? "Added!" : "Add to Cart"}</span>
+          </span>
+        </button>
+      </div>
+    </Link>
+  );
+}
+
 interface ProductGridProps {
   showTitle?: boolean;
   breadcrumbItems?: { label: string; href?: string }[];
@@ -144,7 +313,6 @@ export default function ProductGrid({
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { showToast } = useToast();
   const { formatPrice, currency } = useCurrency();
-  const [clickedProductId, setClickedProductId] = useState<number | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [isDoubleColumn, setIsDoubleColumn] = useState(true);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
@@ -517,150 +685,18 @@ export default function ProductGrid({
               <ProductCardSkeleton key={i} />
             ))
           ) : (
-            filteredProducts.map((product) => {
-              const discountPercent = product.originalPrice
-                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                : 0;
-
-              return (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className="block bg-surface overflow-hidden group transition-all duration-300 border border-gray-200"
-                >
-                  {/* Image Section */}
-                  <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
-                    <Image
-                      src={getProductImageUrl(product.image)}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-
-                    {/* Badge - Top Left */}
-                    {(product.isSale || product.isNew) && (
-                      <div className="absolute top-2.5 left-0 z-10">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-bold text-white ${product.isSale
-                              ? "bg-green-600"
-                              : "bg-blue-600"
-                            }`}
-                        >
-                          {product.isSale ? "Best Seller" : "New"}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Wishlist Heart - Top Right */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (isInWishlist(product.id)) {
-                          removeFromWishlist(product.id);
-                        } else {
-                          addToWishlist(product.id);
-                        }
-                      }}
-                      className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-300 cursor-pointer ${isInWishlist(product.id)
-                          ? "bg-red-50 text-red-500 hover:bg-red-100"
-                          : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white"
-                        }`}
-                      aria-label={`Add ${product.name} to wishlist`}
-                    >
-                      <Heart
-                        className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-300 ${isInWishlist(product.id) ? "fill-current" : ""
-                          }`}
-                      />
-                    </button>
-
-                    {/* Rating Badge - Bottom Right of Image (only if reviews exist) */}
-                    {product.reviews > 0 && (
-                      <div className="absolute bottom-2.5 right-2.5 z-10">
-                        <div className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-md">
-                          <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 fill-current" />
-                          <span className="text-[11px] sm:text-xs font-bold text-gray-800">
-                            {product.rating}
-                          </span>
-                          <span className="text-[10px] sm:text-[11px] text-gray-500">
-                            ({product.reviews})
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info Section */}
-                  <div className="p-3 sm:p-4">
-                    {/* Product Name */}
-                    <h3 className="text-sm sm:text-[15px] font-semibold text-primary leading-snug line-clamp-2 mb-0.5">
-                      {product.name}
-                    </h3>
-
-                    {/* Brand / Category */}
-                    <p className="text-xs sm:text-[13px] text-muted mb-2.5 truncate">
-                      {product.brand}
-                    </p>
-
-                    {/* Price Row */}
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-base sm:text-lg font-bold text-primary">
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.originalPrice && (
-                        <>
-                          <span className="text-xs sm:text-sm text-gray-400 line-through">
-                            {formatPrice(product.originalPrice)}
-                          </span>
-                          <span className="text-xs sm:text-sm font-semibold text-green-600">
-                            {discountPercent}% off
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setClickedProductId(product.id);
-                        const timer = setTimeout(() => setClickedProductId(null), 1000);
-                        try {
-                          await addItem({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                          });
-                        } catch (error: unknown) {
-                          clearTimeout(timer);
-                          setClickedProductId(null);
-                          const message =
-                            error instanceof Error
-                              ? error.message
-                              : "You cannot add product without login. You need to login first.";
-                          showToast(message, "warning");
-                        }
-                      }}
-                      disabled={product.isSale}
-                      className={`w-full mt-3 flex items-center justify-center gap-2 border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light transition-colors duration-75 cursor-pointer ${product.isSale
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : clickedProductId === product.id
-                            ? "bg-green-50 border border-green-500 text-green-600"
-                            : "bg-primary text-inverse hover:bg-secondary hover:text-primary"}`}
-                      aria-label={`Add ${product.name} to cart`}
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                        <span>{clickedProductId === product.id ? "Added!" : "Add to Cart"}</span>
-                      </span>
-                    </button>
-                  </div>
-                </Link>
-              );
-            })
+            filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                formatPrice={formatPrice}
+                isInWishlist={isInWishlist}
+                addToWishlist={addToWishlist}
+                removeFromWishlist={removeFromWishlist}
+                addItem={addItem}
+                showToast={showToast}
+              />
+            ))
           )}
         </div>
 

@@ -93,15 +93,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user === null) {
       setItems([]);
+      if (typeof window !== 'undefined') {
+        const newSid = Date.now().toString();
+        localStorage.setItem("cartSessionId", newSid);
+        setSessionId(newSid);
+      }
     }
   }, [user]);
 
   const fetchCart = useCallback(async () => {
-    const userId = user?.id || undefined;
-    if (!userId && !sessionId) return;
+    if (!user) {
+      setItems([]);
+      return;
+    }
+    const userId = user.id;
     try {
       setIsLoading(true);
-      const cartData = await trpc.getCart({ userId, sessionId });
+      const cartData = await trpc.getCart({ userId, sessionId: sessionId || undefined });
       const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
         id: item.productId,
         cartItemId: item.id,
@@ -123,7 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, sessionId]);
+  }, [user, sessionId]);
 
   useEffect(() => {
     fetchCart();
