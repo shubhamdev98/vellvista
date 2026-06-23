@@ -6,6 +6,7 @@ import { Search, Users, Shield, Mail, UserCheck, Globe, Key, User, Loader2, X, T
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
+import Skeleton, { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 interface UserAccount {
   id: string;
@@ -188,7 +189,9 @@ export default function AdminUsersPage() {
         <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Total Users</span>
-            <div className="text-xl sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.total}</div>
+            <div className="text-xl sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.total}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-primary shrink-0">
             <Users className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -203,7 +206,9 @@ export default function AdminUsersPage() {
                 <span className="hidden sm:inline">Administrators</span>
                 <span className="sm:hidden">Admins</span>
               </span>
-              <div className="text-xl sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.admins}</div>
+              <div className="text-xl sm:text-2xl font-semibold text-primary">
+                {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.admins}
+              </div>
             </div>
             <div className="p-2 sm:p-3 bg-amber-500/5 rounded-full text-amber-600 shrink-0">
               <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -215,7 +220,9 @@ export default function AdminUsersPage() {
         <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Active Status</span>
-            <div className="text-xl sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.active}</div>
+            <div className="text-xl sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.active}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-success/5 rounded-full text-success shrink-0">
             <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -226,7 +233,9 @@ export default function AdminUsersPage() {
         <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Google OAuth</span>
-            <div className="text-xl sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.googleLinked}</div>
+            <div className="text-xl sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.googleLinked}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-info/5 rounded-full text-info shrink-0">
             <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -320,15 +329,10 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-light">
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} className="p-12 text-center text-secondary">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-secondary" />
-                    <span>Loading users data...</span>
-                  </div>
-                </td>
-              </tr>
+            {isLoading && localUsers.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={6} showAction={true} />
+              ))
             ) : filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="p-12 text-center text-secondary">

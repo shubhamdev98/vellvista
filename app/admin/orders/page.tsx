@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAdminOrders, useUpdateOrderStatus } from "../../hooks/useApi";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, ShoppingBag, Clock, Truck, CheckCircle } from "lucide-react";
+import Skeleton, { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 export default function AdminOrders() {
   const { data: ordersData, isLoading } = useAdminOrders();
@@ -18,6 +19,14 @@ export default function AdminOrders() {
       setLocalOrders(ordersData);
     }
   }, [ordersData]);
+
+  const stats = useMemo(() => {
+    const total = localOrders.length;
+    const pending = localOrders.filter(o => o.status === "pending").length;
+    const inProgress = localOrders.filter(o => o.status === "processing" || o.status === "shipped").length;
+    const completed = localOrders.filter(o => o.status === "completed").length;
+    return { total, pending, inProgress, completed };
+  }, [localOrders]);
 
   const handleStatusChange = async (id: number, status: string) => {
     try {
@@ -39,10 +48,65 @@ export default function AdminOrders() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h2 className="text-2xl font-semibold text-primary mb-1">Orders Manager</h2>
         <p className="text-secondary text-sm">Monitor client transactions and fulfill orders.</p>
+      </div>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Total Orders */}
+        <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
+          <div className="space-y-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Total Orders</span>
+            <div className="text-xl sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.total}
+            </div>
+          </div>
+          <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-primary shrink-0">
+            <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* Pending Orders */}
+        <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
+          <div className="space-y-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Pending Orders</span>
+            <div className="text-xl sm:text-2xl font-semibold text-amber-600">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.pending}
+            </div>
+          </div>
+          <div className="p-2 sm:p-3 bg-amber-500/5 rounded-full text-amber-600 shrink-0">
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* In Progress */}
+        <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
+          <div className="space-y-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">In Progress</span>
+            <div className="text-xl sm:text-2xl font-semibold text-info">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.inProgress}
+            </div>
+          </div>
+          <div className="p-2 sm:p-3 bg-info/5 rounded-full text-info shrink-0">
+            <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* Delivered */}
+        <div className="bg-surface p-4 sm:p-6 border border-light flex items-center justify-between">
+          <div className="space-y-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Delivered</span>
+            <div className="text-xl sm:text-2xl font-semibold text-success">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.completed}
+            </div>
+          </div>
+          <div className="p-2 sm:p-3 bg-success/5 rounded-full text-success shrink-0">
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -72,11 +136,9 @@ export default function AdminOrders() {
           </thead>
           <tbody className="divide-y divide-light">
             {isLoading && localOrders.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-secondary">
-                  Loading customer orders...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={5} showAction={true} />
+              ))
             ) : filteredOrders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-8 text-center text-secondary">

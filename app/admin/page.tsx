@@ -4,6 +4,7 @@ import { useProducts, useAdminOrders, useAdminReviews, useAdminSubscribers, Prod
 import { DollarSign, ShoppingBag, Star, Mail, Clock, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import AdminCharts from "../../components/AdminCharts";
+import Skeleton, { TableRowSkeleton } from "../../components/ui/Skeleton";
 
 interface Order {
   id: number;
@@ -28,10 +29,10 @@ interface Review {
 }
 
 export default function AdminDashboard() {
-  const { data: products } = useProducts(100);
+  const { data: products, isLoading: productsLoading } = useProducts(100);
   const { data: orders, isLoading: ordersLoading } = useAdminOrders();
-  const { data: reviews } = useAdminReviews();
-  const { data: subscribers } = useAdminSubscribers();
+  const { data: reviews, isLoading: reviewsLoading } = useAdminReviews();
+  const { data: subscribers, isLoading: subscribersLoading } = useAdminSubscribers();
 
   const totalRevenue = orders
     ? (orders as Order[])
@@ -57,9 +58,13 @@ export default function AdminDashboard() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Total Sales</span>
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />
           </div>
-          <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
-            ${totalRevenue.toFixed(2)}
-          </span>
+          {ordersLoading ? (
+            <Skeleton className="h-8 w-24 rounded" />
+          ) : (
+            <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
+              ${totalRevenue.toFixed(2)}
+            </span>
+          )}
         </div>
 
         <div className="bg-surface p-4 sm:p-6 border border-light flex flex-col justify-between">
@@ -67,9 +72,13 @@ export default function AdminDashboard() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Products</span>
             <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />
           </div>
-          <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
-            {products ? products.length : 0}
-          </span>
+          {productsLoading ? (
+            <Skeleton className="h-8 w-16 rounded" />
+          ) : (
+            <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
+              {products ? products.length : 0}
+            </span>
+          )}
         </div>
 
         <div className="bg-surface p-4 sm:p-6 border border-light flex flex-col justify-between">
@@ -77,9 +86,13 @@ export default function AdminDashboard() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Reviews</span>
             <Star className="h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />
           </div>
-          <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
-            {reviews ? reviews.length : 0}
-          </span>
+          {reviewsLoading ? (
+            <Skeleton className="h-8 w-16 rounded" />
+          ) : (
+            <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
+              {reviews ? reviews.length : 0}
+            </span>
+          )}
         </div>
 
         <div className="bg-surface p-4 sm:p-6 border border-light flex flex-col justify-between">
@@ -87,13 +100,24 @@ export default function AdminDashboard() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">Subscribers</span>
             <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />
           </div>
-          <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
-            {subscribers ? subscribers.length : 0}
-          </span>
+          {subscribersLoading ? (
+            <Skeleton className="h-8 w-16 rounded" />
+          ) : (
+            <span className="text-xl sm:text-2xl font-semibold text-primary block truncate">
+              {subscribers ? subscribers.length : 0}
+            </span>
+          )}
         </div>
       </div>
 
-      <AdminCharts orders={(orders as Order[]) || []} products={(products as any[]) || []} />
+      {ordersLoading || productsLoading ? (
+        <div className="h-[300px] w-full bg-surface border border-light animate-pulse flex flex-col items-center justify-center gap-2">
+          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-secondary text-sm">Generating analytics visualization...</p>
+        </div>
+      ) : (
+        <AdminCharts orders={(orders as Order[]) || []} products={(products as any[]) || []} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Orders */}
@@ -105,7 +129,23 @@ export default function AdminDashboard() {
             </Link>
           </div>
           {ordersLoading ? (
-            <p className="text-sm text-secondary">Loading recent orders...</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-light text-secondary font-light">
+                    <th className="pb-3">Order ID</th>
+                    <th className="pb-3">Customer</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRowSkeleton key={i} cols={4} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : recentOrders.length === 0 ? (
             <p className="text-sm text-secondary">No customer orders yet.</p>
           ) : (
@@ -153,9 +193,16 @@ export default function AdminDashboard() {
               <div className="p-2 bg-primary/10 rounded">
                 <Clock className="h-5 w-5 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-semibold text-primary">Pending Orders</h3>
-                <p className="text-xs text-secondary mt-0.5">{pendingOrders.length} order(s) require shipping fulfillment.</p>
+                <div className="text-xs text-secondary mt-0.5">
+                  {ordersLoading ? (
+                    <Skeleton className="h-3 w-8 inline-block rounded" />
+                  ) : (
+                    pendingOrders.length
+                  )}{" "}
+                  order(s) require shipping fulfillment.
+                </div>
               </div>
             </div>
 
@@ -163,11 +210,16 @@ export default function AdminDashboard() {
               <div className="p-2 bg-primary/10 rounded">
                 <Star className="h-5 w-5 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-semibold text-primary">Reviews Moderation</h3>
-                <p className="text-xs text-secondary mt-0.5">
-                  {reviews ? (reviews as Review[]).filter((r: Review) => !r.isApproved).length : 0} review(s) awaiting validation.
-                </p>
+                <div className="text-xs text-secondary mt-0.5">
+                  {reviewsLoading ? (
+                    <Skeleton className="h-3 w-8 inline-block rounded" />
+                  ) : (
+                    reviews ? (reviews as Review[]).filter((r: Review) => !r.isApproved).length : 0
+                  )}{" "}
+                  review(s) awaiting validation.
+                </div>
               </div>
             </div>
 
@@ -175,11 +227,16 @@ export default function AdminDashboard() {
               <div className="p-2 bg-primary/10 rounded">
                 <ShoppingCart className="h-5 w-5 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-semibold text-primary">Low Stock Alerts</h3>
-                <p className="text-xs text-secondary mt-0.5">
-                  {products ? (products as Product[]).filter((p: Product) => (p.stock ?? 0) < 10).length : 0} product(s) running low on stock.
-                </p>
+                <div className="text-xs text-secondary mt-0.5">
+                  {productsLoading ? (
+                    <Skeleton className="h-3 w-8 inline-block rounded" />
+                  ) : (
+                    products ? (products as Product[]).filter((p: Product) => (p.stock ?? 0) < 10).length : 0
+                  )}{" "}
+                  product(s) running low on stock.
+                </div>
               </div>
             </div>
           </div>

@@ -170,6 +170,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const handleAddToCart = async () => {
     if (!product || isAdding) return;
     setIsAdding(true);
+    setIsAdded(true);
+    const timer = setTimeout(() => setIsAdded(false), 1500);
     try {
       await addItem({
         id: product.id,
@@ -177,10 +179,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
         price: Number(product.price),
         image: product.image,
       });
-      setIsAdded(true);
       showToast("Added to cart successfully!", "success");
-      setTimeout(() => setIsAdded(false), 1500);
     } catch (error: any) {
+      clearTimeout(timer);
+      setIsAdded(false);
       showToast(error.message || "Failed to add item to cart.", "warning");
     } finally {
       setIsAdding(false);
@@ -416,7 +418,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <button
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className={`flex-1 py-3 font-semibold transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                  className={`flex-1 py-3 font-semibold transition-all duration-75 flex items-center justify-center cursor-pointer ${
                     isAdded
                       ? "bg-green-600 text-white"
                       : isAdding

@@ -330,5 +330,19 @@ export const trpc = {
   adminDeletePaymentMethod: (input: { adminId: string; id: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminDeletePaymentMethod.mutate(input),
+
+  // Admin coupon/offer operations
+  adminGetAllCoupons: (input: { adminId: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminGetAllCoupons.query(input),
+  adminCreateCoupon: (input: { adminId: string; code: string; description?: string; discountType: string; discountValue: string; minOrderAmount?: string; maxDiscountAmount?: string; usageLimit?: number; validFrom: string; validTo: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminCreateCoupon.mutate(input),
+  adminToggleCouponStatus: (input: { adminId: string; couponId: number; isActive: boolean }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminToggleCouponStatus.mutate(input),
+  adminDeleteCoupon: (input: { adminId: string; couponId: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).adminDeleteCoupon.mutate(input),
 };
 

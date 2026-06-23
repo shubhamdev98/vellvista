@@ -412,5 +412,60 @@ export function useAdminDeletePaymentMethod() {
   );
 }
 
+// Admin coupon/offer hooks
+export interface Coupon {
+  id: number;
+  code: string;
+  description?: string | null;
+  discountType: string;
+  discountValue: string;
+  minOrderAmount?: string | null;
+  maxDiscountAmount?: string | null;
+  usageLimit?: number | null;
+  usedCount?: number | null;
+  validFrom: string;
+  validTo: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export function useAdminCoupons(adminId?: string) {
+  return useQueryWrapper<Coupon[], { adminId?: string }>(
+    (input) => trpc.adminGetAllCoupons(input as { adminId: string }),
+    { adminId },
+    !!adminId
+  );
+}
+
+export function useAdminCreateCoupon() {
+  return useMutationWrapper<{ success: boolean }, {
+    adminId: string;
+    code: string;
+    description?: string;
+    discountType: string;
+    discountValue: string;
+    minOrderAmount?: string;
+    maxDiscountAmount?: string;
+    usageLimit?: number;
+    validFrom: string;
+    validTo: string;
+  }>((input) => trpc.adminCreateCoupon(input));
+}
+
+export function useAdminToggleCouponStatus() {
+  return useMutationWrapper<{ success: boolean }, {
+    adminId: string;
+    couponId: number;
+    isActive: boolean;
+  }>((input) => trpc.adminToggleCouponStatus(input));
+}
+
+export function useAdminDeleteCoupon() {
+  return useMutationWrapper<{ success: boolean }, { adminId: string; couponId: number }>((input) =>
+    trpc.adminDeleteCoupon(input)
+  );
+}
+
 
 

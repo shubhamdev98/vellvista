@@ -5,6 +5,7 @@ import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Prod
 import { Plus, Edit2, Trash2, Search, X, ChevronDown } from "lucide-react";
 import { getProductImageUrl } from "../../utils/image";
 import { useToast } from "../../../context/ToastProvider";
+import { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 export default function AdminProducts() {
   const { data: productsData, isLoading } = useProducts(100);
@@ -327,11 +328,9 @@ export default function AdminProducts() {
           </thead>
           <tbody className="divide-y divide-light">
             {isLoading && localProducts.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-secondary">
-                  Loading products...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={6} showAction={true} />
+              ))
             ) : filteredProducts.length === 0 ? (
               <tr>
                 <td colSpan={7} className="p-8 text-center text-secondary">

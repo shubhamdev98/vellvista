@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials } from "../../app/utils/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
@@ -49,6 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Shipping Methods", href: "/admin/shipping", icon: Truck },
     { name: "Payment Methods", href: "/admin/payment", icon: CreditCard },
     { name: "Subscribers", href: "/admin/subscribers", icon: Mail },
+    { name: "Offers & Coupons", href: "/admin/offers", icon: Tag },
   ];
 
   return (

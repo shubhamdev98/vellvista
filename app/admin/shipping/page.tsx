@@ -24,6 +24,7 @@ import {
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
 import { useCurrency } from "../../../context/CurrencyProvider";
+import Skeleton, { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 export default function AdminShippingPage() {
   const { user: currentUser } = useAuth();
@@ -241,7 +242,9 @@ export default function AdminShippingPage() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
               Total Options
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.total}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.total}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-primary shrink-0 hidden sm:flex">
             <Truck className="h-5 w-5" />
@@ -254,7 +257,9 @@ export default function AdminShippingPage() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
               Active Options
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-success">{isLoading ? "..." : stats.active}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-success">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.active}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-success/5 rounded-full text-success shrink-0 hidden sm:flex">
             <CheckCircle className="h-5 w-5" />
@@ -267,7 +272,9 @@ export default function AdminShippingPage() {
             <span className="text-[10px] sm:text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
               Disabled Options
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-secondary">{isLoading ? "..." : stats.inactive}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-secondary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.inactive}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-secondary shrink-0 hidden sm:flex">
             <Truck className="h-5 w-5 opacity-40" />
@@ -322,15 +329,10 @@ export default function AdminShippingPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-light">
-            {isLoading ? (
-              <tr>
-                <td colSpan={6} className="p-12 text-center text-secondary">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                     <Loader2 className="h-6 w-6 animate-spin text-secondary" />
-                     <span>Loading shipping methods registry...</span>
-                  </div>
-                </td>
-              </tr>
+            {isLoading && methodsList.length === 0 ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={5} showAction={true} />
+              ))
             ) : filteredMethods.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-12 text-center text-secondary">

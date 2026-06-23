@@ -1586,6 +1586,88 @@ export const appRouter = router({
       }
     }),
 
+  adminGetAllCoupons: publicProcedure
+    .input(z.object({ adminId: z.string() }))
+    .query(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to view coupons.' });
+      }
+      return await db.select().from(coupons).orderBy(desc(coupons.createdAt));
+    }),
+
+  adminCreateCoupon: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      code: z.string().min(1),
+      description: z.string().optional(),
+      discountType: z.string(),
+      discountValue: z.string(),
+      minOrderAmount: z.string().optional(),
+      maxDiscountAmount: z.string().optional(),
+      usageLimit: z.number().optional(),
+      validFrom: z.string(),
+      validTo: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create coupons.' });
+      }
+      try {
+        await db.insert(coupons).values({
+          code: input.code.toUpperCase(),
+          description: input.description || null,
+          discountType: input.discountType,
+          discountValue: input.discountValue,
+          minOrderAmount: input.minOrderAmount || null,
+          maxDiscountAmount: input.maxDiscountAmount || null,
+          usageLimit: input.usageLimit || null,
+          validFrom: new Date(input.validFrom),
+          validTo: new Date(input.validTo),
+          isActive: true,
+        });
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error creating coupon:', err);
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Coupon code already exists.'
+        });
+      }
+    }),
+
+  adminToggleCouponStatus: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      couponId: z.number(),
+      isActive: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update coupons.' });
+      }
+      await db.update(coupons)
+        .set({ isActive: input.isActive, updatedAt: new Date() })
+        .where(eq(coupons.id, input.couponId));
+      return { success: true };
+    }),
+
+  adminDeleteCoupon: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      couponId: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete coupons.' });
+      }
+      await db.delete(coupons).where(eq(coupons.id, input.couponId));
+      return { success: true };
+    }),
+
   // Health check
   healthCheck: publicProcedure.query(() => {
     return { status: 'ok', timestamp: new Date().toISOString() };

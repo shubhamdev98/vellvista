@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAdminReviews, useApproveReview, useDeleteReview } from "../../hooks/useApi";
 import { Star, CheckCircle, Trash2, X } from "lucide-react";
 import { useToast } from "../../../context/ToastProvider";
+import { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 export default function AdminReviews() {
   const { data: reviewsData, isLoading } = useAdminReviews();
@@ -73,11 +74,9 @@ export default function AdminReviews() {
           </thead>
           <tbody className="divide-y divide-light">
             {isLoading && localReviews.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-secondary">
-                  Loading product reviews...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={4} showAction={true} />
+              ))
             ) : localReviews.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-secondary">

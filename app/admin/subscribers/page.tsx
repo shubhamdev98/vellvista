@@ -1,6 +1,7 @@
 "use client";
 
 import { useAdminSubscribers } from "../../hooks/useApi";
+import { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 export default function AdminSubscribers() {
   const { data: subscribers, isLoading } = useAdminSubscribers();
@@ -25,11 +26,9 @@ export default function AdminSubscribers() {
           </thead>
           <tbody className="divide-y divide-light">
             {isLoading ? (
-              <tr>
-                <td colSpan={4} className="p-8 text-center text-secondary">
-                  Loading subscribers...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={4} />
+              ))
             ) : !subscribers || subscribers.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-secondary">

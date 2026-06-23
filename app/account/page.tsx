@@ -21,6 +21,7 @@ function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist">("orders");
+  const [clickedProductId, setClickedProductId] = useState<number | null>(null);
   const { data: userOrders, isLoading: isLoadingOrders } = useUserOrders(user?.email || undefined);
 
   useEffect(() => {
@@ -181,17 +182,28 @@ function AccountPageContent() {
                             <Heart className="h-5 w-5 fill-current text-primary" />
                           </button>
                           <button
-                            onClick={() =>
-                              addItem({
-                                id: item.product.id,
-                                name: item.product.name,
-                                price: parseFloat(item.product.price),
-                                image: item.product.image,
-                              })
-                            }
-                            className="px-3 py-2 bg-primary text-inverse text-xs font-light rounded-none hover:bg-primary-light transition-colors"
+                            onClick={async () => {
+                              setClickedProductId(item.product.id);
+                              const timer = setTimeout(() => setClickedProductId(null), 1000);
+                              try {
+                                await addItem({
+                                  id: item.product.id,
+                                  name: item.product.name,
+                                  price: parseFloat(item.product.price),
+                                  image: item.product.image,
+                                });
+                              } catch (error) {
+                                clearTimeout(timer);
+                                setClickedProductId(null);
+                              }
+                            }}
+                            className={`px-3 py-2 text-xs font-light rounded-none transition-colors duration-75 ${
+                              clickedProductId === item.product.id
+                                ? "bg-green-600 text-white"
+                                : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
+                            }`}
                           >
-                            Add to Cart
+                            {clickedProductId === item.product.id ? "Added!" : "Add to Cart"}
                           </button>
                         </div>
                       </div>

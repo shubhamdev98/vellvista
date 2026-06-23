@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
+import Skeleton, { TableRowSkeleton } from "../../../components/ui/Skeleton";
 
 interface CountryData {
   id: number;
@@ -229,7 +230,9 @@ export default function AdminCountriesPage() {
               <span className="hidden sm:inline">Total Countries</span>
               <span className="sm:hidden">Total</span>
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-primary">{isLoading ? "..." : stats.total}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-primary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.total}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-primary shrink-0 hidden sm:flex">
             <Globe className="h-5 w-5" />
@@ -243,7 +246,9 @@ export default function AdminCountriesPage() {
               <span className="hidden sm:inline">Active Countries</span>
               <span className="sm:hidden">Active</span>
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-success">{isLoading ? "..." : stats.active}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-success">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.active}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-success/5 rounded-full text-success shrink-0 hidden sm:flex">
             <CheckCircle className="h-5 w-5" />
@@ -257,7 +262,9 @@ export default function AdminCountriesPage() {
               <span className="hidden sm:inline">Disabled Countries</span>
               <span className="sm:hidden">Disabled</span>
             </span>
-            <div className="text-lg sm:text-2xl font-semibold text-secondary">{isLoading ? "..." : stats.inactive}</div>
+            <div className="text-lg sm:text-2xl font-semibold text-secondary">
+              {isLoading ? <Skeleton className="h-6 w-12 rounded inline-block" /> : stats.inactive}
+            </div>
           </div>
           <div className="p-2 sm:p-3 bg-primary/5 rounded-full text-secondary shrink-0 hidden sm:flex">
             <Globe className="h-5 w-5 opacity-40" />
@@ -311,15 +318,10 @@ export default function AdminCountriesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-light">
-            {isLoading ? (
-              <tr>
-                <td colSpan={5} className="p-12 text-center text-secondary">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-secondary" />
-                    <span>Loading countries registry...</span>
-                  </div>
-                </td>
-              </tr>
+            {isLoading && countriesList.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} cols={4} showAction={true} />
+              ))
             ) : filteredCountries.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-12 text-center text-secondary">

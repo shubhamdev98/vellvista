@@ -84,7 +84,7 @@ export default function WishlistPage() {
                   <button
                     onClick={() => handleAddToCart(item.product)}
                     disabled={addingProductIds[item.product.id]}
-                    className="bg-color-1 text-color-4 p-2 rounded hover:bg-color-4 hover:text-color-1 transition-colors flex items-center justify-center disabled:opacity-50"
+                    className="bg-color-1 text-color-4 p-2 rounded hover:bg-color-4 hover:text-color-1 transition-colors duration-75 flex items-center justify-center disabled:opacity-50"
                     aria-label="Add to cart"
                   >
                     {addingProductIds[item.product.id] ? (
