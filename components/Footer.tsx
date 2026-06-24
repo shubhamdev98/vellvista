@@ -151,7 +151,7 @@ const Footer = () => {
                       alt={link.name}
                       width={20}
                       height={20}
-                      className="object-contain brightness-0 invert"
+                      className="object-contain"
                     />
                   </a>
                 ))}

@@ -379,7 +379,7 @@ export default function AdminSocialLinksPage() {
                 <tr key={l.id} className="text-primary hover:bg-surface-alt/40 transition-colors whitespace-nowrap">
                   {/* Icon */}
                   <td className="p-4">
-                    <img src={l.image} alt={l.name} className="h-6 w-6 object-contain border border-light p-0.5 bg-primary brightness-0 invert" />
+                    <img src={l.image} alt={l.name} className="h-6 w-6 object-contain border border-light p-0.5" />
                   </td>
 
                   {/* Name */}
@@ -544,12 +544,12 @@ export default function AdminSocialLinksPage() {
                   )}
 
                   {formData.image && (
-                    <div className="mt-2 border border-light p-2 bg-primary rounded inline-block">
+                    <div className="mt-2 border border-light p-2 rounded inline-block">
                       <p className="text-xs text-secondary mb-1">Preview:</p>
                       <img
                         src={formData.image}
                         alt="Preview"
-                        className="h-8 w-8 object-contain brightness-0 invert"
+                        className="h-8 w-8 object-contain"
                       />
                     </div>
                   )}
