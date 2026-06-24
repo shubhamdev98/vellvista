@@ -360,7 +360,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-surface border border-light shadow-xl z-50 p-4 rounded flex flex-col max-h-[480px]">
+                <div className="fixed md:absolute top-16 md:top-auto md:mt-2 right-4 left-4 md:right-0 md:left-auto w-auto md:w-80 bg-surface border border-light shadow-xl z-50 p-4 rounded flex flex-col max-h-[calc(100vh-5rem)] md:max-h-[480px]">
                   <div className="flex items-center justify-between pb-3 border-b border-light">
                     <span className="font-semibold text-primary text-sm">Notifications</span>
                     {unreadCount > 0 && (
