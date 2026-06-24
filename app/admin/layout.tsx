@@ -79,13 +79,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         },
         ...prev
       ]);
-      showToast(`${notif.title}: ${notif.message}`, 'success');
     });
 
     return () => {
       socket.off('admin-notification');
     };
-  }, [socket, user, showToast]);
+  }, [socket, user]);
 
   // Click outside to close notification dropdown
   useEffect(() => {
