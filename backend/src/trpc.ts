@@ -68,6 +68,44 @@ const GoogleAuthSchema = z.object({
   googleId: z.string(),
 });
 
+// Helper to notify admins about a new paid order
+async function notifyAdminsOfNewOrder(orderId: number) {
+  try {
+    const matchedOrders = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    if (matchedOrders.length === 0) return;
+    const orderObj = matchedOrders[0];
+
+    const admins = await db.select()
+      .from(user)
+      .where(or(eq(user.role, 'ADMIN'), eq(user.role, 'SUPER_ADMIN')));
+
+    for (const adminUser of admins) {
+      await db.insert(notifications).values({
+        userId: adminUser.id,
+        type: 'order',
+        title: 'New Order Placed',
+        message: `Order #${orderObj.id} has been placed by ${orderObj.customerName} for $${orderObj.totalAmount}`,
+        actionUrl: `/admin/orders`,
+        isRead: false
+      });
+    }
+
+    // Dynamic import to prevent circular dependency
+    const { io } = require('./index');
+    if (io) {
+      io.emit('admin-notification', {
+        type: 'order',
+        title: 'New Order Placed',
+        message: `Order #${orderObj.id} has been placed by ${orderObj.customerName} for $${orderObj.totalAmount}`,
+        actionUrl: `/admin/orders`,
+        createdAt: new Date().toISOString()
+      });
+    }
+  } catch (notifErr) {
+    console.error('Failed to create admin notification for order:', notifErr);
+  }
+}
+
 // Create tRPC router with procedures
 export const appRouter = router({
   // Product procedures
@@ -1019,6 +1057,11 @@ export const appRouter = router({
       await db.update(orders)
         .set({ status: input.status })
         .where(eq(orders.id, input.id));
+
+      if (input.status === 'processing') {
+        await notifyAdminsOfNewOrder(input.id);
+      }
+
       return { success: true };
     }),
 
@@ -1542,38 +1585,6 @@ export const appRouter = router({
           status: 'pending',
         }).returning();
 
-        // Retrieve all admin users to create DB notifications
-        try {
-          const admins = await db.select()
-            .from(user)
-            .where(or(eq(user.role, 'ADMIN'), eq(user.role, 'SUPER_ADMIN')));
-
-          for (const adminUser of admins) {
-            await db.insert(notifications).values({
-              userId: adminUser.id,
-              type: 'order',
-              title: 'New Order Placed',
-              message: `Order #${newOrder.id} has been placed by ${input.customerName} for $${input.totalAmount}`,
-              actionUrl: `/admin/orders`,
-              isRead: false
-            });
-          }
-
-          // Dynamic import to prevent circular dependency
-          const { io } = require('./index');
-          if (io) {
-            io.emit('admin-notification', {
-              type: 'order',
-              title: 'New Order Placed',
-              message: `Order #${newOrder.id} has been placed by ${input.customerName} for $${input.totalAmount}`,
-              actionUrl: `/admin/orders`,
-              createdAt: new Date().toISOString()
-            });
-          }
-        } catch (notifErr) {
-          console.error('Failed to create admin notification for order:', notifErr);
-        }
-
         return { success: true, orderId: newOrder.id };
       } catch (err: any) {
         console.error('Error creating order:', err);
@@ -1656,6 +1667,8 @@ export const appRouter = router({
               updatedAt: new Date(),
             })
             .where(eq(orders.id, input.orderId));
+
+          await notifyAdminsOfNewOrder(input.orderId);
 
           return { success: true };
         } else {
