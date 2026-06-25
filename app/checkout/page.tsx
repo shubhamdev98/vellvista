@@ -83,6 +83,71 @@ export default function CheckoutPage() {
     isDefault: false,
   });
 
+  const [addressErrors, setAddressErrors] = useState({
+    fullName: "",
+    phone: "",
+    addressLine1: "",
+    postalCode: "",
+  });
+
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+
+  const validateAddressForm = () => {
+    const errors = {
+      fullName: "",
+      phone: "",
+      addressLine1: "",
+      postalCode: "",
+    };
+    let isValid = true;
+
+    // Full Name validation
+    const fullNameTrimmed = addressForm.fullName.trim();
+    if (!fullNameTrimmed) {
+      errors.fullName = "Full name is required";
+      isValid = false;
+    } else if (fullNameTrimmed.length < 3) {
+      errors.fullName = "Full name must be at least 3 characters";
+      isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(fullNameTrimmed)) {
+      errors.fullName = "Full name can only contain letters and spaces";
+      isValid = false;
+    }
+
+    // Phone validation
+    const phoneTrimmed = addressForm.phone.trim();
+    if (!phoneTrimmed) {
+      errors.phone = "Phone number is required";
+      isValid = false;
+    } else if (!/^\+?[0-9]{8,15}$/.test(phoneTrimmed)) {
+      errors.phone = "Please enter a valid phone number (8-15 digits)";
+      isValid = false;
+    }
+
+    // Address Line 1 validation
+    const addressLine1Trimmed = addressForm.addressLine1.trim();
+    if (!addressLine1Trimmed) {
+      errors.addressLine1 = "Address Line 1 is required";
+      isValid = false;
+    } else if (addressLine1Trimmed.length < 5) {
+      errors.addressLine1 = "Address must be at least 5 characters";
+      isValid = false;
+    }
+
+    // Postal Code validation
+    const postalCodeTrimmed = addressForm.postalCode.trim();
+    if (!postalCodeTrimmed) {
+      errors.postalCode = "Postal code is required";
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9\s-]{4,10}$/.test(postalCodeTrimmed)) {
+      errors.postalCode = "Please enter a valid postal code (4-10 alphanumeric characters)";
+      isValid = false;
+    }
+
+    setAddressErrors(errors);
+    return isValid;
+  };
+
   // Fetch shipping methods from DB
   useEffect(() => {
     const fetchShippingMethods = async () => {
@@ -248,6 +313,12 @@ export default function CheckoutPage() {
   const handleCreateAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!validateAddressForm()) {
+      showToast("Please fix the validation errors in the address form", "error");
+      return;
+    }
+
     try {
       setIsProcessing(true);
       await trpc.addAddress({
@@ -266,6 +337,12 @@ export default function CheckoutPage() {
         country: currency.country || "",
         phone: "",
         isDefault: false,
+      });
+      setAddressErrors({
+        fullName: "",
+        phone: "",
+        addressLine1: "",
+        postalCode: "",
       });
       await fetchAddresses();
     } catch (err) {
@@ -339,7 +416,7 @@ export default function CheckoutPage() {
       }
 
       const activePaymentMethod = paymentMethodsList.find(pm => pm.code === selectedPaymentMethodCode);
-      const isRealPayment = !isMockMode;
+      const isRealPayment = !isMockMode || !isAdmin;
 
       // If mock payment mode is enabled
       if (!isRealPayment) {
@@ -590,6 +667,12 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => {
                             setShowAddressForm(false);
+                            setAddressErrors({
+                              fullName: "",
+                              phone: "",
+                              addressLine1: "",
+                              postalCode: "",
+                            });
                             if (addresses.length > 0 && !selectedAddressId) {
                               setSelectedAddressId(addresses[0].id);
                             }
@@ -606,20 +689,40 @@ export default function CheckoutPage() {
                           <input
                             type="text"
                             value={addressForm.fullName}
-                            onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                            className="w-full px-3 py-2 bg-surface border border-default text-sm focus:outline-none focus:border-primary"
+                            onChange={(e) => {
+                              setAddressForm({ ...addressForm, fullName: e.target.value });
+                              if (addressErrors.fullName) {
+                                setAddressErrors(prev => ({ ...prev, fullName: "" }));
+                              }
+                            }}
+                            className={`w-full px-3 py-2 bg-surface border text-sm focus:outline-none focus:border-primary ${
+                              addressErrors.fullName ? "border-error" : "border-default"
+                            }`}
                             required
                           />
+                          {addressErrors.fullName && (
+                            <p className="text-xs text-error mt-1">{addressErrors.fullName}</p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs text-secondary mb-1">Phone Number *</label>
                           <input
                             type="text"
                             value={addressForm.phone}
-                            onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                            className="w-full px-3 py-2 bg-surface border border-default text-sm focus:outline-none focus:border-primary"
+                            onChange={(e) => {
+                              setAddressForm({ ...addressForm, phone: e.target.value });
+                              if (addressErrors.phone) {
+                                setAddressErrors(prev => ({ ...prev, phone: "" }));
+                              }
+                            }}
+                            className={`w-full px-3 py-2 bg-surface border text-sm focus:outline-none focus:border-primary ${
+                              addressErrors.phone ? "border-error" : "border-default"
+                            }`}
                             required
                           />
+                          {addressErrors.phone && (
+                            <p className="text-xs text-error mt-1">{addressErrors.phone}</p>
+                          )}
                         </div>
                       </div>
 
@@ -628,11 +731,21 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           value={addressForm.addressLine1}
-                          onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
-                          className="w-full px-3 py-2 bg-surface border border-default text-sm focus:outline-none focus:border-primary"
+                          onChange={(e) => {
+                            setAddressForm({ ...addressForm, addressLine1: e.target.value });
+                            if (addressErrors.addressLine1) {
+                              setAddressErrors(prev => ({ ...prev, addressLine1: "" }));
+                            }
+                          }}
+                          className={`w-full px-3 py-2 bg-surface border text-sm focus:outline-none focus:border-primary ${
+                            addressErrors.addressLine1 ? "border-error" : "border-default"
+                          }`}
                           placeholder="Street name, P.O. Box, etc."
                           required
                         />
+                        {addressErrors.addressLine1 && (
+                          <p className="text-xs text-error mt-1">{addressErrors.addressLine1}</p>
+                        )}
                       </div>
 
                       <div>
@@ -723,10 +836,20 @@ export default function CheckoutPage() {
                           <input
                             type="text"
                             value={addressForm.postalCode}
-                            onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
-                            className="w-full px-3 py-2 bg-surface border border-default text-sm focus:outline-none"
+                            onChange={(e) => {
+                              setAddressForm({ ...addressForm, postalCode: e.target.value });
+                              if (addressErrors.postalCode) {
+                                setAddressErrors(prev => ({ ...prev, postalCode: "" }));
+                              }
+                            }}
+                            className={`w-full px-3 py-2 bg-surface border text-sm focus:outline-none focus:border-primary ${
+                              addressErrors.postalCode ? "border-error" : "border-default"
+                            }`}
                             required
                           />
+                          {addressErrors.postalCode && (
+                            <p className="text-xs text-error mt-1">{addressErrors.postalCode}</p>
+                          )}
                         </div>
                       </div>
 
@@ -846,27 +969,29 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            {/* Developer Simulated Mode Toggle */}
-            <section className="p-4 bg-background-alt border border-dashed border-dark flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-success-dark" />
-                  Developer Sandbox Mode
-                </p>
-                <p className="text-xs text-secondary mt-0.5">
-                  Simulate checkout payment success without active Razorpay API keys.
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isMockMode}
-                  onChange={(e) => setIsMockMode(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-10 h-6 bg-white border border-black rounded-full transition-all duration-200 ease-in-out peer-checked:bg-black relative after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all duration-200 ease-in-out peer-checked:after:translate-x-4 peer-checked:after:bg-white"></div>
-              </label>
-            </section>
+            {/* Developer Simulated Mode Toggle - Admin Only */}
+            {isAdmin && (
+              <section className="p-4 bg-background-alt border border-dashed border-dark flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-success-dark" />
+                    Developer Sandbox Mode
+                  </p>
+                  <p className="text-xs text-secondary mt-0.5">
+                    Simulate checkout payment success without active Razorpay API keys.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isMockMode}
+                    onChange={(e) => setIsMockMode(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-6 bg-white border border-black rounded-full transition-all duration-200 ease-in-out peer-checked:bg-black relative after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all duration-200 ease-in-out peer-checked:after:translate-x-4 peer-checked:after:bg-white"></div>
+                </label>
+              </section>
+            )}
           </div>
 
           {/* RIGHT: Order Summary (5 Cols) */}

@@ -147,8 +147,8 @@ function Actions({
             <Image
               src={user.avatar}
               alt="Profile"
-              width={40}
-              height={40}
+              width={35}
+              height={35}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -160,9 +160,9 @@ function Actions({
       ) : (
         <button
           onClick={() => router.push("/auth/login")}
-          className="w-10 h-10 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
         >
-          <User className="h-6 w-6" />
+          <User className="h-5 w-5" />
         </button>
       )}
     </div>
@@ -176,11 +176,18 @@ function CartSidebar({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { items, removeItem, clearCart, updateQuantity } = useCart();
+  const {
+    items,
+    removeItem,
+    clearCart,
+    updateQuantity,
+    couponCode,
+    discountRate,
+    applyCoupon,
+    removeCoupon
+  } = useCart();
   const { formatPrice } = useCurrency();
-  // Local state for coupon handling
-  const [couponCode, setCouponCode] = useState('');
-  const [discountRate, setDiscountRate] = useState(0); // e.g., 0.1 for 10% discount
+  const [couponInput, setCouponInput] = useState('');
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -240,27 +247,38 @@ function CartSidebar({
                   </div>
                 )}
 
-                <div className="flex gap-2 mb-4">
-                  <input
-                    type="text"
-                    placeholder="Coupon code"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    className="flex-1 border border-default rounded hover:border-gray-300 hover:rounded-none px-2 py-1 text-sm"
-                  />
-                  <button
-                    onClick={() => {
-                      if (couponCode.trim().toUpperCase() === "SAVE10") {
-                        setDiscountRate(0.1);
-                      } else {
-                        setDiscountRate(0);
-                      }
-                    }}
-                    className="bg-accent text-inverse px-3 py-1 text-sm hover:bg-accent-light"
-                  >
-                    Apply
-                  </button>
-                </div>
+                {couponCode ? (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-success/30 px-3 py-2 mb-4 text-xs font-light">
+                    <span className="text-success font-medium">
+                      Coupon "{couponCode}" Applied
+                    </span>
+                    <button
+                      onClick={() => {
+                        removeCoupon();
+                        setCouponInput('');
+                      }}
+                      className="text-error hover:underline cursor-pointer font-normal"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text"
+                      placeholder="Coupon code"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      className="flex-1 border border-default rounded hover:border-gray-300 hover:rounded-none px-2 py-1 text-sm bg-transparent text-primary"
+                    />
+                    <button
+                      onClick={() => applyCoupon(couponInput)}
+                      className="bg-accent text-inverse px-3 py-1 text-sm hover:bg-accent-light cursor-pointer"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
 
                 <div className="flex justify-between font-semibold text-primary mb-4">
                   <span>Grand Total:</span>

@@ -3,6 +3,7 @@
 import { createContext, useContext, useCallback, useMemo, useState, useEffect, useRef, type ReactNode } from "react";
 import { trpc } from "../app/utils/trpc";
 import { useAuth } from "./AuthProvider";
+import { useToast } from "./ToastProvider";
 
 export type CartItem = {
   id: number;
@@ -25,7 +26,7 @@ type CartContextType = {
   // Coupon related
   couponCode: string;
   discountRate: number; // e.g., 0.1 for 10% discount
-  applyCoupon: (code: string) => void;
+  applyCoupon: (code: string) => Promise<void>;
   removeCoupon: () => void;
 };
 
@@ -43,25 +44,86 @@ const isNetworkError = (error: unknown) =>
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [discountRate, setDiscountRate] = useState(0); // 0 means no discount
+  const { showToast } = useToast();
 
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [items]);
 
-  const applyCoupon = useCallback((code: string) => {
-    const trimmed = code.trim().toUpperCase();
-    if (trimmed === 'SAVE10') {
-      setCouponCode(trimmed);
-      setDiscountRate(0.1);
-    } else {
+  // Re-validate coupon when subtotal changes
+  useEffect(() => {
+    if (!appliedCouponCode) {
       setCouponCode('');
       setDiscountRate(0);
+      return;
     }
-  }, []);
+
+    const revalidate = async () => {
+      try {
+        const res = await trpc.validateCoupon({
+          code: appliedCouponCode,
+          orderAmount: subtotal.toString(),
+        });
+
+        if (res.valid) {
+          setCouponCode(appliedCouponCode);
+          if (res.discountType === 'percentage') {
+            setDiscountRate(parseFloat(res.discountValue) / 100);
+          } else {
+            setDiscountRate(subtotal > 0 ? parseFloat(res.discountAmount) / subtotal : 0);
+          }
+        } else {
+          // Coupon became invalid (e.g. subtotal drops below minimum order amount)
+          setCouponCode('');
+          setDiscountRate(0);
+          setAppliedCouponCode('');
+          showToast(res.message || "Applied coupon is no longer valid for this cart total", "warning");
+        }
+      } catch (err) {
+        console.error("Error re-validating coupon:", err);
+      }
+    };
+
+    revalidate();
+  }, [appliedCouponCode, subtotal, showToast]);
+
+  const applyCoupon = useCallback(async (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+
+    try {
+      const res = await trpc.validateCoupon({
+        code: trimmed,
+        orderAmount: subtotal.toString(),
+      });
+
+      if (res.valid) {
+        setAppliedCouponCode(trimmed);
+        setCouponCode(trimmed);
+        if (res.discountType === 'percentage') {
+          setDiscountRate(parseFloat(res.discountValue) / 100);
+        } else {
+          setDiscountRate(subtotal > 0 ? parseFloat(res.discountAmount) / subtotal : 0);
+        }
+        showToast("Coupon applied successfully!", "success");
+      } else {
+        showToast(res.message || "Invalid coupon code", "error");
+      }
+    } catch (err: any) {
+      console.error("Error applying coupon:", err);
+      showToast(err.message || "Failed to apply coupon", "error");
+    }
+  }, [subtotal, showToast]);
 
   const removeCoupon = useCallback(() => {
+    setAppliedCouponCode('');
     setCouponCode('');
     setDiscountRate(0);
-  }, []);
+    showToast("Coupon removed successfully", "success");
+  }, [showToast]);
   const hasWarnedBackendUnavailable = useRef(false);
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState(() => {

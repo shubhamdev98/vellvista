@@ -143,6 +143,7 @@ async function seed() {
 
   // Hash password for seed users
   const adminPassword = await bcrypt.hash('admin123', 10);
+  const userPassword = await bcrypt.hash('user123', 10);
 
   // Insert/update users safely
   const userData = [
@@ -154,6 +155,15 @@ async function seed() {
       isActive: true,
       role: 'SUPER_ADMIN',
       password: adminPassword,
+    },
+    {
+      id: 'standard-user-uuid-2',
+      email: 'user@luxescents.com',
+      name: 'Standard User',
+      image: 'https://lh3.googleusercontent.com/a/default-user',
+      isActive: true,
+      role: 'USER',
+      password: userPassword,
     },
   ];
 
