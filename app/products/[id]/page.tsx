@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Upload,
   X,
+  Share2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,6 +20,7 @@ import { useAuth } from "../../../context/AuthProvider";
 import { useSocket } from "../../../context/SocketProvider";
 import { useToast } from "../../../context/ToastProvider";
 import { useCurrency } from "../../../context/CurrencyProvider";
+import { useWishlist } from "../../../context/WishlistProvider";
 import { trpc } from "../../utils/trpc";
 import { getImageUrl } from "../../utils/image";
 import { ProductDetailSkeleton } from "../../../components/ui/Skeleton";
@@ -30,6 +32,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const { showToast } = useToast();
   const { formatPrice } = useCurrency();
   const { socket, joinProduct, leaveProduct } = useSocket();
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [product, setProduct] = useState<Product | null>(null);
@@ -442,8 +445,39 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                     </>
                   )}
                 </button>
-                <button className="p-3 border border-dark  hover:border-primary transition-colors">
-                  <Heart className="h-5 w-5 text-primary" />
+                <button
+                  onClick={async () => {
+                    if (!product) return;
+                    try {
+                      if (isInWishlist(product.id)) {
+                        await removeFromWishlist(product.id);
+                        showToast("Removed from wishlist!", "success");
+                      } else {
+                        await addToWishlist(product.id);
+                        showToast("Added to wishlist!", "success");
+                      }
+                    } catch (err: any) {
+                      showToast(err.message || "Failed to update wishlist.", "error");
+                    }
+                  }}
+                  className={`p-3 border transition-colors cursor-pointer ${
+                    isInWishlist(product.id) ? "border-red-500 bg-red-50/10" : "border-dark hover:border-primary"
+                  }`}
+                  title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                >
+                  <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-red-500 text-red-500" : "text-primary"}`} />
+                </button>
+                <button
+                  onClick={() => {
+                    const productUrl = window.location.href;
+                    navigator.clipboard.writeText(productUrl)
+                      .then(() => showToast("Product link copied to clipboard!", "success"))
+                      .catch(() => showToast("Failed to copy link.", "error"));
+                  }}
+                  className="p-3 border border-dark hover:border-primary transition-colors cursor-pointer"
+                  title="Share Product"
+                >
+                  <Share2 className="h-5 w-5 text-primary" />
                 </button>
               </div>
 

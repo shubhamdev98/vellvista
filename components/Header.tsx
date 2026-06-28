@@ -1,171 +1,297 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Search, ShoppingCart, User, Menu, X, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { Menu, X, ShoppingBag, ChevronRight, Search } from "lucide-react";
 import { useCart } from "../context/CartProvider";
 import { useAuth } from "../context/AuthProvider";
 import { useCurrency } from "../context/CurrencyProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { getProductImageUrl, getInitials } from "../app/utils/image";
+import { getInitials } from "../app/utils/image";
 import CurrencySelector from "./CurrencySelector";
 import CartItem from "./CartItem";
+
 const navLinks = [
-  { name: "Shop", href: "/products" },
-  { name: "New Arrivals", href: "#new-arrivals" },
-  { name: "Sale", href: "#sale" },
+  { name: "Shop All", href: "/products" },
+  { name: "New Arrivals", href: "/products?filter=new" },
+  { name: "Sale", href: "/products?filter=sale" },
 ];
 
-function NavItems({
-  mobile = false,
-  onLinkClick,
-}: {
-  mobile?: boolean;
-  onLinkClick?: () => void;
-}) {
-  return (
-    <div className={`${mobile ? "space-y-2" : "flex items-center"}`}>
-      {navLinks.map((link, index) => (
-        <React.Fragment key={link.name}>
-          <a
-            href={link.href}
-            onClick={onLinkClick}
-            className={`${mobile
-                ? "block px-3 py-3 text-base text-primary border-b border-default last:border-0 hover:bg-surface-alt rounded"
-                : "px-3 py-2 text-sm text-primary"
-              } font-light hover:text-secondary transition`}
-          >
-            {link.name}
-          </a>
+const featuredItems = [
+  {
+    id: 1,
+    name: "Chanel No. 5",
+    brand: "Chanel",
+    price: 150.00,
+    image: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg"
+  },
+  {
+    id: 2,
+    name: "Flowerbomb",
+    brand: "Viktor & Rolf",
+    price: 120.00,
+    image: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544138/vellvista/product/vnqu2pvfpyhqdzl7bevh.jpg"
+  }
+];
 
-          {!mobile && index < navLinks.length - 1 && (
-            <span className="mx-2 text-muted">|</span>
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
+export default function Header() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const { totalItems } = useCart();
+  const { user, logout } = useAuth();
+  const { formatPrice } = useCurrency();
+  const router = useRouter();
 
-function SearchBar({
-  full = false,
-  mobile = false,
-  value,
-  onChange,
-}: {
-  full?: boolean;
-  mobile?: boolean;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleIconClick = () => {
-    if (mobile || full) return;
-    setIsExpanded(true);
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-  };
-
-  const handleBlur = () => {
-    if (mobile || full) return;
-    if (!value) {
-      setIsExpanded(false);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchValue)}`);
+      setIsDrawerOpen(false);
+      setIsSearchOpen(false);
     }
   };
 
-  const showExpanded = mobile || full || isExpanded || !!value;
-
   return (
-    <div className={`relative transition-all duration-300 ${mobile || full ? "w-full" : showExpanded ? "w-64" : "w-10"
-      }`}>
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onBlur={handleBlur}
-        type="text"
-        placeholder="Search perfumes..."
-        className={`w-full text-primary placeholder:text-muted py-2 border-b outline-none bg-transparent transition-all duration-300 ${mobile ? "border-dark" : "border-default"
-          } focus:border-primary ${showExpanded
-            ? "pl-10 pr-4 opacity-100 cursor-text"
-            : "pl-0 pr-0 opacity-0 pointer-events-none cursor-pointer"
-          }`}
-      />
-      <button
-        onClick={handleIconClick}
-        type="button"
-        disabled={showExpanded}
-        className={`absolute top-2 h-6 w-6 flex items-center justify-center transition-all duration-300 ${mobile ? "text-primary" : "text-secondary hover:text-primary"
-          } ${showExpanded
-            ? "left-3 pointer-events-none cursor-default"
-            : "left-2 cursor-pointer"
-          }`}
-        aria-label="Search perfumes"
-      >
-        <Search className="h-5 w-5" />
-      </button>
-    </div>
-  );
-}
+    <>
+      {/* Top Main AppBar */}
+      <header className="sticky top-0 z-50 bg-[#f9f9f9] h-16 flex items-center select-none">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
+          
+          {/* Left: Drawer Toggle */}
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="text-primary hover:opacity-75 transition-opacity p-2 -ml-2 cursor-pointer"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-6 w-6 stroke-[1.5]" />
+          </button>
 
-function Actions({
-  onCartClick,
-  mobile = false,
-}: {
-  onCartClick: () => void;
-  mobile?: boolean;
-}) {
-  const { totalItems } = useCart();
-  const { user } = useAuth();
-  const router = useRouter();
+          {/* Center: Brand Logo */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Link
+              href="/"
+              className="text-xl sm:text-2xl font-bold uppercase tracking-[0.25em] text-primary font-manrope whitespace-nowrap hover:opacity-85 transition-opacity"
+            >
+              VEILVISTA
+            </Link>
+          </div>
 
-  return (
-    <div className={`flex items-center gap-6 ${mobile ? "" : ""}`}>
-      <button
-        onClick={onCartClick}
-        className="relative w-10 h-10 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
-      >
-        <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
+          {/* Right: Actions */}
+          <div className="flex items-center space-x-1 sm:space-x-3">
+            {/* Desktop Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="hidden md:block relative">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-40 lg:w-56 bg-[#f3f3f3] border border-transparent focus:border-border-light px-3 py-1.5 pl-8 text-xs focus:outline-none transition-all text-primary font-inter rounded-md"
+              />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-secondary/60 pointer-events-none" />
+            </form>
 
-        {totalItems > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-inverse text-xs font-semibold rounded-full flex items-center justify-center">
-            {totalItems}
-          </span>
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="md:hidden p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
+              aria-label="Toggle search"
+            >
+              <Search className="h-6 w-6 stroke-[1.5]" />
+            </button>
+
+            {/* Shopping Bag */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
+              aria-label="Open shopping cart"
+            >
+              <ShoppingBag className="h-6 w-6 stroke-[1.5]" />
+              <span className="absolute top-1.5 right-1.5 bg-primary text-inverse text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center font-inter">
+                {totalItems}
+              </span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* Mobile Slide-down Search Bar */}
+        {isSearchOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-[#f9f9f9] border-b border-border-light px-4 py-3 z-40 shadow-md">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search catalog..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  autoFocus
+                  className="w-full bg-[#f3f3f3] border border-transparent focus:border-border-light px-4 py-2.5 pl-10 text-sm focus:outline-none transition-colors text-primary rounded-md"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/60 pointer-events-none" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(false)}
+                className="text-xs font-semibold uppercase tracking-wider text-secondary hover:text-primary px-2 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
         )}
-      </button>
+      </header>
 
-      {user ? (
-        <button
-          onClick={() => router.push("/account")}
-          className="w-10 h-10 flex items-center justify-center rounded-full overflow-hidden hover:opacity-80 border border-light bg-secondary text-primary select-none cursor-pointer"
-        >
-          {user.avatar ? (
-            <Image
-              src={user.avatar}
-              alt="Profile"
-              width={35}
-              height={35}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="font-semibold text-sm tracking-wider">
-              {getInitials(user.fullName)}
-            </span>
-          )}
-        </button>
-      ) : (
-        <button
-          onClick={() => router.push("/auth/login")}
-          className="w-8 h-8 flex items-center justify-center text-primary hover:opacity-80 cursor-pointer"
-        >
-          <User className="h-5 w-5" />
-        </button>
+      {/* Slide-out Left Navigation Drawer */}
+      {isDrawerOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity duration-300"
+          onClick={() => setIsDrawerOpen(false)}
+        />
       )}
-    </div>
+
+      <div
+        className={`fixed top-0 left-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-transform duration-300 transform ${
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full font-inter">
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-5 border-b border-border-light">
+            <span className="font-manrope text-sm font-semibold tracking-wider text-secondary uppercase">
+              Menu
+            </span>
+            <button
+              onClick={() => setIsDrawerOpen(false)}
+              className="p-1 hover:opacity-70 transition-opacity text-primary cursor-pointer"
+            >
+              <X className="h-5 w-5 stroke-[1.5]" />
+            </button>
+          </div>
+
+
+          {/* Navigation Links & Featured Section */}
+          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+            <nav className="space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="flex items-center justify-between py-3.5 px-3 hover:bg-black/5 transition-all duration-300 text-primary font-medium tracking-wide text-sm"
+                >
+                  <span>{link.name}</span>
+                  <ChevronRight className="h-4 w-4 text-secondary/55" />
+                </Link>
+              ))}
+            </nav>
+
+            {/* Featured Products inside Menu */}
+            <div className="pt-6 border-t border-border-light">
+              <h3 className="font-manrope text-xs font-semibold tracking-wider text-secondary uppercase mb-4 px-3">
+                Featured Items
+              </h3>
+              <div className="grid grid-cols-2 gap-4 px-3">
+                {featuredItems.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/products/${item.id}`}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="group block space-y-2 text-left"
+                  >
+                    <div className="relative aspect-[4/5] bg-background-muted overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="px-0.5">
+                      <h4 className="font-semibold text-xs text-primary truncate">
+                        {item.name}
+                      </h4>
+                      <p className="text-[10px] text-secondary truncate">
+                        {item.brand}
+                      </p>
+                      <p className="text-[11px] font-medium text-primary mt-0.5">
+                        {formatPrice(item.price)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Drawer Footer: User Section & Currency */}
+          <div className="p-5 bg-background-muted border-t border-border-light space-y-4">
+            <div className="flex items-center justify-between text-xs text-secondary font-semibold tracking-wider uppercase mb-1">
+              <span>Settings</span>
+            </div>
+
+            {/* Currency Selector inside Drawer */}
+            <div className="flex items-center justify-between py-1 px-1">
+              <span className="text-xs text-secondary font-medium">Currency</span>
+              <CurrencySelector />
+            </div>
+
+            {/* User Account widget inside Drawer */}
+            <div className="pt-4 border-t border-border-light">
+              {user ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3 py-1">
+                    <div className="w-10 h-10 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-sm border border-border-light select-none shrink-0">
+                      {getInitials(user.fullName)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-primary truncate text-sm">
+                        {user.fullName}
+                      </div>
+                      <div className="text-xs text-secondary truncate">{user.email}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Link
+                      href="/account/overview"
+                      onClick={() => setIsDrawerOpen(false)}
+                      className="px-3 py-2.5 text-center text-xs font-semibold bg-primary text-inverse hover:opacity-90 transition-opacity uppercase tracking-wider"
+                    >
+                      Account
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsDrawerOpen(false);
+                        router.push("/");
+                      }}
+                      className="px-3 py-2.5 text-center text-xs font-semibold border border-primary text-primary hover:bg-black/5 transition-colors uppercase tracking-wider cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center text-center space-y-2 py-2">
+                  <p className="text-xs text-secondary font-light">
+                    Sign in to manage orders, wishlist, and profile
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="w-full py-2.5 text-center text-xs font-semibold bg-primary text-inverse hover:opacity-95 transition-opacity uppercase tracking-widest"
+                  >
+                    Sign In / Register
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+    </>
   );
 }
 
@@ -192,9 +318,8 @@ function CartSidebar({
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  // Calculations for subtotal, tax, discount, and grand total
   const subtotal = total;
-  const TAX_RATE = 0.08; // 8% sales tax
+  const TAX_RATE = 0.08;
   const taxAmount = subtotal * TAX_RATE;
   const discountAmount = subtotal * discountRate;
   const grandTotal = subtotal + taxAmount - discountAmount;
@@ -202,26 +327,27 @@ function CartSidebar({
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:max-w-sm bg-surface z-50 shadow-2xl transition-transform ${isOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
-        <div className="flex flex-col h-full">
-          <div className="flex justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-primary">Shopping Cart</h2>
-            <button onClick={onClose} className="text-primary">
-              <X />
+        <div className="flex flex-col h-full font-inter">
+          <div className="flex justify-between p-5 border-b border-border-light">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-secondary">Shopping Bag</h2>
+            <button onClick={onClose} className="text-primary hover:opacity-75 transition-opacity cursor-pointer">
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-5 no-scrollbar">
               {items.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <ShoppingCart className="h-12 w-12 text-muted" />
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
+                  <ShoppingBag className="h-10 w-10 text-secondary/40" />
+                  <p className="text-xs text-secondary font-light">Your shopping bag is empty.</p>
                 </div>
               ) : (
                 items.map((item) => (
@@ -231,26 +357,26 @@ function CartSidebar({
             </div>
 
             {items.length > 0 && (
-              <div className="border-t border-gray-200 p-4 bg-surface sticky bottom-0">
-                <div className="flex justify-between text-sm text-muted mb-2">
+              <div className="border-t border-border-light p-5 bg-[#f9f9f9] sticky bottom-0">
+                <div className="flex justify-between text-xs text-secondary mb-2">
                   <span>Subtotal:</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span className="font-semibold">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-muted mb-2">
+                <div className="flex justify-between text-xs text-secondary mb-2">
                   <span>Tax (8%):</span>
-                  <span>{formatPrice(taxAmount)}</span>
+                  <span className="font-semibold">{formatPrice(taxAmount)}</span>
                 </div>
                 {discountRate > 0 && (
-                  <div className="flex justify-between text-sm text-success mb-2">
+                  <div className="flex justify-between text-xs text-success mb-2">
                     <span>Discount:</span>
-                    <span>-{formatPrice(discountAmount)}</span>
+                    <span className="font-semibold">-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
 
                 {couponCode ? (
                   <div className="flex items-center justify-between bg-emerald-50 border border-success/30 px-3 py-2 mb-4 text-xs font-light">
                     <span className="text-success font-medium">
-                      Coupon "{couponCode}" Applied
+                      Coupon &quot;{couponCode}&quot; Applied
                     </span>
                     <button
                       onClick={() => {
@@ -269,18 +395,18 @@ function CartSidebar({
                       placeholder="Coupon code"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
-                      className="flex-1 border border-default rounded hover:border-gray-300 hover:rounded-none px-2 py-1 text-sm bg-transparent text-primary"
+                      className="flex-1 border border-border px-3 py-1.5 text-xs bg-white text-primary focus:outline-none"
                     />
                     <button
                       onClick={() => applyCoupon(couponInput)}
-                      className="bg-accent text-inverse px-3 py-1 text-sm hover:bg-accent-light cursor-pointer"
+                      className="bg-primary text-inverse px-3 py-1.5 text-xs font-semibold uppercase tracking-wider hover:opacity-90 cursor-pointer"
                     >
                       Apply
                     </button>
                   </div>
                 )}
 
-                <div className="flex justify-between font-semibold text-primary mb-4">
+                <div className="flex justify-between font-semibold text-primary text-sm mb-4 border-t border-border-light pt-3">
                   <span>Grand Total:</span>
                   <span>{formatPrice(grandTotal)}</span>
                 </div>
@@ -288,14 +414,14 @@ function CartSidebar({
                 <div className="flex flex-row gap-2">
                   <button
                     onClick={clearCart}
-                    className="flex-1 border border-primary text-primary py-3 hover:bg-surface-alt"
+                    className="flex-1 border border-primary text-primary py-3 text-xs font-semibold uppercase tracking-wider hover:bg-black/5 transition-colors"
                   >
                     Clear
                   </button>
                   <Link
                     href="/checkout"
                     onClick={onClose}
-                    className="flex-1 bg-primary text-inverse py-3 hover:bg-primary-light text-center flex items-center justify-center"
+                    className="flex-1 bg-primary text-inverse py-3 text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity text-center flex items-center justify-center"
                   >
                     Checkout
                   </Link>
@@ -305,152 +431,6 @@ function CartSidebar({
           </div>
         </div>
       </div>
-    </>
-  );
-}
-
-export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const { totalItems } = useCart();
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
-  return (
-    <>
-      <header className="bg-surface sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <Link
-              href="/"
-              className="flex items-center relative h-10 w-[7.5rem]"
-            >
-              <Image
-                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="LuxeScents"
-                fill
-                className="object-contain"
-                priority
-                sizes="120px"
-              />
-            </Link>
-
-            <nav className="hidden md:flex">
-              <NavItems />
-            </nav>
-
-            <div className="hidden md:flex items-center gap-6">
-              <SearchBar value={searchValue} onChange={setSearchValue} />
-              <CurrencySelector />
-              <Actions onCartClick={() => setIsCartOpen(true)} />
-            </div>
-
-            <div className="flex md:hidden items-center gap-2 text-primary">
-              <button
-                onClick={() => setIsCartOpen(true)}
-                className="relative w-10 h-10 flex items-center justify-center text-primary"
-              >
-                <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
-
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-inverse text-xs font-semibold rounded-full flex items-center justify-center">
-                    {totalItems}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-primary w-10 h-10 flex items-center justify-center"
-              >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-          </div>
-
-          {isMenuOpen && (
-            <div className="md:hidden bg-surface p-4 border-t border-default space-y-4 animate-fade-in">
-              {/* Profile / Auth Section */}
-              <div className="px-3 py-4 border border-default">
-                {user ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      {user.avatar ? (
-                        <div className="w-12 h-12 rounded-full overflow-hidden relative border border-dark shrink-0">
-                          <Image
-                            src={user.avatar}
-                            alt="Profile"
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-sm border border-dark shrink-0 select-none">
-                          {getInitials(user.fullName)}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-primary truncate text-sm">
-                          {user.fullName}
-                        </div>
-                        <div className="text-xs text-secondary truncate">{user.email}</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-default">
-                      <Link
-                        href="/account/overview"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="px-3 py-2 text-center text-xs font-light bg-primary text-inverse hover:bg-primary-light transition-colors rounded"
-                      >
-                        My Account
-                      </Link>
-                      <button
-                        onClick={() => {
-                          logout();
-                          setIsMenuOpen(false);
-                          router.push("/");
-                        }}
-                        className="px-3 py-2 text-center text-xs font-light border border-dark text-error hover:bg-error-light hover:border-error transition-colors rounded cursor-pointer"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-center space-y-2 py-2">
-                    <p className="text-xs text-secondary font-light">
-                      Sign in to manage orders, wishlist, and profile
-                    </p>
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="w-full py-2.5 text-center text-sm font-light bg-primary text-inverse hover:bg-primary-light transition-colors rounded"
-                    >
-                      Sign In / Register
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              <SearchBar
-                full
-                mobile
-                value={searchValue}
-                onChange={setSearchValue}
-              />
-              <div className="flex items-center justify-between px-3 py-2 border-b border-default">
-                <span className="text-sm text-secondary font-light">Currency</span>
-                <CurrencySelector />
-              </div>
-              <NavItems mobile onLinkClick={() => setIsMenuOpen(false)} />
-            </div>
-          )}
-        </div>
-      </header>
-
-      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 }

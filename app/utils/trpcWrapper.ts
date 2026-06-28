@@ -361,5 +361,12 @@ export const trpc = {
   adminDeleteCoupon: (input: { adminId: string; couponId: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).adminDeleteCoupon.mutate(input),
+
+  getPromoBanner: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getPromoBanner.query(),
+  updatePromoBanner: (input: { adminId: string; title: string; description?: string; image: string; isActive: boolean }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updatePromoBanner.mutate(input),
 };
 

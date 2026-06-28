@@ -22,9 +22,9 @@ export default function Hero() {
         </div>
 
       {/* Content Overlay */}
-      <div className="absolute inset-x-0 bottom-[20%] md:bottom-[10%] z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
-          <div className="max-w-2xl">
+      <div className="absolute inset-0 z-10 flex items-center justify-center">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="max-w-2xl mx-auto">
             <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3 mt-4">
                 summer collection 26
             </h4>

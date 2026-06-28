@@ -306,6 +306,17 @@ export const countries = pgTable('countries', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Promo banner table
+export const promoBanner = pgTable('promo_banner', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull().default('Elegance'),
+  description: text('description'),
+  image: text('image').notNull().default('https://res.cloudinary.com/dujjidn0e/image/upload/v1781626156/vellvista/product/hzbpvaobukfgznudrw7x.jpg'),
+  isActive: boolean('is_active').default(true).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -345,5 +356,7 @@ export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
 export type SocialLink = typeof socialLinks.$inferSelect;
 export type NewSocialLink = typeof socialLinks.$inferInsert;
+export type PromoBanner = typeof promoBanner.$inferSelect;
+export type NewPromoBanner = typeof promoBanner.$inferInsert;
 
 

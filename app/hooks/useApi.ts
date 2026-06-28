@@ -560,5 +560,32 @@ export function useAdminDeleteCoupon() {
   );
 }
 
+export interface PromoBanner {
+  id: number;
+  title: string;
+  description?: string;
+  image: string;
+  isActive: boolean;
+  updatedAt?: string;
+}
+
+export function usePromoBanner() {
+  return useQueryWrapper<PromoBanner, void>(
+    () => trpc.getPromoBanner(),
+    undefined as any,
+    true
+  );
+}
+
+export function useUpdatePromoBanner() {
+  return useMutationWrapper<{ success: boolean }, {
+    adminId: string;
+    title: string;
+    description?: string;
+    image: string;
+    isActive: boolean;
+  }>((input) => trpc.updatePromoBanner(input));
+}
+
 
 

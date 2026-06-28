@@ -6,7 +6,7 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
@@ -1794,6 +1794,79 @@ export const appRouter = router({
       }
       await db.delete(coupons).where(eq(coupons.id, input.couponId));
       return { success: true };
+    }),
+
+  getPromoBanner: publicProcedure
+    .query(async () => {
+      try {
+        const existing = await db.select().from(promoBanner).limit(1);
+        if (existing.length === 0) {
+          // Auto-seed a default row so that it exists and can be updated
+          await db.insert(promoBanner).values({
+            title: 'Elegance',
+            description: 'Discover our exclusive collection of premium fragrances crafted for those who appreciate the finer things in life.',
+            image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626156/vellvista/product/hzbpvaobukfgznudrw7x.jpg',
+            isActive: true,
+          });
+          const created = await db.select().from(promoBanner).limit(1);
+          return created[0];
+        }
+        return existing[0];
+      } catch (err: any) {
+        console.error('Error fetching promo banner, falling back to default:', err);
+        return {
+          id: 0,
+          title: 'Elegance',
+          description: 'Discover our exclusive collection of premium fragrances crafted for those who appreciate the finer things in life.',
+          image: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626156/vellvista/product/hzbpvaobukfgznudrw7x.jpg',
+          isActive: true,
+        };
+      }
+    }),
+
+  updatePromoBanner: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      title: z.string().min(1),
+      description: z.string().optional(),
+      image: z.string().min(1),
+      isActive: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update the promo banner.' });
+      }
+      try {
+        const existing = await db.select().from(promoBanner).limit(1);
+        if (existing.length === 0) {
+          // If no row exists, insert it
+          await db.insert(promoBanner).values({
+            title: input.title,
+            description: input.description || null,
+            image: input.image,
+            isActive: input.isActive,
+          });
+        } else {
+          // Update the first row
+          await db.update(promoBanner)
+            .set({
+              title: input.title,
+              description: input.description || null,
+              image: input.image,
+              isActive: input.isActive,
+              updatedAt: new Date(),
+            })
+            .where(eq(promoBanner.id, existing[0].id));
+        }
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating promo banner:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to update promo banner',
+        });
+      }
     }),
 
   // Health check

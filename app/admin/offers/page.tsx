@@ -6,6 +6,8 @@ import {
   useAdminCreateCoupon, 
   useAdminToggleCouponStatus, 
   useAdminDeleteCoupon,
+  usePromoBanner,
+  useUpdatePromoBanner,
   type Coupon
 } from "../../hooks/useApi";
 import { 
@@ -39,6 +41,103 @@ export default function AdminOffersPage() {
   const { mutate: deleteCoupon } = useAdminDeleteCoupon();
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"coupons" | "banner">("coupons");
+
+  // Promo Banner hooks & state
+  const { data: bannerData, isLoading: isBannerLoading } = usePromoBanner();
+  const { mutate: updatePromoBanner, isPending: isUpdatingBanner } = useUpdatePromoBanner();
+
+  const [bannerFormData, setBannerFormData] = useState({
+    title: "",
+    description: "",
+    image: "",
+    isActive: true,
+  });
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [bannerUploadError, setBannerUploadError] = useState("");
+
+  // Sync banner data to local state
+  useEffect(() => {
+    if (bannerData) {
+      setBannerFormData({
+        title: bannerData.title || "",
+        description: bannerData.description || "",
+        image: bannerData.image || "",
+        isActive: bannerData.isActive,
+      });
+    }
+  }, [bannerData]);
+
+  const handleBannerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingBanner(true);
+    setBannerUploadError("");
+
+    const uploadData = new FormData();
+    uploadData.append("image", file);
+
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+
+    try {
+      const response = await fetch(`${backendUrl}/api/upload-image?folder=promo`, {
+        method: "POST",
+        body: uploadData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const result = await response.json();
+      if (result.success && result.url) {
+        setBannerFormData((prev) => ({ ...prev, image: result.url }));
+        showToast("Promo banner image uploaded successfully!", "success");
+      } else {
+        throw new Error(result.error || "Failed to upload image");
+      }
+    } catch (err) {
+      console.error(err);
+      setBannerUploadError(err instanceof Error ? err.message : "Failed to upload image");
+      showToast("Failed to upload image.", "error");
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
+  const handleBannerFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    if (!bannerFormData.title.trim()) {
+      showToast("Title is required.", "error");
+      return;
+    }
+    if (!bannerFormData.image.trim()) {
+      showToast("Image URL/Upload is required.", "error");
+      return;
+    }
+
+    try {
+      await updatePromoBanner({
+        adminId: currentUser.id,
+        title: bannerFormData.title.trim(),
+        description: bannerFormData.description.trim() || undefined,
+        image: bannerFormData.image.trim(),
+        isActive: bannerFormData.isActive,
+      });
+      showToast("Promo banner settings updated successfully!", "success");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to update promo banner settings.", "error");
+    }
+  };
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
@@ -268,14 +367,43 @@ export default function AdminOffersPage() {
           <h2 className="text-2xl font-semibold text-primary mb-1">Offers & Coupons</h2>
           <p className="text-secondary text-sm">Configure, track, and manage promotional offers, checkout discounts, and promo codes.</p>
         </div>
+        {activeTab === "coupons" && (
+          <button
+            onClick={handleOpenAdd}
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-inverse hover:bg-primary-light px-5 py-2.5 transition-all text-sm font-light shrink-0 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            Create Promo Offer
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-light">
         <button
-          onClick={handleOpenAdd}
-          className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-inverse hover:bg-primary-light px-5 py-2.5 transition-all text-sm font-light shrink-0 cursor-pointer"
+          onClick={() => setActiveTab("coupons")}
+          className={`px-6 py-3 text-sm font-medium tracking-wide transition-all border-b-2 cursor-pointer ${
+            activeTab === "coupons"
+              ? "border-primary text-primary"
+              : "border-transparent text-secondary hover:text-primary"
+          }`}
         >
-          <Plus className="h-4 w-4" />
-          Create Promo Offer
+          Promo Coupons
+        </button>
+        <button
+          onClick={() => setActiveTab("banner")}
+          className={`px-6 py-3 text-sm font-medium tracking-wide transition-all border-b-2 cursor-pointer ${
+            activeTab === "banner"
+              ? "border-primary text-primary"
+              : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          Promo Banner
         </button>
       </div>
+
+      {activeTab === "coupons" && (
+        <>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -510,6 +638,131 @@ export default function AdminOffersPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
+
+      {activeTab === "banner" && (
+        <div className="bg-surface p-6 sm:p-8 border border-light max-w-3xl animate-fade-in">
+          <h3 className="text-lg font-semibold text-primary mb-6">Manage Promo Banner</h3>
+          
+          {isBannerLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <form onSubmit={handleBannerFormSubmit} className="space-y-6">
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Banner Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Elegance, Summer Sale"
+                  value={bannerFormData.title}
+                  onChange={(e) => setBannerFormData({ ...bannerFormData, title: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Discover our exclusive collection of premium fragrances..."
+                  value={bannerFormData.description}
+                  onChange={(e) => setBannerFormData({ ...bannerFormData, description: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                />
+              </div>
+
+              {/* Image Upload/URL */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Banner Image *
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer bg-surface-alt hover:bg-light text-primary border border-default px-4 py-2 text-xs font-semibold tracking-wide transition-all select-none">
+                      {isUploadingBanner ? "Uploading..." : "Choose Local Image"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerImageUpload}
+                        disabled={isUploadingBanner}
+                        className="hidden"
+                      />
+                    </label>
+                    {bannerFormData.image && (
+                      <span className="text-xs text-success font-light">✓ Image Uploaded</span>
+                    )}
+                  </div>
+                  
+                  {bannerUploadError && (
+                    <p className="text-xs text-error">{bannerUploadError}</p>
+                  )}
+
+                  <div>
+                    <span className="text-xs text-secondary block mb-1">Or enter image URL:</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. https://res.cloudinary.com/..."
+                      value={bannerFormData.image}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, image: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                    />
+                  </div>
+
+                  {bannerFormData.image && (
+                    <div className="relative mt-4 w-full h-[150px] border border-light overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={bannerFormData.image}
+                        alt="Promo Banner Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Is Active Status Toggle */}
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={bannerFormData.isActive}
+                    onChange={(e) => setBannerFormData({ ...bannerFormData, isActive: e.target.checked })}
+                    className="w-4 h-4 accent-primary border-primary cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-sm font-semibold text-primary">Active</span>
+                    <p className="text-xs text-secondary">Turn off to completely hide the banner from the home page.</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4 border-t border-light">
+                <button
+                  type="submit"
+                  disabled={isUpdatingBanner || isUploadingBanner}
+                  className="w-full sm:w-auto bg-primary text-inverse px-8 py-3 text-xs font-semibold uppercase tracking-widest hover:bg-primary-light transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdatingBanner && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Save Settings
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
 
       {/* ADD MODAL */}
       {isModalOpen && (

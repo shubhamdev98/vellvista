@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingCart, Star, Heart, Filter, X, Grid, List, ChevronDown } from "lucide-react";
+import { ShoppingCart, Star, Heart, Filter, X, Grid, List, ChevronDown, Share2 } from "lucide-react";
 import Image from "next/image";
 import Breadcrumb from "./Breadcrumb";
 import { useCart } from "../context/CartProvider";
@@ -180,32 +180,48 @@ function ProductCard({
   return (
     <Link
       href={`/products/${product.id}`}
-      className="block bg-surface overflow-hidden group transition-all duration-300 border border-gray-200"
+      className="block group w-full cursor-pointer bg-transparent border-0 outline-none select-none"
     >
-      {/* Image Section */}
-      <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+      {/* Image Section - Tall 3:4 Aspect Ratio */}
+      <div className="relative aspect-[3/4] bg-background-muted overflow-hidden w-full transition-shadow duration-300">
         <Image
           src={getProductImageUrl(product.image)}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          className="object-cover group-hover:scale-105 transition-transform duration-700"
+          priority
         />
 
-        {/* Badge - Top Left */}
-        {(product.isSale || product.isNew) && (
-          <div className="absolute top-2.5 left-0 z-10">
-            <span
-              className={`inline-flex items-center px-2 py-1 text-[10px] sm:text-xs font-bold text-white ${
-                product.isSale ? "bg-green-600" : "bg-blue-600"
-              }`}
-            >
-              {product.isSale ? "Best Seller" : "New"}
-            </span>
-          </div>
-        )}
+        {/* Hover Action Overlay */}
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+          <button
+            onClick={handleAddToCart}
+            className={`bg-primary text-inverse text-[10px] font-bold uppercase tracking-widest py-2.5 px-5 shadow-md transition-all active:scale-95 duration-150 cursor-pointer ${
+              clicked ? "bg-emerald-600" : ""
+            }`}
+          >
+            {clicked ? "Added!" : "Add to Cart"}
+          </button>
+        </div>
 
-        {/* Wishlist Heart - Top Right */}
+        {/* Share Button - visible on hover */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const productUrl = `${window.location.origin}/products/${product.id}`;
+            navigator.clipboard.writeText(productUrl)
+              .then(() => showToast("Product link copied to clipboard!", "success"))
+              .catch(() => showToast("Failed to copy link.", "error"));
+          }}
+          className="absolute top-3 right-[3.25rem] z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 text-secondary hover:text-primary cursor-pointer"
+          aria-label={`Share ${product.name}`}
+        >
+          <Share2 className="h-4 w-4" />
+        </button>
+
+        {/* Wishlist Heart - visible on hover or if in wishlist */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -216,83 +232,52 @@ function ProductCard({
               addToWishlist(product.id);
             }
           }}
-          className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-300 cursor-pointer ${
-            isInWishlist(product.id)
-              ? "bg-red-50 text-red-500 hover:bg-red-100"
-              : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white"
+          className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 cursor-pointer ${
+            isInWishlist(product.id) ? "text-red-500 opacity-100" : "text-secondary hover:text-red-500"
           }`}
           aria-label={`Add ${product.name} to wishlist`}
         >
-          <Heart
-            className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-300 ${
-              isInWishlist(product.id) ? "fill-current" : ""
-            }`}
-          />
+          <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
         </button>
 
-        {/* Rating Badge - Bottom Right of Image (only if reviews exist) */}
-        {product.reviews > 0 && (
-          <div className="absolute bottom-2.5 right-2.5 z-10">
-            <div className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-md">
-              <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 fill-current" />
-              <span className="text-[11px] sm:text-xs font-bold text-gray-800">
-                {product.rating}
-              </span>
-              <span className="text-[10px] sm:text-[11px] text-gray-500">
-                ({product.reviews})
-              </span>
-            </div>
+        {/* Badge - Top Left Minimal Box (matches screenshot) */}
+        {(product.isSale || product.isNew) && (
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <span className="bg-primary text-inverse font-label-caps text-[9px] px-2.5 py-1 tracking-widest font-semibold font-inter">
+              {product.isSale ? "SALE" : "NEW"}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Info Section */}
-      <div className="p-3 sm:p-4">
+      {/* Info Section (matches screenshot typography and stacking) */}
+      <div className="pt-3 pb-1 flex flex-col font-inter text-left">
+        {/* Brand / Category */}
+        <p className="font-label-caps text-[10px] text-secondary tracking-widest uppercase font-semibold">
+          {product.category || product.brand}
+        </p>
+
         {/* Product Name */}
-        <h3 className="text-sm sm:text-[15px] font-semibold text-primary leading-snug line-clamp-2 mb-0.5">
+        <h3 className="text-sm font-medium text-primary mt-1 leading-snug line-clamp-1 group-hover:text-secondary transition-colors duration-300 font-manrope">
           {product.name}
         </h3>
 
-        {/* Brand / Category */}
-        <p className="text-xs sm:text-[13px] text-muted mb-2.5 truncate">
-          {product.brand}
-        </p>
-
         {/* Price Row */}
-        <div className="flex items-baseline gap-2 flex-wrap">
-          <span className="text-base sm:text-lg font-bold text-primary">
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="text-sm font-semibold text-secondary">
             {formatPrice(product.price)}
           </span>
           {product.originalPrice && (
             <>
-              <span className="text-xs sm:text-sm text-gray-400 line-through">
+              <span className="text-xs text-secondary/60 line-through font-light">
                 {formatPrice(product.originalPrice)}
               </span>
-              <span className="text-xs sm:text-sm font-semibold text-green-600">
+              <span className="text-[10px] font-semibold text-error">
                 {discountPercent}% off
               </span>
             </>
           )}
         </div>
-
-        {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={product.isSale}
-          className={`w-full mt-3 flex items-center justify-center gap-2 border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light transition-colors duration-75 cursor-pointer ${
-            product.isSale
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : clicked
-              ? "bg-green-50 border border-green-500 text-green-600"
-              : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
-          }`}
-          aria-label={`Add ${product.name} to cart`}
-        >
-          <span className="flex items-center justify-center gap-2">
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span>{clicked ? "Added!" : "Add to Cart"}</span>
-          </span>
-        </button>
       </div>
     </Link>
   );
@@ -412,17 +397,23 @@ export default function ProductGrid({
   };
 
   return (
-    <section id="products" className="py-12 sm:py-16 scroll-mt-20">
+    <section id="products" className="py-12 sm:py-16 scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showTitle && (
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-color-1 mb-3 sm:mb-4">
-              Featured Products
-            </h2>
-            <p className="text-sm sm:text-lg text-color-1 max-w-2xl mx-auto px-2">
-              Discover our handpicked selection of premium fragrances from the
-              worlds most prestigious brands.
-            </p>
+          <div className={`flex justify-between items-end mb-8 font-inter ${
+            limit ? "" : "border-b border-border-light pb-4"
+          }`}>
+            <div>
+              <h2 className="font-headline-lg text-2xl sm:text-3xl font-bold font-manrope text-primary uppercase tracking-wider">
+                New Arrivals
+              </h2>
+            </div>
+            <Link
+              href="/products"
+              className="font-label-caps text-xs text-primary font-semibold tracking-widest border-b-2 border-primary pb-1 hover:opacity-75 transition-opacity"
+            >
+              View All
+            </Link>
           </div>
         )}
 
@@ -455,7 +446,7 @@ export default function ProductGrid({
 
               <button
                 onClick={() => setShowFilter(!showFilter)}
-                className="flex items-center gap-1 sm:gap-2 border border-primary px-3 sm:px-4 py-1.5 sm:py-2 text-primary hover:bg-primary hover:text-inverse transition-colors text-sm sm:text-base"
+                className="flex items-center gap-1 sm:gap-2 border border-primary px-3 sm:px-4 py-1.5 sm:py-2 text-primary hover:bg-primary hover:text-inverse transition-colors text-sm sm:text-base cursor-pointer"
               >
                 <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Filter</span>
@@ -463,39 +454,41 @@ export default function ProductGrid({
             </div>
           </div>
         ) : (
-          <div className="flex justify-end mb-4 sm:mb-6 gap-2 sm:gap-3">
-            {/* Grid Toggle Buttons for Mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
+          !limit && (
+            <div className="flex justify-end mb-4 sm:mb-6 gap-2 sm:gap-3">
+              {/* Grid Toggle Buttons for Mobile */}
+              <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
+                <button
+                  onClick={() => setIsDoubleColumn(false)}
+                  className={`p-1.5 sm:p-2 transition-colors ${!isDoubleColumn
+                      ? "bg-primary text-inverse"
+                      : "bg-surface text-primary hover:bg-primary hover:text-inverse"
+                    }`}
+                  aria-label="Single column view"
+                >
+                  <List className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+                <button
+                  onClick={() => setIsDoubleColumn(true)}
+                  className={`p-1.5 sm:p-2 transition-colors ${isDoubleColumn
+                      ? "bg-primary text-inverse"
+                      : "bg-surface text-primary hover:bg-primary hover:text-inverse"
+                    }`}
+                  aria-label="Double column view"
+                >
+                  <Grid className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+              </div>
+
               <button
-                onClick={() => setIsDoubleColumn(false)}
-                className={`p-1.5 sm:p-2 transition-colors ${!isDoubleColumn
-                    ? "bg-primary text-inverse"
-                    : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                  }`}
-                aria-label="Single column view"
+                onClick={() => setShowFilter(!showFilter)}
+                className="flex items-center gap-1 sm:gap-2 border border-primary px-3 sm:px-4 py-1.5 sm:py-2 text-primary hover:bg-primary hover:text-inverse transition-colors text-sm sm:text-base cursor-pointer"
               >
-                <List className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-              <button
-                onClick={() => setIsDoubleColumn(true)}
-                className={`p-1.5 sm:p-2 transition-colors ${isDoubleColumn
-                    ? "bg-primary text-inverse"
-                    : "bg-surface text-primary hover:bg-primary hover:text-inverse"
-                  }`}
-                aria-label="Double column view"
-              >
-                <Grid className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span>Filter</span>
               </button>
             </div>
-
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-1 sm:gap-2 border border-primary px-3 sm:px-4 py-1.5 sm:py-2 text-primary hover:bg-primary hover:text-inverse transition-colors text-sm sm:text-base"
-            >
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Filter</span>
-            </button>
-          </div>
+          )
         )}
 
         {/* Filter Sidebar */}
@@ -700,14 +693,6 @@ export default function ProductGrid({
           )}
         </div>
 
-        <div className="text-center mt-8 sm:mt-12">
-          <Link
-            href="/products"
-            className="inline-block border border-primary text-primary px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-light hover:bg-primary hover:text-inverse transition-colors"
-          >
-            Load more
-          </Link>
-        </div>
       </div>
     </section>
   );
