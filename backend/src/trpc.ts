@@ -6,7 +6,7 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
@@ -1865,6 +1865,77 @@ export const appRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: err.message || 'Failed to update promo banner',
+        });
+      }
+    }),
+
+  getHeroSettings: publicProcedure
+    .query(async () => {
+      try {
+        const existing = await db.select().from(heroSettings).limit(1);
+        if (existing.length === 0) {
+          // Auto-seed a default row so that it exists and can be updated
+          await db.insert(heroSettings).values({
+            title: 'The Art of Fragrance',
+            subtitle: 'summer collection 26',
+            mobileVideo: '/mobile.mp4',
+            desktopVideo: '/desk.mp4',
+          });
+          const created = await db.select().from(heroSettings).limit(1);
+          return created[0];
+        }
+        return existing[0];
+      } catch (err: any) {
+        console.error('Error fetching hero settings, falling back to default:', err);
+        return {
+          id: 0,
+          title: 'The Art of Fragrance',
+          subtitle: 'summer collection 26',
+          mobileVideo: '/mobile.mp4',
+          desktopVideo: '/desk.mp4',
+        };
+      }
+    }),
+
+  updateHeroSettings: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      title: z.string().min(1),
+      subtitle: z.string().optional(),
+      mobileVideo: z.string().min(1),
+      desktopVideo: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update the hero settings.' });
+      }
+      try {
+        const existing = await db.select().from(heroSettings).limit(1);
+        if (existing.length === 0) {
+          await db.insert(heroSettings).values({
+            title: input.title,
+            subtitle: input.subtitle || '',
+            mobileVideo: input.mobileVideo,
+            desktopVideo: input.desktopVideo,
+          });
+        } else {
+          await db.update(heroSettings)
+            .set({
+              title: input.title,
+              subtitle: input.subtitle || '',
+              mobileVideo: input.mobileVideo,
+              desktopVideo: input.desktopVideo,
+              updatedAt: new Date(),
+            })
+            .where(eq(heroSettings.id, existing[0].id));
+        }
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating hero settings:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to update hero settings',
         });
       }
     }),

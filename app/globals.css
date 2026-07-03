@@ -234,3 +234,19 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Marquee Left to Right Animation */
+@keyframes marquee-ltr {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0%, 0, 0);
+  }
+}
+
+.animate-marquee-ltr {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr 25s linear infinite;
+}

@@ -587,5 +587,32 @@ export function useUpdatePromoBanner() {
   }>((input) => trpc.updatePromoBanner(input));
 }
 
+export interface HeroSettings {
+  id: number;
+  title: string;
+  subtitle?: string;
+  mobileVideo: string;
+  desktopVideo: string;
+  updatedAt?: string;
+}
+
+export function useHeroSettings() {
+  return useQueryWrapper<HeroSettings, void>(
+    () => trpc.getHeroSettings(),
+    undefined as any,
+    true
+  );
+}
+
+export function useUpdateHeroSettings() {
+  return useMutationWrapper<{ success: boolean }, {
+    adminId: string;
+    title: string;
+    subtitle?: string;
+    mobileVideo: string;
+    desktopVideo: string;
+  }>((input) => trpc.updateHeroSettings(input));
+}
+
 
 

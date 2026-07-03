@@ -333,6 +333,17 @@ export default function ProductGrid({
     fetchDbProducts();
   }, []);
 
+  useEffect(() => {
+    if (showFilter) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showFilter]);
+
   const displayProducts = dbProducts.length > 0 ? dbProducts : products;
   // Apply limit if provided (e.g., landing page shows only 4 items)
   const limitedProducts = typeof limit === 'number' ? displayProducts.slice(0, limit) : displayProducts;
@@ -397,7 +408,7 @@ export default function ProductGrid({
   };
 
   return (
-    <section id="products" className="py-12 sm:py-16 scroll-mt-20 bg-background">
+    <section id="products" className="pt-12 pb-24 sm:py-16 scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showTitle && (
           <div className={`flex justify-between items-end mb-8 font-inter ${
@@ -420,7 +431,7 @@ export default function ProductGrid({
         {breadcrumbItems ? (
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
             <Breadcrumb items={breadcrumbItems} className="mb-0" />
-            <div className="flex items-center justify-end gap-2 sm:gap-3">
+            <div className="hidden md:flex items-center justify-end gap-2 sm:gap-3">
               <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
                 <button
                   onClick={() => setIsDoubleColumn(false)}
@@ -455,7 +466,7 @@ export default function ProductGrid({
           </div>
         ) : (
           !limit && (
-            <div className="flex justify-end mb-4 sm:mb-6 gap-2 sm:gap-3">
+            <div className="hidden md:flex justify-end mb-4 sm:mb-6 gap-2 sm:gap-3">
               {/* Grid Toggle Buttons for Mobile */}
               <div className="flex items-center gap-1 sm:gap-2 border border-dark overflow-hidden md:hidden">
                 <button
@@ -492,15 +503,17 @@ export default function ProductGrid({
         )}
 
         {/* Filter Sidebar */}
-        {showFilter && (
-          <div
-            className="fixed inset-0 bg-primary/30 backdrop-blur-sm z-50"
-            onClick={() => setShowFilter(false)}
-          />
-        )}
         <div
-          className={`fixed top-0 right-0 h-full w-full sm:w-[25rem] bg-surface z-50 transition-transform duration-300 ease-in-out ${showFilter ? "translate-x-0" : "translate-x-full"
-            }`}
+          className={`fixed inset-0 bg-primary/30 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+            showFilter ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none invisible"
+          }`}
+          onClick={() => setShowFilter(false)}
+        />
+
+        <div
+          className={`fixed top-0 right-0 h-full w-full sm:w-[25rem] bg-surface z-50 transition-all duration-300 ease-in-out transform ${
+            showFilter ? "translate-x-0 pointer-events-auto visible" : "translate-x-full pointer-events-none invisible"
+          }`}
         >
           <div className="flex flex-col h-full">
             {/* Header */}
@@ -694,6 +707,35 @@ export default function ProductGrid({
         </div>
 
       </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      {!limit && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-default flex md:hidden h-12 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+          <button
+            onClick={() => setIsDoubleColumn(!isDoubleColumn)}
+            className="flex-1 flex items-center justify-center gap-2 border-r border-default hover:bg-background-muted active:bg-background-muted text-primary text-sm font-medium transition-colors cursor-pointer"
+          >
+            {isDoubleColumn ? (
+              <>
+                <List className="h-4.5 w-4.5 stroke-[1.5]" />
+                <span>List View</span>
+              </>
+            ) : (
+              <>
+                <Grid className="h-4.5 w-4.5 stroke-[1.5]" />
+                <span>Grid View</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className="flex-1 flex items-center justify-center gap-2 hover:bg-background-muted active:bg-background-muted text-primary text-sm font-medium transition-colors cursor-pointer"
+          >
+            <Filter className="h-4.5 w-4.5 stroke-[1.5]" />
+            <span>Filter</span>
+          </button>
+        </div>
+      )}
     </section>
   );
 }

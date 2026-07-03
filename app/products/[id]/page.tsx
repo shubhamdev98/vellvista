@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useState, useEffect } from "react";
 import { useCart } from "../../../context/CartProvider";
 import { useAuth } from "../../../context/AuthProvider";
@@ -27,6 +28,7 @@ import { ProductDetailSkeleton } from "../../../components/ui/Skeleton";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { addItem } = useCart();
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -183,7 +185,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
         price: Number(product.price),
         image: product.image,
       });
-      showToast("Added to cart successfully!", "success");
+      router.push("/cart");
     } catch (error: any) {
       clearTimeout(timer);
       setIsAdded(false);

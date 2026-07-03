@@ -368,5 +368,13 @@ export const trpc = {
   updatePromoBanner: (input: { adminId: string; title: string; description?: string; image: string; isActive: boolean }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).updatePromoBanner.mutate(input),
+
+  getHeroSettings: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getHeroSettings.query(),
+  updateHeroSettings: (input: { adminId: string; title: string; subtitle?: string; mobileVideo: string; desktopVideo: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateHeroSettings.mutate(input),
 };
+
 

@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LuxeScents",
-  description: "Luxury fragrance store built with Next.js",
+  title: "vellvista | The Realm of Luxury Fragrances",
+  description: "Discover the most iconic and sought-after fragrances in the world, meticulously curated for the modern connoisseur. Experience luxury in every spritz.",
 };
 
 export default function RootLayout({

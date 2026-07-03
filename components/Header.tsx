@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Menu, X, ShoppingBag, ChevronRight, Search } from "lucide-react";
 import { useCart } from "../context/CartProvider";
 import { useAuth } from "../context/AuthProvider";
@@ -53,6 +53,17 @@ export default function Header() {
     }
   };
 
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isDrawerOpen]);
+
   return (
     <>
       {/* Top Main AppBar */}
@@ -74,7 +85,7 @@ export default function Header() {
               href="/"
               className="text-xl sm:text-2xl font-bold uppercase tracking-[0.25em] text-primary font-manrope whitespace-nowrap hover:opacity-85 transition-opacity"
             >
-              VEILVISTA
+              VELLVISTA
             </Link>
           </div>
 
@@ -87,7 +98,7 @@ export default function Header() {
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-40 lg:w-56 bg-[#f3f3f3] border border-transparent focus:border-border-light px-3 py-1.5 pl-8 text-xs focus:outline-none transition-all text-primary font-inter rounded-md"
+                className="w-40 lg:w-56 bg-[#f3f3f3] border border-transparent focus:border-border-light px-3 py-1.5 pl-8 text-xs focus:outline-none transition-all text-primary font-inter"
               />
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-secondary/60 pointer-events-none" />
             </form>
@@ -144,16 +155,16 @@ export default function Header() {
       </header>
 
       {/* Slide-out Left Navigation Drawer */}
-      {isDrawerOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity duration-300"
-          onClick={() => setIsDrawerOpen(false)}
-        />
-      )}
+      <div
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+          isDrawerOpen ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none invisible"
+        }`}
+        onClick={() => setIsDrawerOpen(false)}
+      />
 
       <div
-        className={`fixed top-0 left-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-transform duration-300 transform ${
-          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-all duration-300 transform ${
+          isDrawerOpen ? "translate-x-0 pointer-events-auto visible" : "-translate-x-full pointer-events-none invisible"
         }`}
       >
         <div className="flex flex-col h-full font-inter">
@@ -324,15 +335,30 @@ function CartSidebar({
   const discountAmount = subtotal * discountRate;
   const grandTotal = subtotal + taxAmount - discountAmount;
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   return (
     <>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
-      )}
+      <div
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+          isOpen ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none invisible"
+        }`}
+        onClick={onClose}
+      />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-full sm:max-w-md bg-[#f9f9f9] z-50 shadow-2xl transition-all duration-300 transform ${
+          isOpen ? "translate-x-0 pointer-events-auto visible" : "translate-x-full pointer-events-none invisible"
+        }`}
       >
         <div className="flex flex-col h-full font-inter">
           <div className="flex justify-between p-5 border-b border-border-light">

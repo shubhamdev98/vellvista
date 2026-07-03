@@ -183,6 +183,40 @@ const uploadProductImage = multer({
   },
 });
 
+// Ensure hero uploads directory exists
+const heroUploadPath = path.join(__dirname, '../public/hero');
+if (!fs.existsSync(heroUploadPath)) {
+  fs.mkdirSync(heroUploadPath, { recursive: true });
+}
+
+// Serve hero static files
+app.use('/hero', express.static(heroUploadPath));
+
+// Configure multer for hero videos
+const heroStorage = multer.diskStorage({
+  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+    cb(null, heroUploadPath);
+  },
+  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const uploadHeroVideo = multer({
+  storage: heroStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /mp4|webm|ogg|mov/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Only video files (mp4, webm, ogg, mov) are allowed'));
+  },
+});
+
 // Configure Cloudinary
 // Validate Cloudinary configuration
 // Simple warning if Cloudinary env vars are missing; upload will handle errors
@@ -254,6 +288,58 @@ app.post('/api/upload-image', uploadProductImage.single('image'), async (req: Re
   } catch (error) {
     console.error('Failed to upload image to Cloudinary:', error);
     res.status(500).json({ success: false, error: 'Failed to upload image to Cloudinary' });
+  }
+});
+
+// Helper to upload a video to Cloudinary and delete the local temporary file
+async function uploadVideoToCloudinary(file: Express.Multer.File, folder: string): Promise<string> {
+  const missing = [];
+  if (!process.env.CLOUDINARY_CLOUD_NAME) missing.push('CLOUDINARY_CLOUD_NAME');
+  if (!process.env.CLOUDINARY_API_KEY) missing.push('CLOUDINARY_API_KEY');
+  if (!process.env.CLOUDINARY_API_SECRET) missing.push('CLOUDINARY_API_SECRET');
+  if (missing.length > 0) {
+    const errMsg = `Cloudinary configuration missing: ${missing.join(', ')}`;
+    console.error(errMsg);
+    throw new Error(errMsg);
+  }
+
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: `vellvista/${folder}`,
+      resource_type: 'video', // Required for video files
+    });
+    // Delete local temp file after upload
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+    return result.secure_url;
+  } catch (err) {
+    console.error('Cloudinary video upload error:', err);
+    throw err;
+  }
+}
+
+app.post('/api/upload-video', uploadHeroVideo.single('video'), async (req: Request & { file?: Express.Multer.File }, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: 'No file uploaded' });
+  }
+  try {
+    const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET;
+    if (useCloudinary) {
+      const fileUrl = await uploadVideoToCloudinary(req.file, 'hero');
+      res.json({ success: true, url: fileUrl });
+    } else {
+      // Local fallback url
+      const fileUrl = `/hero/${req.file.filename}`;
+      res.json({ success: true, url: fileUrl });
+    }
+  } catch (error: any) {
+    console.error('Failed to upload video:', error);
+    // Cleanup local temp file if still exists
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ success: false, error: error.message || 'Failed to upload video' });
   }
 });
 

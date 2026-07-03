@@ -8,6 +8,8 @@ import {
   useAdminDeleteCoupon,
   usePromoBanner,
   useUpdatePromoBanner,
+  useHeroSettings,
+  useUpdateHeroSettings,
   type Coupon
 } from "../../hooks/useApi";
 import { 
@@ -43,7 +45,7 @@ export default function AdminOffersPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"coupons" | "banner">("coupons");
+  const [activeTab, setActiveTab] = useState<"coupons" | "banner" | "hero">("coupons");
 
   // Promo Banner hooks & state
   const { data: bannerData, isLoading: isBannerLoading } = usePromoBanner();
@@ -69,6 +71,31 @@ export default function AdminOffersPage() {
       });
     }
   }, [bannerData]);
+
+  // Hero Section hooks & state
+  const { data: heroData, isLoading: isHeroLoading } = useHeroSettings();
+  const { mutate: updateHeroSettings, isPending: isUpdatingHero } = useUpdateHeroSettings();
+
+  const [heroFormData, setHeroFormData] = useState({
+    title: "",
+    subtitle: "",
+    mobileVideo: "",
+    desktopVideo: "",
+  });
+  const [isUploadingVideo, setIsUploadingVideo] = useState({ mobile: false, desktop: false });
+  const [videoUploadError, setVideoUploadError] = useState({ mobile: "", desktop: "" });
+
+  // Sync hero settings to local state
+  useEffect(() => {
+    if (heroData) {
+      setHeroFormData({
+        title: heroData.title || "",
+        subtitle: heroData.subtitle || "",
+        mobileVideo: heroData.mobileVideo || "",
+        desktopVideo: heroData.desktopVideo || "",
+      });
+    }
+  }, [heroData]);
 
   const handleBannerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -136,6 +163,81 @@ export default function AdminOffersPage() {
     } catch (err: any) {
       console.error(err);
       showToast(err.message || "Failed to update promo banner settings.", "error");
+    }
+  };
+
+  const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "mobile" | "desktop") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size limit: 50MB
+    if (file.size > 50 * 1024 * 1024) {
+      setVideoUploadError(prev => ({ ...prev, [type]: "Video file size exceeds 50MB limit" }));
+      return;
+    }
+
+    setIsUploadingVideo(prev => ({ ...prev, [type]: true }));
+    setVideoUploadError(prev => ({ ...prev, [type]: "" }));
+
+    const uploadData = new FormData();
+    uploadData.append("video", file);
+
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+
+    try {
+      const response = await fetch(`${backendUrl}/api/upload-video`, {
+        method: "POST",
+        body: uploadData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const result = await response.json();
+      if (result.success && result.url) {
+        setHeroFormData(prev => ({ ...prev, [type === 'mobile' ? 'mobileVideo' : 'desktopVideo']: result.url }));
+        showToast(`${type === 'mobile' ? 'Mobile' : 'Desktop'} video uploaded successfully!`, "success");
+      } else {
+        throw new Error(result.error || "Failed to upload video");
+      }
+    } catch (err) {
+      console.error(err);
+      setVideoUploadError(prev => ({ ...prev, [type]: err instanceof Error ? err.message : "Failed to upload video" }));
+      showToast(`Failed to upload ${type} video.`, "error");
+    } finally {
+      setIsUploadingVideo(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
+  const handleHeroFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    if (!heroFormData.title.trim()) {
+      showToast("Hero Title is required.", "error");
+      return;
+    }
+    if (!heroFormData.mobileVideo.trim() || !heroFormData.desktopVideo.trim()) {
+      showToast("Both Mobile and Desktop video URLs/uploads are required.", "error");
+      return;
+    }
+
+    try {
+      await updateHeroSettings({
+        adminId: currentUser.id,
+        title: heroFormData.title.trim(),
+        subtitle: heroFormData.subtitle.trim() || undefined,
+        mobileVideo: heroFormData.mobileVideo.trim(),
+        desktopVideo: heroFormData.desktopVideo.trim(),
+      });
+      showToast("Hero section settings updated successfully!", "success");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to update hero settings.", "error");
     }
   };
   const [statusFilter, setStatusFilter] = useState("all");
@@ -399,6 +501,16 @@ export default function AdminOffersPage() {
           }`}
         >
           Promo Banner
+        </button>
+        <button
+          onClick={() => setActiveTab("hero")}
+          className={`px-6 py-3 text-sm font-medium tracking-wide transition-all border-b-2 cursor-pointer ${
+            activeTab === "hero"
+              ? "border-primary text-primary"
+              : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          Hero Section
         </button>
       </div>
 
@@ -756,6 +868,141 @@ export default function AdminOffersPage() {
                   className="w-full sm:w-auto bg-primary text-inverse px-8 py-3 text-xs font-semibold uppercase tracking-widest hover:bg-primary-light transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isUpdatingBanner && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Save Settings
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
+      {activeTab === "hero" && (
+        <div className="bg-surface p-6 sm:p-8 border border-light max-w-3xl animate-fade-in">
+          <h3 className="text-lg font-semibold text-primary mb-6">Manage Hero Section</h3>
+          
+          {isHeroLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <form onSubmit={handleHeroFormSubmit} className="space-y-6">
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Hero Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. The Art of Fragrance"
+                  value={heroFormData.title}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                />
+              </div>
+
+              {/* Subtitle */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Subtitle / Collection Text
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. summer collection 26"
+                  value={heroFormData.subtitle}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, subtitle: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                />
+              </div>
+
+              {/* Mobile Hero Video */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Mobile Background Video *
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer bg-surface-alt hover:bg-light text-primary border border-default px-4 py-2 text-xs font-semibold tracking-wide transition-all select-none">
+                      {isUploadingVideo.mobile ? "Uploading..." : "Choose Mobile Video (.mp4)"}
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => handleHeroVideoUpload(e, "mobile")}
+                        disabled={isUploadingVideo.mobile}
+                        className="hidden"
+                      />
+                    </label>
+                    {heroFormData.mobileVideo && (
+                      <span className="text-xs text-success font-light">✓ Video Uploaded</span>
+                    )}
+                  </div>
+                  
+                  {videoUploadError.mobile && (
+                    <p className="text-xs text-error">{videoUploadError.mobile}</p>
+                  )}
+
+                  <div>
+                    <span className="text-xs text-secondary block mb-1">Or enter mobile video URL:</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. /mobile.mp4"
+                      value={heroFormData.mobileVideo}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, mobileVideo: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Hero Video */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Desktop Background Video *
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer bg-surface-alt hover:bg-light text-primary border border-default px-4 py-2 text-xs font-semibold tracking-wide transition-all select-none">
+                      {isUploadingVideo.desktop ? "Uploading..." : "Choose Desktop Video (.mp4)"}
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => handleHeroVideoUpload(e, "desktop")}
+                        disabled={isUploadingVideo.desktop}
+                        className="hidden"
+                      />
+                    </label>
+                    {heroFormData.desktopVideo && (
+                      <span className="text-xs text-success font-light">✓ Video Uploaded</span>
+                    )}
+                  </div>
+                  
+                  {videoUploadError.desktop && (
+                    <p className="text-xs text-error">{videoUploadError.desktop}</p>
+                  )}
+
+                  <div>
+                    <span className="text-xs text-secondary block mb-1">Or enter desktop video URL:</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. /desk.mp4"
+                      value={heroFormData.desktopVideo}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, desktopVideo: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all bg-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4 border-t border-light">
+                <button
+                  type="submit"
+                  disabled={isUpdatingHero || isUploadingVideo.mobile || isUploadingVideo.desktop}
+                  className="w-full sm:w-auto bg-primary text-inverse px-8 py-3 text-xs font-semibold uppercase tracking-widest hover:bg-primary-light transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdatingHero && <Loader2 className="h-4 w-4 animate-spin" />}
                   Save Settings
                 </button>
               </div>

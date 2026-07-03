@@ -316,6 +316,16 @@ export const promoBanner = pgTable('promo_banner', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Hero settings table
+export const heroSettings = pgTable('hero_settings', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull().default('The Art of Fragrance'),
+  subtitle: text('subtitle').default('summer collection 26'),
+  mobileVideo: text('mobile_video').notNull().default('/mobile.mp4'),
+  desktopVideo: text('desktop_video').notNull().default('/desk.mp4'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
@@ -358,5 +368,7 @@ export type SocialLink = typeof socialLinks.$inferSelect;
 export type NewSocialLink = typeof socialLinks.$inferInsert;
 export type PromoBanner = typeof promoBanner.$inferSelect;
 export type NewPromoBanner = typeof promoBanner.$inferInsert;
+export type HeroSettings = typeof heroSettings.$inferSelect;
+export type NewHeroSettings = typeof heroSettings.$inferInsert;
 
 

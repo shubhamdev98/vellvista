@@ -44,6 +44,7 @@ export default function CartPage() {
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
+    { label: 'Shop', href: '/products' },
     { label: 'Cart' }
   ];
 
@@ -54,7 +55,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
         <Breadcrumb items={breadcrumbItems} />
         
         <h1 className="text-2xl font-semibold text-primary">Your Shopping Cart</h1>
@@ -171,7 +172,7 @@ function CartSkeleton() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
         <div className="h-4 w-32 bg-background-alt animate-pulse" />
         <div className="h-8 w-64 bg-background-alt animate-pulse mb-6" />
 
