@@ -32,7 +32,8 @@ import {
   Type, 
   HelpCircle,
   X,
-  Play
+  Play,
+  GripVertical
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
@@ -338,6 +339,63 @@ export default function AdminHomepageManager() {
   const { mutate: createFaq } = useCreateFaq();
   const { mutate: updateFaq } = useUpdateFaq();
   const { mutate: deleteFaq } = useDeleteFaq();
+
+  const [localFaqs, setLocalFaqs] = useState<any[]>([]);
+  const [isSortingModified, setIsSortingModified] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (faqs) {
+      setLocalFaqs(faqs);
+    }
+  }, [faqs]);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const updated = [...localFaqs];
+    const draggedItem = updated[draggedIndex];
+    updated.splice(draggedIndex, 1);
+    updated.splice(index, 0, draggedItem);
+    
+    setDraggedIndex(index);
+    setLocalFaqs(updated);
+    setIsSortingModified(true);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const saveFaqOrder = async () => {
+    if (!currentUser) return;
+    setIsSavingOrder(true);
+    try {
+      for (let i = 0; i < localFaqs.length; i++) {
+        const item = localFaqs[i];
+        await updateFaq({
+          adminId: currentUser.id,
+          id: item.id,
+          question: item.question,
+          answer: item.answer,
+          sortOrder: i + 1
+        });
+      }
+      showToast("FAQ order updated successfully", "success");
+      setIsSortingModified(false);
+    } catch (err: any) {
+      showToast(err.message || "Failed to update FAQ order", "error");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
   const [faqModalMode, setFaqModalMode] = useState<"add" | "edit">("add");
@@ -782,9 +840,12 @@ export default function AdminHomepageManager() {
 
       {/* FAQ Tab */}
       {activeTab === "faqs" && (
-        <div className="space-y-6 max-w-4xl">
+        <div className="space-y-6 max-w-4xl animate-fade-in">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg font-manrope">FAQ / QNA Accordion Items</h3>
+            <div>
+              <h3 className="font-semibold text-lg font-manrope">FAQ / QNA Accordion Items</h3>
+              <p className="text-xs text-secondary font-light mt-0.5">Drag and drop any item to change its display order.</p>
+            </div>
             <button
               onClick={handleFaqAddClick}
               className="flex items-center gap-2 bg-primary text-inverse py-2.5 px-4 text-xs font-bold uppercase tracking-wider hover:bg-primary-light transition-all cursor-pointer"
@@ -794,22 +855,50 @@ export default function AdminHomepageManager() {
             </button>
           </div>
 
+          {isSortingModified && (
+            <div className="flex items-center justify-between bg-primary/5 border border-primary/20 p-4 text-sm text-primary">
+              <span className="font-light">FAQ order has been changed. Click save to persist.</span>
+              <button
+                onClick={saveFaqOrder}
+                disabled={isSavingOrder}
+                className="flex items-center gap-1.5 bg-primary text-inverse py-2 px-4 text-xs font-bold uppercase tracking-wider hover:bg-primary-light transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSavingOrder ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                Save Order
+              </button>
+            </div>
+          )}
+
           <div className="space-y-4">
             {isFaqLoading ? (
               <div className="py-12 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-secondary" />
               </div>
-            ) : faqs && faqs.length > 0 ? (
-              faqs.map((faq) => (
-                <div key={faq.id} className="bg-surface border border-light p-5 space-y-3">
+            ) : localFaqs && localFaqs.length > 0 ? (
+              localFaqs.map((faq, index) => (
+                <div
+                  key={faq.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`bg-surface border p-5 space-y-3 cursor-move transition-all duration-150 relative select-none ${
+                    draggedIndex === index ? "border-primary bg-surface-alt opacity-50 scale-[0.98]" : "border-light hover:border-primary/40"
+                  }`}
+                >
                   <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <h4 className="font-medium text-base text-primary font-manrope">{faq.question}</h4>
-                      <p className="text-secondary text-sm font-light mt-2 leading-relaxed">{faq.answer}</p>
-                      <div className="mt-3">
-                        <span className="bg-surface-alt px-2.5 py-1 text-[10px] text-secondary font-mono">
-                          Sort Order: {faq.sortOrder}
-                        </span>
+                    <div className="flex gap-3 items-start">
+                      <div className="text-secondary hover:text-primary p-0.5 mt-1 shrink-0">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-base text-primary font-manrope">{faq.question}</h4>
+                        <p className="text-secondary text-sm font-light mt-2 leading-relaxed">{faq.answer}</p>
+                        <div className="mt-3">
+                          <span className="bg-surface-alt px-2.5 py-1 text-[10px] text-secondary font-mono">
+                            Sort Order: {index + 1}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
