@@ -39,7 +39,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section id="faq" className="py-5 md:py-24 bg-background">
+    <section id="faq" className="pb-5 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
@@ -50,7 +50,7 @@ export default function FaqSection() {
           <h2 className="font-headline-xl text-3xl md:text-4xl font-normal font-manrope text-primary leading-tight tracking-wide">
             Frequently Asked Questions
           </h2>
-          <div className="w-12 h-px bg-primary/20 mx-auto mt-6" />
+          <div className="w-12 h-px bg-primary/20 mx-auto" />
         </div>
 
         {/* FAQ Accordion List */}
