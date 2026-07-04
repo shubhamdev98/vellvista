@@ -375,6 +375,48 @@ export const trpc = {
   updateHeroSettings: (input: { adminId: string; title: string; subtitle?: string; mobileVideo: string; desktopVideo: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).updateHeroSettings.mutate(input),
+
+  // FAQ operations
+  getFaqs: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getFaqs.query(),
+  createFaq: (input: { adminId: string; question: string; answer: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).createFaq.mutate(input),
+  updateFaq: (input: { adminId: string; id: number; question: string; answer: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateFaq.mutate(input),
+  deleteFaq: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).deleteFaq.mutate(input),
+
+  // Homepage categories operations
+  getHomepageCategories: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getHomepageCategories.query(),
+  createHomepageCategory: (input: { adminId: string; title: string; subtitle?: string; categorySlug: string; image: string; gridSpan?: string; height?: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).createHomepageCategory.mutate(input),
+  updateHomepageCategory: (input: { adminId: string; id: number; title: string; subtitle?: string; categorySlug: string; image: string; gridSpan?: string; height?: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateHomepageCategory.mutate(input),
+  deleteHomepageCategory: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).deleteHomepageCategory.mutate(input),
+
+  // Marquee messages operations
+  getMarqueeMessages: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getMarqueeMessages.query(),
+  createMarqueeMessage: (input: { adminId: string; text: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).createMarqueeMessage.mutate(input),
+  updateMarqueeMessage: (input: { adminId: string; id: number; text: string; sortOrder: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateMarqueeMessage.mutate(input),
+  deleteMarqueeMessage: (input: { adminId: string; id: number }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).deleteMarqueeMessage.mutate(input),
 };
 
 
