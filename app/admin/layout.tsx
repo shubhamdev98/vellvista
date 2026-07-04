@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials } from "../../app/utils/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout } from "lucide-react";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, type AppNotification } from "../hooks/useApi";
 import { useSocket } from "../../context/SocketProvider";
 import { useToast } from "../../context/ToastProvider";
@@ -191,6 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Homepage Manager", href: "/admin/homepage", icon: Layout },
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { name: "Reviews", href: "/admin/reviews", icon: Star },

@@ -1,15 +1,16 @@
 "use client";
 
 import React from "react";
+import { useMarqueeMessages } from "../app/hooks/useApi";
 
 export default function MarqueeBanner() {
-  const messages = [
-    "FREE SHIPPING ON ORDERS OVER $75",
-    "100% AUTHENTIC LUXURY BEAUTY PRODUCTS",
-    "CRUELTY-FREE & VEGAN FORMULAS",
-    "JOIN THE VIP CLUB FOR 15% OFF",
-    "NEW EXCLUSIVE ARRIVALS WEEKLY",
-  ];
+  const { data: marqueeData, isLoading } = useMarqueeMessages();
+
+  if (isLoading || !marqueeData || marqueeData.length === 0) {
+    return null;
+  }
+
+  const messages = marqueeData.map((m) => m.text);
 
   // Repeat the messages to make a long scrolling line
   const repeatedText = [...messages, ...messages].map((msg, index) => (

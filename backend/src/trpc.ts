@@ -6,7 +6,7 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings, faqs, homepageCategories, marqueeMessages } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
@@ -1937,6 +1937,368 @@ export const appRouter = router({
           code: 'INTERNAL_SERVER_ERROR',
           message: err.message || 'Failed to update hero settings',
         });
+      }
+    }),
+
+  // FAQs CRUD
+  getFaqs: publicProcedure
+    .query(async () => {
+      try {
+        let list = await db.select().from(faqs).orderBy(asc(faqs.sortOrder));
+        if (list.length === 0) {
+          const defaults = [
+            {
+              question: "What is your return policy?",
+              answer: "We offer a 30-day return policy on all unopened, unused beauty and fragrance products. Items must be returned in their original luxury packaging to be eligible for a refund.",
+              sortOrder: 1,
+            },
+            {
+              question: "Are your products cruelty-free and vegan?",
+              answer: "Yes, all Vellvista products are 100% cruelty-free and never tested on animals. The majority of our formulas are also 100% vegan, which is highlighted in the product description.",
+              sortOrder: 2,
+            },
+            {
+              question: "How can I track my order?",
+              answer: "Once your order has been dispatched, you will receive a shipping confirmation email containing a tracking link. You can also view your order status by logging into your account.",
+              sortOrder: 3,
+            },
+            {
+              question: "Do you ship internationally?",
+              answer: "Yes, we ship worldwide. Shipping rates, custom duties, and estimated delivery timelines are calculated automatically at checkout based on your country.",
+              sortOrder: 4,
+            },
+            {
+              question: "How do I contact customer support?",
+              answer: "You can reach our dedicated concierge team by emailing support@vellvista.com or by submitting an inquiry through our Contact page. We strive to respond within 24 hours.",
+              sortOrder: 5,
+            }
+          ];
+          for (const d of defaults) {
+            await db.insert(faqs).values(d);
+          }
+          list = await db.select().from(faqs).orderBy(asc(faqs.sortOrder));
+        }
+        return list;
+      } catch (err: any) {
+        console.error('Error fetching FAQs:', err);
+        return [];
+      }
+    }),
+
+  createFaq: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      question: z.string().min(1),
+      answer: z.string().min(1),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create FAQs.' });
+      }
+      try {
+        await db.insert(faqs).values({
+          question: input.question,
+          answer: input.answer,
+          sortOrder: input.sortOrder,
+        });
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error creating FAQ:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to create FAQ' });
+      }
+    }),
+
+  updateFaq: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      question: z.string().min(1),
+      answer: z.string().min(1),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update FAQs.' });
+      }
+      try {
+        await db.update(faqs)
+          .set({
+            question: input.question,
+            answer: input.answer,
+            sortOrder: input.sortOrder,
+            updatedAt: new Date(),
+          })
+          .where(eq(faqs.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating FAQ:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to update FAQ' });
+      }
+    }),
+
+  deleteFaq: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete FAQs.' });
+      }
+      try {
+        await db.delete(faqs).where(eq(faqs.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error deleting FAQ:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to delete FAQ' });
+      }
+    }),
+
+  // Homepage Categories CRUD
+  getHomepageCategories: publicProcedure
+    .query(async () => {
+      try {
+        let list = await db.select().from(homepageCategories).orderBy(asc(homepageCategories.sortOrder));
+        if (list.length === 0) {
+          // Auto-seed default homepage categories to maintain the clean layout
+          const defaults = [
+            {
+              title: "The Essentials",
+              subtitle: "COLLECTION 01",
+              categorySlug: "women",
+              image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDqcKZjrxcg7_wCmw5zg8MixHwIflOXwrNnYqURa8kS6ZYELKzn2qZDoIFFUcrrM--lAFN3ctKKbpOfZp09DUnbRSuycvtMv5aWn-dir9y_8l_V6tK7uiEyvCyXbhDEttxPcrlPuYbdiYBKptJxRZwBSr9txCPlD8lJViKX2vB2-fjoEcXVnHY3UqIrAXQ_UyzCafjzWD9tR7sYCdUy6Vr3wH-QSxLThkL9PUO8GeT0kMVu2973KP8jkvnjoZLa3szGuw_ZpoRs4yd_",
+              gridSpan: "col-span-1 md:col-span-2 row-span-2",
+              height: "h-[400px]",
+              sortOrder: 1,
+            },
+            {
+              title: "Accessories",
+              subtitle: "",
+              categorySlug: "accessories",
+              image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBa-kUKen9Z4UyNeQGFzxvQBYyw7dh3xwFnAOp0z2NLSw8rPlJgMh1FZJUxbti8I7acmZOOaxuSnKV2iHTgvb9W-mZas1kM2bJzE6zrTPWgugeBFaWYMhiZniYhmPfRXuZuPTOaC9C2DbgKhCKUER0_0kOX_4AwdVGgTifDiR9kc1DO5j_Ic6R6zq55E2ptAyQAwGlkQA24l2cNO4GhNNAj54byGG5viv9usChZCn2gwHnr2ePzzqNxSKzEaYB60lvHP4_Gl-jU9Xkb",
+              gridSpan: "col-span-1",
+              height: "h-[192px]",
+              sortOrder: 2,
+            },
+            {
+              title: "Footwear",
+              subtitle: "",
+              categorySlug: "footwear",
+              image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDdk-tHqrntkZQ8ikr_m8CR1FXuhlzmnYn1aNNWEyrg7zh7pgyG9AwZ2eknPESJvON2twnJy0B5bJjN8c6TBvvHSpcGFBT8kNhA8BmHHBP6oTe1k5mKGCBZHbmDlbEW8Vj538YuhHBGEHBHFiBO0dS7NV9Mhu4NrvYo7bYoOeGwINTkTEKNio2EFoPLzWQNiPla9WrnkCGHPfcBc8uePzK-5cxMd-mbAn2_zcWrsTFvX2cXvk2ixPMHM3uFrtoEdoSdPfaFN6F4g3jt",
+              gridSpan: "col-span-1",
+              height: "h-[192px]",
+              sortOrder: 3,
+            },
+            {
+              title: "Limited Edition",
+              subtitle: "",
+              categorySlug: "products",
+              image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBQPIHD13IZkx4y1-siUiBr1Ut04eOAyjCRwyrhVUj01Ufj1h4kXRMeWaNPbc9tkd5uUS0WbKu_lpNxyCgTVJxdEMM8-UEFJXbPXSezWZuRedYHe2o7O0JgXx6fWI0BssL7aDKPeMTCslrl5BDlDrfHZVkkXXw0SODmwK-cLIwIVhow4bbRWsCS1XNNkWW0m3e1nP9SW3rPocoUuZZCQGvoq9LugBUOtUr1TgA47Gb81jevN1trxboCuoswOxCcY5asGmsiUNE0WCJB",
+              gridSpan: "col-span-1 md:col-span-2",
+              height: "h-[192px]",
+              sortOrder: 4,
+            }
+          ];
+          for (const d of defaults) {
+            await db.insert(homepageCategories).values(d);
+          }
+          list = await db.select().from(homepageCategories).orderBy(asc(homepageCategories.sortOrder));
+        }
+        return list;
+      } catch (err: any) {
+        console.error('Error fetching homepage categories:', err);
+        return [];
+      }
+    }),
+
+  createHomepageCategory: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      title: z.string().min(1),
+      subtitle: z.string().optional(),
+      categorySlug: z.string().min(1),
+      image: z.string().min(1),
+      gridSpan: z.string().default('col-span-1'),
+      height: z.string().default('h-[192px]'),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create homepage categories.' });
+      }
+      try {
+        await db.insert(homepageCategories).values({
+          title: input.title,
+          subtitle: input.subtitle || '',
+          categorySlug: input.categorySlug,
+          image: input.image,
+          gridSpan: input.gridSpan,
+          height: input.height,
+          sortOrder: input.sortOrder,
+        });
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error creating homepage category:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to create homepage category' });
+      }
+    }),
+
+  updateHomepageCategory: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      title: z.string().min(1),
+      subtitle: z.string().optional(),
+      categorySlug: z.string().min(1),
+      image: z.string().min(1),
+      gridSpan: z.string().default('col-span-1'),
+      height: z.string().default('h-[192px]'),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update homepage categories.' });
+      }
+      try {
+        await db.update(homepageCategories)
+          .set({
+            title: input.title,
+            subtitle: input.subtitle || '',
+            categorySlug: input.categorySlug,
+            image: input.image,
+            gridSpan: input.gridSpan,
+            height: input.height,
+            sortOrder: input.sortOrder,
+            updatedAt: new Date(),
+          })
+          .where(eq(homepageCategories.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating homepage category:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to update homepage category' });
+      }
+    }),
+
+  deleteHomepageCategory: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete homepage categories.' });
+      }
+      try {
+        await db.delete(homepageCategories).where(eq(homepageCategories.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error deleting homepage category:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to delete homepage category' });
+      }
+    }),
+
+  // Marquee Messages CRUD
+  getMarqueeMessages: publicProcedure
+    .query(async () => {
+      try {
+        let list = await db.select().from(marqueeMessages).orderBy(asc(marqueeMessages.sortOrder));
+        if (list.length === 0) {
+          // Auto-seed default marquee messages
+          const defaults = [
+            "FREE SHIPPING ON ORDERS OVER $75",
+            "100% AUTHENTIC LUXURY BEAUTY PRODUCTS",
+            "CRUELTY-FREE & VEGAN FORMULAS",
+            "JOIN THE VIP CLUB FOR 15% OFF",
+            "NEW EXCLUSIVE ARRIVALS WEEKLY"
+          ];
+          for (let i = 0; i < defaults.length; i++) {
+            await db.insert(marqueeMessages).values({
+              text: defaults[i],
+              sortOrder: i + 1,
+            });
+          }
+          list = await db.select().from(marqueeMessages).orderBy(asc(marqueeMessages.sortOrder));
+        }
+        return list;
+      } catch (err: any) {
+        console.error('Error fetching marquee messages:', err);
+        return [];
+      }
+    }),
+
+  createMarqueeMessage: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      text: z.string().min(1),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to create marquee messages.' });
+      }
+      try {
+        await db.insert(marqueeMessages).values({
+          text: input.text,
+          sortOrder: input.sortOrder,
+        });
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error creating marquee message:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to create marquee message' });
+      }
+    }),
+
+  updateMarqueeMessage: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+      text: z.string().min(1),
+      sortOrder: z.number().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update marquee messages.' });
+      }
+      try {
+        await db.update(marqueeMessages)
+          .set({
+            text: input.text,
+            sortOrder: input.sortOrder,
+            updatedAt: new Date(),
+          })
+          .where(eq(marqueeMessages.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating marquee message:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to update marquee message' });
+      }
+    }),
+
+  deleteMarqueeMessage: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      id: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete marquee messages.' });
+      }
+      try {
+        await db.delete(marqueeMessages).where(eq(marqueeMessages.id, input.id));
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error deleting marquee message:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to delete marquee message' });
       }
     }),
 

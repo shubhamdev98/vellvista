@@ -614,5 +614,116 @@ export function useUpdateHeroSettings() {
   }>((input) => trpc.updateHeroSettings(input));
 }
 
+// FAQ Hooks
+export function useFaqs() {
+  return useQueryWrapper<any[], void>(
+    () => trpc.getFaqs(),
+    undefined as any,
+    true
+  );
+}
+
+export function useCreateFaq() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    question: string;
+    answer: string;
+    sortOrder: number;
+  }>((input) => trpc.createFaq(input));
+}
+
+export function useUpdateFaq() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+    question: string;
+    answer: string;
+    sortOrder: number;
+  }>((input) => trpc.updateFaq(input));
+}
+
+export function useDeleteFaq() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+  }>((input) => trpc.deleteFaq(input));
+}
+
+// Homepage Categories Hooks
+export function useHomepageCategories() {
+  return useQueryWrapper<any[], void>(
+    () => trpc.getHomepageCategories(),
+    undefined as any,
+    true
+  );
+}
+
+export function useCreateHomepageCategory() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    title: string;
+    subtitle?: string;
+    categorySlug: string;
+    image: string;
+    gridSpan?: string;
+    height?: string;
+    sortOrder: number;
+  }>((input) => trpc.createHomepageCategory(input));
+}
+
+export function useUpdateHomepageCategory() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+    title: string;
+    subtitle?: string;
+    categorySlug: string;
+    image: string;
+    gridSpan?: string;
+    height?: string;
+    sortOrder: number;
+  }>((input) => trpc.updateHomepageCategory(input));
+}
+
+export function useDeleteHomepageCategory() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+  }>((input) => trpc.deleteHomepageCategory(input));
+}
+
+// Marquee Message Hooks
+export function useMarqueeMessages() {
+  return useQueryWrapper<any[], void>(
+    () => trpc.getMarqueeMessages(),
+    undefined as any,
+    true
+  );
+}
+
+export function useCreateMarqueeMessage() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    text: string;
+    sortOrder: number;
+  }>((input) => trpc.createMarqueeMessage(input));
+}
+
+export function useUpdateMarqueeMessage() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+    text: string;
+    sortOrder: number;
+  }>((input) => trpc.updateMarqueeMessage(input));
+}
+
+export function useDeleteMarqueeMessage() {
+  return useMutationWrapper<any, {
+    adminId: string;
+    id: number;
+  }>((input) => trpc.deleteMarqueeMessage(input));
+}
+
 
 

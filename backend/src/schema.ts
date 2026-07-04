@@ -326,6 +326,36 @@ export const heroSettings = pgTable('hero_settings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// FAQs table
+export const faqs = pgTable('faqs', {
+  id: serial('id').primaryKey(),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Homepage Categories table
+export const homepageCategories = pgTable('homepage_categories', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  subtitle: text('subtitle'),
+  categorySlug: text('category_slug').notNull(),
+  image: text('image').notNull(),
+  gridSpan: text('grid_span').notNull().default('col-span-1'),
+  height: text('height').notNull().default('h-[192px]'),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Marquee Messages table
+export const marqueeMessages = pgTable('marquee_messages', {
+  id: serial('id').primaryKey(),
+  text: text('text').notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
 
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
@@ -338,6 +368,12 @@ export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type Subscriber = typeof subscribers.$inferSelect;
 export type NewSubscriber = typeof subscribers.$inferInsert;
+export type Faq = typeof faqs.$inferSelect;
+export type NewFaq = typeof faqs.$inferInsert;
+export type HomepageCategory = typeof homepageCategories.$inferSelect;
+export type NewHomepageCategory = typeof homepageCategories.$inferInsert;
+export type MarqueeMessage = typeof marqueeMessages.$inferSelect;
+export type NewMarqueeMessage = typeof marqueeMessages.$inferInsert;
 export type ProductVariant = typeof productVariants.$inferSelect;
 export type NewProductVariant = typeof productVariants.$inferInsert;
 export type Review = typeof reviews.$inferSelect;

@@ -2,44 +2,22 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const faqData: FaqItem[] = [
-  {
-    question: "What is your return policy?",
-    answer: "We offer a 30-day return policy on all unopened, unused beauty and fragrance products. Items must be returned in their original luxury packaging to be eligible for a refund."
-  },
-  {
-    question: "Are your products cruelty-free and vegan?",
-    answer: "Yes, all Vellvista products are 100% cruelty-free and never tested on animals. The majority of our formulas are also 100% vegan, which is highlighted in the product description."
-  },
-  {
-    question: "How can I track my order?",
-    answer: "Once your order has been dispatched, you will receive a shipping confirmation email containing a tracking link. You can also view your order status by logging into your account."
-  },
-  {
-    question: "Do you ship internationally?",
-    answer: "Yes, we ship worldwide. Shipping rates, custom duties, and estimated delivery timelines are calculated automatically at checkout based on your country."
-  },
-  {
-    question: "How do I contact customer support?",
-    answer: "You can reach our dedicated concierge team by emailing support@vellvista.com or by submitting an inquiry through our Contact page. We strive to respond within 24 hours."
-  }
-];
+import { useFaqs } from "../app/hooks/useApi";
 
 export default function FaqSection() {
+  const { data: faqData, isLoading } = useFaqs();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  if (isLoading || !faqData || faqData.length === 0) {
+    return null;
+  }
+
   return (
-    <section id="faq" className="pb-5 bg-background">
+    <section id="faq" className="pb-16 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
@@ -58,7 +36,7 @@ export default function FaqSection() {
           {faqData.map((item, index) => {
             const isOpen = openIndex === index;
             return (
-              <div key={index} className="py-5 sm:py-6 group">
+              <div key={item.id || index} className="py-5 sm:py-6 group">
                 <button
                   onClick={() => toggleFaq(index)}
                   className="w-full flex justify-between items-center text-left focus:outline-none cursor-pointer"
