@@ -174,16 +174,18 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   };
 
   const handleAddToCart = async () => {
-    if (!product || isAdding) return;
+    if (!product || isAdding || isAdded) return;
     setIsAdding(true);
     setIsAdded(true);
     const timer = setTimeout(() => setIsAdded(false), 1500);
     try {
-      await addItem({
+      addItem({
         id: product.id,
         name: product.name,
         price: Number(product.price),
         image: product.image,
+      }).catch((error: any) => {
+        showToast(error.message || "Failed to add item to cart.", "warning");
       });
       router.push("/cart");
     } catch (error: any) {
@@ -419,7 +421,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <div className="flex space-x-4 mb-6">
                 <button
                   onClick={handleAddToCart}
-                  disabled={isAdding}
+                  disabled={isAdding || isAdded}
                   className={`flex-1 py-3 font-semibold transition-all duration-75 flex items-center justify-center cursor-pointer ${
                     isAdded
                       ? "bg-green-600 text-white"
@@ -453,10 +455,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                     try {
                       if (isInWishlist(product.id)) {
                         await removeFromWishlist(product.id);
-                        showToast("Removed from wishlist!", "success");
                       } else {
                         await addToWishlist(product.id);
-                        showToast("Added to wishlist!", "success");
                       }
                     } catch (err: any) {
                       showToast(err.message || "Failed to update wishlist.", "error");
@@ -472,9 +472,21 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <button
                   onClick={() => {
                     const productUrl = window.location.href;
-                    navigator.clipboard.writeText(productUrl)
-                      .then(() => showToast("Product link copied to clipboard!", "success"))
-                      .catch(() => showToast("Failed to copy link.", "error"));
+                    if (navigator.share) {
+                      navigator.share({
+                        title: product.name,
+                        text: `Check out ${product.name} on Vellvista`,
+                        url: productUrl,
+                      }).catch((err) => {
+                        if (err.name !== 'AbortError') {
+                          showToast("Failed to share product.", "error");
+                        }
+                      });
+                    } else {
+                      navigator.clipboard.writeText(productUrl)
+                        .then(() => showToast("Product link copied to clipboard!", "success"))
+                        .catch(() => showToast("Failed to copy link.", "error"));
+                    }
                   }}
                   className="p-3 border border-dark hover:border-primary transition-colors cursor-pointer"
                   title="Share Product"

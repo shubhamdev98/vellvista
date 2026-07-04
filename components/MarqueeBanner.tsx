@@ -37,8 +37,10 @@ export default function MarqueeBanner() {
           width: max-content;
           animation: marqueeLtr 100s linear infinite;
         }
-        .custom-marquee-container:hover {
-          animation-play-state: paused;
+        @media (hover: hover) {
+          .custom-marquee-container:hover {
+            animation-play-state: paused;
+          }
         }
       `}</style>
       <div className="w-full overflow-hidden bg-[#020202] py-3.5 sm:py-4 select-none relative">

@@ -157,6 +157,7 @@ function ProductCard({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (clicked) return;
     setClicked(true);
     const timer = setTimeout(() => setClicked(false), 1000);
     try {
@@ -170,9 +171,9 @@ function ProductCard({
       clearTimeout(timer);
       setClicked(false);
       const message =
-        error instanceof Error
-          ? error.message
-          : "You cannot add product without login. You need to login first.";
+          error instanceof Error
+              ? error.message
+              : "You cannot add product without login. You need to login first.";
       showToast(message, "warning");
     }
   };
@@ -197,8 +198,9 @@ function ProductCard({
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
           <button
             onClick={handleAddToCart}
+            disabled={clicked}
             className={`bg-primary text-inverse text-[10px] font-bold uppercase tracking-widest py-2.5 px-5 shadow-md transition-all active:scale-95 duration-150 cursor-pointer ${
-              clicked ? "bg-emerald-600" : ""
+              clicked ? "bg-emerald-600 cursor-not-allowed" : ""
             }`}
           >
             {clicked ? "Added!" : "Add to Cart"}
@@ -211,9 +213,21 @@ function ProductCard({
             e.preventDefault();
             e.stopPropagation();
             const productUrl = `${window.location.origin}/products/${product.id}`;
-            navigator.clipboard.writeText(productUrl)
-              .then(() => showToast("Product link copied to clipboard!", "success"))
-              .catch(() => showToast("Failed to copy link.", "error"));
+            if (navigator.share) {
+              navigator.share({
+                title: product.name,
+                text: `Check out ${product.name} on Vellvista`,
+                url: productUrl,
+              }).catch((err) => {
+                if (err.name !== 'AbortError') {
+                  showToast("Failed to share product.", "error");
+                }
+              });
+            } else {
+              navigator.clipboard.writeText(productUrl)
+                .then(() => showToast("Product link copied to clipboard!", "success"))
+                .catch(() => showToast("Failed to copy link.", "error"));
+            }
           }}
           className="absolute top-3 right-[3.25rem] z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 text-secondary hover:text-primary cursor-pointer"
           aria-label={`Share ${product.name}`}
