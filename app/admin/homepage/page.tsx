@@ -515,7 +515,7 @@ export default function AdminHomepageManager() {
 
       {/* Hero Tab */}
       {activeTab === "hero" && (
-        <form onSubmit={handleHeroSubmit} className="bg-surface border border-light p-6 space-y-6 max-w-3xl">
+        <form onSubmit={handleHeroSubmit} className="bg-surface border border-light p-6 space-y-6 w-full">
           <h3 className="font-semibold text-lg border-b border-light pb-2 font-manrope">Hero Settings</h3>
           <div className="space-y-4">
             <div>
@@ -605,7 +605,7 @@ export default function AdminHomepageManager() {
 
       {/* Promo Banner Tab */}
       {activeTab === "banner" && (
-        <form onSubmit={handleBannerSubmit} className="bg-surface border border-light p-6 space-y-6 max-w-3xl">
+        <form onSubmit={handleBannerSubmit} className="bg-surface border border-light p-6 space-y-6 w-full">
           <h3 className="font-semibold text-lg border-b border-light pb-2 font-manrope">Promo Banner Settings</h3>
           <div className="space-y-4">
             <div>
@@ -690,8 +690,8 @@ export default function AdminHomepageManager() {
 
       {/* Categories Grid Tab */}
       {activeTab === "categories" && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center max-w-4xl">
+        <div className="space-y-6 w-full">
+          <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg font-manrope">Homepage Category Blocks</h3>
             <button
               onClick={handleCategoryAddClick}
@@ -702,7 +702,7 @@ export default function AdminHomepageManager() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {isCategoriesLoading ? (
               <div className="col-span-full py-12 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-secondary" />
@@ -763,7 +763,7 @@ export default function AdminHomepageManager() {
 
       {/* Marquee Messages Tab */}
       {activeTab === "marquee" && (
-        <div className="space-y-6 max-w-4xl">
+        <div className="space-y-6 w-full">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg font-manrope">Scrolling Marquee Messages</h3>
             <button
@@ -829,7 +829,7 @@ export default function AdminHomepageManager() {
 
       {/* FAQ Tab */}
       {activeTab === "faqs" && (
-        <div className="space-y-6 max-w-4xl animate-fade-in">
+        <div className="space-y-6 w-full animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="font-semibold text-lg font-manrope">FAQ / QNA Accordion Items</h3>
