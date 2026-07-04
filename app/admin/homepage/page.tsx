@@ -370,25 +370,20 @@ export default function AdminHomepageManager() {
     setIsSortingModified(true);
   };
 
-  const handleDragEnd = async () => {
+  const handleDragEnd = () => {
     setDraggedIndex(null);
     if (!isSortingModified || !currentUser) return;
     setIsSortingModified(false);
-    try {
-      for (let i = 0; i < localFaqs.length; i++) {
-        const item = localFaqs[i];
-        await updateFaq({
-          adminId: currentUser.id,
-          id: item.id,
-          question: item.question,
-          answer: item.answer,
-          sortOrder: i + 1
-        });
-      }
-      showToast("FAQ order updated successfully", "success");
-    } catch (err: any) {
-      showToast(err.message || "Failed to update FAQ order", "error");
-    }
+    
+    localFaqs.forEach((item, i) => {
+      updateFaq({
+        adminId: currentUser.id,
+        id: item.id,
+        question: item.question,
+        answer: item.answer,
+        sortOrder: i + 1
+      });
+    });
   };
 
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
