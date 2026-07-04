@@ -1,7 +1,7 @@
 {
-  "name": "luxescents-backend",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "Backend for LuxeScents fragrance store",
+  "description": "Backend for VellVista fragrance store",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

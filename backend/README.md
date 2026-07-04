@@ -1,6 +1,4 @@
-# LuxeScents Backend
-
-Backend API for LuxeScents fragrance store built with Express.js, tRPC, PostgreSQL, and Drizzle ORM.
+# Backend API for VellVista fragrance store built with Express.js, tRPC, PostgreSQL, and Drizzle ORM.
 
 ## Tech Stack
 
@@ -49,7 +47,7 @@ cp env.example .env
 
 Edit the `.env` file with your database connection:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/luxescents"
+DATABASE_URL="postgresql://username:password@localhost:5432/vellvista"
 PORT=3001
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
@@ -59,7 +57,7 @@ FRONTEND_URL=http://localhost:3000
 
 1. Create a PostgreSQL database:
 ```sql
-CREATE DATABASE luxescents;
+CREATE DATABASE vellvista;
 ```
 
 2. Generate database migrations:

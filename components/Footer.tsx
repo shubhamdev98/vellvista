@@ -55,7 +55,7 @@ const Footer = () => {
             <div className="relative h-10 w-[7.5rem] mb-4">
               <Image
                 src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="LuxeScents"
+                alt="VellVista"
                 fill
                 className="object-contain brightness-0 invert"
                 priority
@@ -76,7 +76,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center text-muted">
                 <Mail className="h-4 w-4 mr-3 text-muted" />
-                <span className="text-sm">info@luxescents.com</span>
+                <span className="text-sm">info@vellvista.com</span>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ const Footer = () => {
         <div className="border-t border-white/20 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-muted text-sm">
-              <p>&copy; 2024 LuxeScents. All rights reserved. | Crafted with passion for fragrance lovers</p>
+              <p>&copy; 2026 vellvista. All rights reserved. | Crafted with passion for fragrance lovers</p>
             </div>
             
             {/* Payment Methods */}

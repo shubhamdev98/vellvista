@@ -1,5 +1,5 @@
 @echo off
-echo Setting up LuxeScents Backend...
+echo Setting up Backend...
 
 REM Check if .env exists
 if not exist .env (

@@ -48,7 +48,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-semibold text-primary mb-1">Dashboard</h2>
-        <p className="text-secondary text-sm">Welcome to your LuxeScents manager dashboard.</p>
+        <p className="text-secondary text-sm">Welcome to your VellVista manager dashboard.</p>
       </div>
 
       {/* Stats Grid */}

@@ -21,7 +21,7 @@ if (!useSupabase) {
 
   if (databaseUser === 'username' || databasePassword === 'password') {
     throw new Error(
-      'DATABASE_URL still contains placeholder credentials. Update backend/.env with your real PostgreSQL username and password, for example: postgresql://postgres:<your-password>@localhost:5432/luxescents'
+      'DATABASE_URL still contains placeholder credentials. Update backend/.env with your real PostgreSQL username and password, for example: postgresql://postgres:<your-password>@localhost:5432/vellvista'
     );
   }
 }

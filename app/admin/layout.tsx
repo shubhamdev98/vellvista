@@ -231,7 +231,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <Image
                 src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="LuxeScents Admin"
+                alt="VellVista Admin"
                 fill
                 className="object-contain object-left"
                 priority

@@ -149,7 +149,7 @@ async function seed() {
   const userData = [
     {
       id: 'admin-user-uuid-1',
-      email: 'admin@luxescents.com',
+      email: 'admin@vellvista.com',
       name: 'Admin User',
       image: 'https://lh3.googleusercontent.com/a/default-user',
       isActive: true,
@@ -158,7 +158,7 @@ async function seed() {
     },
     {
       id: 'standard-user-uuid-2',
-      email: 'user@luxescents.com',
+      email: 'user@vellvista.com',
       name: 'Standard User',
       image: 'https://lh3.googleusercontent.com/a/default-user',
       isActive: true,

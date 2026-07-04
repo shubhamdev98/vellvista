@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Setting up LuxeScents Backend..."
+echo "Setting up VellVista Backend..."
 
 # Check if .env exists
 if [ ! -f .env ]; then

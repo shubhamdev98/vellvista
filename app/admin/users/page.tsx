@@ -180,7 +180,7 @@ export default function AdminUsersPage() {
       {/* Title Header */}
       <div>
         <h2 className="text-2xl font-semibold text-primary mb-1">User Management</h2>
-        <p className="text-secondary text-sm">Monitor, inspect, and filter user accounts registered in LuxeScents.</p>
+        <p className="text-secondary text-sm">Monitor, inspect, and filter user accounts registered in VellVista.</p>
       </div>
 
       {/* Metrics Cards */}
