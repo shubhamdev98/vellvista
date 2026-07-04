@@ -370,13 +370,10 @@ export default function AdminHomepageManager() {
     setIsSortingModified(true);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async () => {
     setDraggedIndex(null);
-  };
-
-  const saveFaqOrder = async () => {
-    if (!currentUser) return;
-    setIsSavingOrder(true);
+    if (!isSortingModified || !currentUser) return;
+    setIsSortingModified(false);
     try {
       for (let i = 0; i < localFaqs.length; i++) {
         const item = localFaqs[i];
@@ -389,11 +386,8 @@ export default function AdminHomepageManager() {
         });
       }
       showToast("FAQ order updated successfully", "success");
-      setIsSortingModified(false);
     } catch (err: any) {
       showToast(err.message || "Failed to update FAQ order", "error");
-    } finally {
-      setIsSavingOrder(false);
     }
   };
 
@@ -855,19 +849,6 @@ export default function AdminHomepageManager() {
             </button>
           </div>
 
-          {isSortingModified && (
-            <div className="flex items-center justify-between bg-primary/5 border border-primary/20 p-4 text-sm text-primary">
-              <span className="font-light">FAQ order has been changed. Click save to persist.</span>
-              <button
-                onClick={saveFaqOrder}
-                disabled={isSavingOrder}
-                className="flex items-center gap-1.5 bg-primary text-inverse py-2 px-4 text-xs font-bold uppercase tracking-wider hover:bg-primary-light transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isSavingOrder ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                Save Order
-              </button>
-            </div>
-          )}
 
           <div className="space-y-4">
             {isFaqLoading ? (
