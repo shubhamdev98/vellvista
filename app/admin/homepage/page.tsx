@@ -453,13 +453,13 @@ export default function AdminHomepageManager() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold font-manrope text-primary tracking-wide">
+        <h2 className="text-2xl font-semibold text-primary mb-1">
           Homepage Content Manager
-        </h1>
-        <p className="text-secondary text-sm font-light mt-1">
+        </h2>
+        <p className="text-secondary text-sm">
           Customize all sections of your homepage dynamically.
         </p>
       </div>
