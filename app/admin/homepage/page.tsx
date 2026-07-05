@@ -252,6 +252,63 @@ export default function AdminHomepageManager() {
   const { mutate: updateCategory } = useUpdateHomepageCategory();
   const { mutate: deleteCategory } = useDeleteHomepageCategory();
 
+  // Category drag-and-drop state
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [isCategoriesSortingModified, setIsCategoriesSortingModified] = useState(false);
+  const [draggedCategoryIndex, setDraggedCategoryIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (categories) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
+
+  const handleCategoryDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedCategoryIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleCategoryDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedCategoryIndex === null || draggedCategoryIndex === index) return;
+    
+    const updated = [...localCategories];
+    const draggedItem = updated[draggedCategoryIndex];
+    updated.splice(draggedCategoryIndex, 1);
+    updated.splice(index, 0, draggedItem);
+    
+    setDraggedCategoryIndex(index);
+    setLocalCategories(updated);
+    setIsCategoriesSortingModified(true);
+  };
+
+  const handleCategoryDragEnd = async () => {
+    setDraggedCategoryIndex(null);
+    if (!isCategoriesSortingModified || !currentUser) return;
+    setIsCategoriesSortingModified(false);
+    
+    try {
+      const promises = localCategories.map((item, i) => {
+        return updateCategory({
+          adminId: currentUser.id,
+          id: item.id,
+          title: item.title,
+          subtitle: item.subtitle || "",
+          categorySlug: item.categorySlug,
+          image: item.image,
+          gridSpan: item.gridSpan,
+          height: item.height,
+          sortOrder: i + 1
+        });
+      });
+      await Promise.all(promises);
+      showToast("Categories order updated successfully", "success");
+      window.location.reload();
+    } catch (err: any) {
+      showToast(err.message || "Failed to update category order", "error");
+    }
+  };
+
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categoryModalMode, setCategoryModalMode] = useState<"add" | "edit">("add");
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -785,11 +842,23 @@ export default function AdminHomepageManager() {
               <div className="col-span-full py-12 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-secondary" />
               </div>
-            ) : categories && categories.length > 0 ? (
-              categories.map((cat) => (
-                <div key={cat.id} className="bg-surface border border-light p-4 space-y-4 flex flex-col justify-between">
+            ) : localCategories && localCategories.length > 0 ? (
+              localCategories.map((cat, index) => (
+                <div 
+                  key={cat.id} 
+                  draggable
+                  onDragStart={(e) => handleCategoryDragStart(e, index)}
+                  onDragOver={(e) => handleCategoryDragOver(e, index)}
+                  onDragEnd={handleCategoryDragEnd}
+                  className={`bg-surface border p-4 space-y-4 flex flex-col justify-between cursor-move transition-all duration-150 relative select-none ${
+                    draggedCategoryIndex === index ? "border-primary bg-surface-alt opacity-50 scale-[0.98]" : "border-light hover:border-primary/40"
+                  }`}
+                >
                   <div className="space-y-3">
                     <div className="relative aspect-video bg-background-muted overflow-hidden">
+                      <div className="absolute top-2 left-2 z-20 bg-black/60 text-white p-1 rounded cursor-grab hover:bg-black/80 transition-colors">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
                       <img
                         src={getProductImageUrl(cat.image)}
                         alt={cat.title}
