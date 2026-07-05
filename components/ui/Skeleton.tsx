@@ -48,19 +48,17 @@ export function TableRowSkeleton({ cols, showAction = false }: { cols: number; s
 // A helper for product card skeletons
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-surface overflow-hidden border border-gray-200 animate-pulse">
-      {/* Aspect Square Image Placeholder */}
-      <div className="aspect-square bg-surface-alt w-full" />
+    <div className="w-full animate-pulse bg-transparent">
+      {/* Tall 3:4 Aspect Ratio Image Placeholder */}
+      <div className="aspect-[3/4] bg-surface-alt w-full rounded-none" />
       {/* Info Section */}
-      <div className="p-3 sm:p-4">
-        {/* Title */}
+      <div className="pt-3 pb-1 flex flex-col text-left">
+        {/* Brand / Category */}
+        <div className="h-3 bg-surface-alt rounded w-1/4 mb-2" />
+        {/* Product Name */}
         <div className="h-4 bg-surface-alt rounded w-3/4 mb-2" />
-        {/* Brand */}
-        <div className="h-3 bg-surface-alt rounded w-1/2 mb-4" />
         {/* Price */}
-        <div className="h-5 bg-surface-alt rounded w-1/3 mb-4" />
-        {/* Button */}
-        <div className="h-10 bg-surface-alt w-full mt-3" />
+        <div className="h-4 bg-surface-alt rounded w-1/3" />
       </div>
     </div>
   );

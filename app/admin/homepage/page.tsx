@@ -600,7 +600,7 @@ export default function AdminHomepageManager() {
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex border-b border-light overflow-x-auto space-x-6 scrollbar-none">
+      <div className="flex border-b border-light overflow-x-auto space-x-6 no-scrollbar">
         <button
           onClick={() => setActiveTab("hero")}
           className={`pb-4 px-1 text-sm font-medium flex items-center gap-2 cursor-pointer border-b-2 transition-all whitespace-nowrap ${
