@@ -36,7 +36,7 @@ export default function CategorySection() {
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {categories.map((item) => (
             <button
               key={item.id}
@@ -54,13 +54,13 @@ export default function CategorySection() {
               </div>
               {/* Soft dark overlay */}
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors duration-300" />
-              <div className="absolute bottom-6 left-6 font-inter z-10">
+              <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 font-inter z-10">
                 {item.subtitle && (
-                  <p className="font-label-caps text-[10px] text-white/90 tracking-wider mb-1 font-semibold">
+                  <p className="font-label-caps text-[9px] md:text-[10px] text-white/90 tracking-wider mb-1 font-semibold">
                     {item.subtitle}
                   </p>
                 )}
-                <h3 className="font-headline-md text-xl md:text-2xl text-white font-semibold font-manrope">
+                <h3 className="font-headline-md text-lg md:text-2xl text-white font-semibold font-manrope">
                   {item.title}
                 </h3>
               </div>

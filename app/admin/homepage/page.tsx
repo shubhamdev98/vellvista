@@ -39,11 +39,77 @@ import { useAuth } from "../../../context/AuthProvider";
 import { useToast } from "../../../context/ToastProvider";
 import { getProductImageUrl } from "../../utils/image";
 
+// Helper to parse gridSpan string
+function parseGridSpan(gridSpanString: string) {
+  const parts = (gridSpanString || "").split(" ");
+  
+  // Find mobile span (col-span-1 or col-span-2)
+  let mobileSpan = "col-span-1";
+  if (parts.includes("col-span-2")) {
+    mobileSpan = "col-span-2";
+  }
+
+  // Find desktop span (md:col-span-X)
+  let desktopSpan = "md:col-span-1";
+  for (const part of parts) {
+    if (part.startsWith("md:col-span-")) {
+      desktopSpan = part;
+      break;
+    }
+  }
+  // If no md:col-span-X is found, but a plain col-span exists, it applies to md as well.
+  if (!parts.some(p => p.startsWith("md:col-span-"))) {
+    if (parts.includes("col-span-1")) desktopSpan = "md:col-span-1";
+    else if (parts.includes("col-span-2")) desktopSpan = "md:col-span-2";
+    else if (parts.includes("col-span-3")) desktopSpan = "md:col-span-3";
+    else if (parts.includes("col-span-4")) desktopSpan = "md:col-span-4";
+  }
+
+  // Find row span
+  let rowSpan = "none";
+  if (parts.includes("md:row-span-2")) {
+    rowSpan = "md:row-span-2";
+  } else if (parts.includes("row-span-2")) {
+    rowSpan = "row-span-2";
+  }
+
+  return { mobileSpan, desktopSpan, rowSpan };
+}
+
+// Helper to construct gridSpan string
+function constructGridSpan(mobileSpan: string, desktopSpan: string, rowSpan: string) {
+  const parts = [mobileSpan, desktopSpan];
+  if (rowSpan !== "none") {
+    parts.push(rowSpan);
+  }
+  return parts.join(" ");
+}
+
+// Helper to get human readable layout summary
+const getSpanLabel = (gridSpan: string) => {
+  const parts = (gridSpan || "").split(" ");
+  const isMobileFull = parts.includes("col-span-2");
+  
+  let desktopWidth = "25%";
+  if (parts.includes("md:col-span-2")) desktopWidth = "50%";
+  else if (parts.includes("md:col-span-3")) desktopWidth = "75%";
+  else if (parts.includes("md:col-span-4")) desktopWidth = "100%";
+  
+  const isTall = parts.includes("row-span-2") || parts.includes("md:row-span-2");
+  
+  return `Mobile: ${isMobileFull ? "Full" : "Half"} | Desktop: ${desktopWidth}${isTall ? " (Tall)" : ""}`;
+};
+
 export default function AdminHomepageManager() {
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<"hero" | "banner" | "categories" | "marquee" | "faqs">("hero");
+
+  // Temporary state for layout configurations
+  const [tempMobileSpan, setTempMobileSpan] = useState("col-span-1");
+  const [tempDesktopSpan, setTempDesktopSpan] = useState("md:col-span-1");
+  const [tempRowSpan, setTempRowSpan] = useState("none");
 
   // Hero Section Settings
   const { data: heroData, isLoading: isHeroLoading } = useHeroSettings();
@@ -202,6 +268,11 @@ export default function AdminHomepageManager() {
 
   const handleCategoryEditClick = (cat: any) => {
     setSelectedCategory(cat);
+    const parsed = parseGridSpan(cat.gridSpan || "col-span-1");
+    setTempMobileSpan(parsed.mobileSpan);
+    setTempDesktopSpan(parsed.desktopSpan);
+    setTempRowSpan(parsed.rowSpan);
+
     setCategoryForm({
       title: cat.title,
       subtitle: cat.subtitle || "",
@@ -216,6 +287,10 @@ export default function AdminHomepageManager() {
   };
 
   const handleCategoryAddClick = () => {
+    setTempMobileSpan("col-span-1");
+    setTempDesktopSpan("md:col-span-1");
+    setTempRowSpan("none");
+
     setCategoryForm({
       title: "",
       subtitle: "",
@@ -232,18 +307,21 @@ export default function AdminHomepageManager() {
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+    const finalGridSpan = constructGridSpan(tempMobileSpan, tempDesktopSpan, tempRowSpan);
     try {
       if (categoryModalMode === "add") {
         await createCategory({
           adminId: currentUser.id,
-          ...categoryForm
+          ...categoryForm,
+          gridSpan: finalGridSpan
         });
         showToast("Category block created", "success");
       } else {
         await updateCategory({
           adminId: currentUser.id,
           id: selectedCategory.id,
-          ...categoryForm
+          ...categoryForm,
+          gridSpan: finalGridSpan
         });
         showToast("Category block updated", "success");
       }
@@ -726,7 +804,7 @@ export default function AdminHomepageManager() {
                           Slug: {cat.categorySlug}
                         </span>
                         <span className="bg-surface-alt px-2 py-0.5 text-[10px] text-secondary font-mono">
-                          Span: {cat.gridSpan}
+                          Layout: {getSpanLabel(cat.gridSpan)}
                         </span>
                         <span className="bg-surface-alt px-2 py-0.5 text-[10px] text-secondary font-mono">
                           Order: {cat.sortOrder}
@@ -988,37 +1066,72 @@ export default function AdminHomepageManager() {
                   </label>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
-                    Bento Grid Span
-                  </label>
-                  <select
-                    value={categoryForm.gridSpan}
-                    onChange={e => setCategoryForm(prev => ({ ...prev, gridSpan: e.target.value }))}
-                    className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
-                  >
-                    <option value="col-span-1">col-span-1</option>
-                    <option value="col-span-1 md:col-span-2">col-span-2</option>
-                    <option value="col-span-1 md:col-span-2 row-span-2">col-span-2 row-span-2</option>
-                    <option value="col-span-1 md:col-span-3">col-span-3</option>
-                    <option value="col-span-1 md:col-span-4">col-span-4</option>
-                  </select>
+              <div className="space-y-4 border-t border-light pt-4 mt-2">
+                <h4 className="text-sm font-semibold text-primary font-manrope">Grid Layout Configuration</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+                      Mobile Span
+                    </label>
+                    <select
+                      value={tempMobileSpan}
+                      onChange={e => setTempMobileSpan(e.target.value)}
+                      className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
+                    >
+                      <option value="col-span-1">Half Width (col-span-1)</option>
+                      <option value="col-span-2">Full Width (col-span-2)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+                      Desktop Span
+                    </label>
+                    <select
+                      value={tempDesktopSpan}
+                      onChange={e => setTempDesktopSpan(e.target.value)}
+                      className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
+                    >
+                      <option value="md:col-span-1">25% Width (md:col-span-1)</option>
+                      <option value="md:col-span-2">50% Width (md:col-span-2)</option>
+                      <option value="md:col-span-3">75% Width (md:col-span-3)</option>
+                      <option value="md:col-span-4">100% Width (md:col-span-4)</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
-                    Block Height
-                  </label>
-                  <select
-                    value={categoryForm.height}
-                    onChange={e => setCategoryForm(prev => ({ ...prev, height: e.target.value }))}
-                    className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
-                  >
-                    <option value="h-[192px]">h-[192px] (Small)</option>
-                    <option value="h-[250px]">h-[250px] (Medium)</option>
-                    <option value="h-[300px]">h-[300px] (Semi-Large)</option>
-                    <option value="h-[400px]">h-[400px] (Large)</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+                      Bento Height (Row Span)
+                    </label>
+                    <select
+                      value={tempRowSpan}
+                      onChange={e => setTempRowSpan(e.target.value)}
+                      className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
+                    >
+                      <option value="none">Standard Height (1 Row)</option>
+                      <option value="row-span-2">Tall - Mobile & Desktop (row-span-2)</option>
+                      <option value="md:row-span-2">Tall - Desktop Only (md:row-span-2)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+                      Block Height Class
+                    </label>
+                    <select
+                      value={categoryForm.height}
+                      onChange={e => setCategoryForm(prev => ({ ...prev, height: e.target.value }))}
+                      className="w-full border border-dark p-3 text-sm focus:outline-none bg-background text-primary"
+                    >
+                      <option value="h-[192px]">h-[192px] (Small)</option>
+                      <option value="h-[250px]">h-[250px] (Medium)</option>
+                      <option value="h-[300px]">h-[300px] (Semi-Large)</option>
+                      <option value="h-[400px]">h-[400px] (Large)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>
