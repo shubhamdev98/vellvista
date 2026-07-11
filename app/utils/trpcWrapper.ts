@@ -3,7 +3,9 @@ import { createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
 const getBaseUrl = () => {
   const trpcUrl = process.env.NEXT_PUBLIC_TRPC_URL;
   if (trpcUrl) return trpcUrl;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = typeof window === 'undefined'
+    ? (process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL)
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
   if (backendUrl) return `${backendUrl}/trpc`;
   return 'http://172.29.214.47:3001/trpc';
 };

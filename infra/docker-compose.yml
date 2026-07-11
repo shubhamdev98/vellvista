@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: vellvista-db
+    environment:
+      POSTGRES_DB: vellvista
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vellvista"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: infra/docker/backend.Dockerfile
+    container_name: vellvista-backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/vellvista
+      PORT: 3001
+      SERVER_IP: localhost
+      FRONTEND_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: dev_secret_key_which_is_at_least_32_characters_long
+      BETTER_AUTH_URL: http://localhost:3001
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/backend/public
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/docker/frontend.Dockerfile
+      args:
+        - NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
+    container_name: vellvista-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
+      INTERNAL_BACKEND_URL: http://backend:3001
+      PORT: 3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  backend_uploads:

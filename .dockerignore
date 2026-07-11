@@ -1,0 +1,27 @@
+# Ignore dependencies
+node_modules
+**/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Ignore build outputs
+.next
+.turbo
+dist
+backend/dist
+tsconfig.tsbuildinfo
+
+# Ignore environment/secret files
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Ignore version control and IDE settings
+.git
+.gitignore
+.vscode
+.idea
+.windsurf
