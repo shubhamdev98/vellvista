@@ -6,7 +6,15 @@ import { useMarqueeMessages } from "../app/hooks/useApi";
 export default function MarqueeBanner() {
   const { data: marqueeData, isLoading } = useMarqueeMessages();
 
-  if (isLoading || !marqueeData || marqueeData.length === 0) {
+  if (isLoading) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="w-full bg-surface-alt animate-pulse py-3.5 sm:py-4 h-[44px] sm:h-[48px]" />
+      </section>
+    );
+  }
+
+  if (!marqueeData || marqueeData.length === 0) {
     return null;
   }
 

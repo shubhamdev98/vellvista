@@ -6,7 +6,15 @@ import { usePromoBanner } from "../app/hooks/useApi";
 export default function PromoBanner() {
   const { data: banner, isLoading } = usePromoBanner();
 
-  if (isLoading || !banner || !banner.isActive) {
+  if (isLoading) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full h-[18.75rem] md:h-[25rem] bg-surface-alt animate-pulse" />
+      </section>
+    );
+  }
+
+  if (!banner || !banner.isActive) {
     return null;
   }
 

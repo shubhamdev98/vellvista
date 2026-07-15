@@ -69,7 +69,7 @@ Manifests reside inside [infra/k8s/](file:///e:/program/Next.js/my-app/infra/k8s
       - Routes all other traffic (`/`) to `frontend` service.
     - Solves CORS configuration issues by serving all pages and API requests under a single origin (`http://vellvista.local`).
 5.  **Kustomization (`kustomization.yaml`)**:
-    - Maps all YAML files to deploy with a single instruction:
+    - Maps all YAML files to deploy with a single instruction (run from the project root directory):
       ```bash
       kubectl apply -k infra/k8s/
       ```

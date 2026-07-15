@@ -12,7 +12,32 @@ export default function FaqSection() {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  if (isLoading || !faqData || faqData.length === 0) {
+  if (isLoading) {
+    return (
+      <section id="faq" className="pb-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Heading Skeleton */}
+          <div className="text-center mb-12 md:mb-16 font-inter animate-pulse">
+            <div className="h-3 bg-surface-alt rounded w-24 mx-auto mb-3" />
+            <div className="h-8 bg-surface-alt rounded w-64 mx-auto mb-4" />
+            <div className="w-12 h-px bg-primary/20 mx-auto" />
+          </div>
+
+          {/* FAQ Accordion List Skeleton */}
+          <div className="border-t border-dark/20 divide-y divide-dark/10 animate-pulse">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="py-5 sm:py-6 flex justify-between items-center">
+                <div className="h-5 bg-surface-alt rounded w-2/3" />
+                <div className="h-5 w-5 bg-surface-alt rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!faqData || faqData.length === 0) {
     return null;
   }
 

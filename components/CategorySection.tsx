@@ -17,7 +17,34 @@ export default function CategorySection() {
     }
   };
 
-  if (isLoading || !categories || categories.length === 0) {
+  if (isLoading) {
+    return (
+      <section id="categories" className="py-12 md:py-16 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Heading Skeleton */}
+          <div className="mb-8 md:mb-12 font-inter animate-pulse">
+            <div className="h-3 bg-surface-alt rounded w-24 mb-2" />
+            <div className="h-9 bg-surface-alt rounded w-64" />
+          </div>
+
+          {/* Bento Grid Skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
+            {/* Bento item 1 */}
+            <div className="col-span-1 md:col-span-2 row-span-2 bg-surface-alt h-[400px]" />
+            {/* Bento item 2 */}
+            <div className="col-span-1 bg-surface-alt h-[192px]" />
+            {/* Bento item 3 */}
+            <div className="col-span-1 bg-surface-alt h-[192px]" />
+            {/* Bento item 4 */}
+            <div className="col-span-1 md:col-span-2 bg-surface-alt h-[192px]" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!categories || categories.length === 0) {
     return null;
   }
 

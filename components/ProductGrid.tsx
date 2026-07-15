@@ -194,19 +194,6 @@ function ProductCard({
           priority
         />
 
-        {/* Hover Action Overlay */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-          <button
-            onClick={handleAddToCart}
-            disabled={clicked}
-            className={`bg-primary text-inverse text-[10px] font-bold uppercase tracking-widest py-2.5 px-5 shadow-md transition-all active:scale-95 duration-150 cursor-pointer ${
-              clicked ? "bg-emerald-600 cursor-not-allowed" : ""
-            }`}
-          >
-            {clicked ? "Added!" : "Add to Cart"}
-          </button>
-        </div>
-
         {/* Share Button - visible on hover */}
         <button
           onClick={(e) => {
@@ -701,7 +688,7 @@ export default function ProductGrid({
             }`}
         >
           {isLoading ? (
-            Array.from({ length: 8 }).map((_, i) => (
+            Array.from({ length: limit || 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))
           ) : (

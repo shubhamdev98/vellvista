@@ -29,6 +29,7 @@ const serverIp = backendConfig.hostname;
 const nextConfig: NextConfig = {
   allowedDevOrigins: [serverIp],
   images: {
+    unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
     dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
