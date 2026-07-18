@@ -4,8 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useBrand } from "../../../context/BrandProvider";
 
 function ResetPasswordForm() {
+  const { brandName, brandLogo } = useBrand();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   
@@ -72,8 +74,8 @@ function ResetPasswordForm() {
         <div className="text-center mb-8 flex flex-col items-center justify-center">
           <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
             <Image
-              src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-              alt="Vellvista"
+              src={brandLogo}
+              alt={brandName}
               fill
               className="object-contain"
               priority

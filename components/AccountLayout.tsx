@@ -43,17 +43,32 @@ export default function AccountLayout({
               <div className="h-4 bg-surface-alt rounded w-80" />
             </div>
 
+            {/* Mobile Welcome Skeleton (Only for overview tab) */}
+            {activeTab === "overview" && (
+              <div className="lg:hidden mb-4 bg-surface border border-light p-6 space-y-3 animate-pulse">
+                <div className="h-6 bg-surface-alt rounded w-1/3" />
+                <div className="h-4 bg-surface-alt rounded w-2/3" />
+                <div className="h-8 bg-surface-alt rounded w-24 mt-2" />
+              </div>
+            )}
+
+            {/* Mobile Skeleton */}
+            <div className="lg:hidden mb-6 bg-surface border border-light p-4">
+              <div className="flex space-x-2 overflow-x-auto no-scrollbar items-center">
+                <div className="h-8 bg-surface-alt rounded w-20 shrink-0" />
+                <span className="text-border select-none font-extralight text-xs">|</span>
+                <div className="h-8 bg-surface-alt rounded w-20 shrink-0" />
+                <span className="text-border select-none font-extralight text-xs">|</span>
+                <div className="h-8 bg-surface-alt rounded w-20 shrink-0" />
+                <span className="text-border select-none font-extralight text-xs">|</span>
+                <div className="h-8 bg-surface-alt rounded w-20 shrink-0" />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Sidebar Skeleton */}
-              <div className="lg:col-span-1">
-                <div className="bg-surface p-6 border border-light space-y-6">
-                  <div className="flex items-center space-x-4 border-b border-light pb-6">
-                    <div className="w-14 h-14 bg-surface-alt rounded-full shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-surface-alt rounded w-3/4" />
-                      <div className="h-3 bg-surface-alt rounded w-1/2" />
-                    </div>
-                  </div>
+              <div className="hidden lg:block lg:col-span-1">
+                <div className="bg-surface p-6 border border-light space-y-3">
                   <div className="space-y-3">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <div key={i} className="h-10 bg-surface-alt rounded w-full" />
@@ -114,35 +129,124 @@ export default function AccountLayout({
             ]}
           />
 
+          {/* Mobile Welcome Section (Only for overview tab) */}
+          {activeTab === "overview" && (
+            <div className="lg:hidden mb-4 bg-background-alt border border-light p-6">
+              <h2 className="text-xl font-semibold text-primary">
+                Welcome back!
+              </h2>
+              <p className="text-secondary text-sm mt-1 font-light">
+                Here is a summary of your account activity, orders, and details.
+              </p>
+              <Link
+                href="/profile/information"
+                className="inline-block mt-3 px-4 py-2 border border-primary text-primary hover:bg-primary hover:text-inverse text-xs font-light transition-all whitespace-nowrap cursor-pointer"
+              >
+                Edit Profile
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Profile & Navigation (Horizontal Scroll) */}
+          <div className="lg:hidden mb-6 bg-surface border border-light py-2">
+            {/* Horizontal Scroll Navigation */}
+            <div className="flex overflow-x-auto no-scrollbar px-2 space-x-2 items-center">
+              <Link
+                href="/account/overview"
+                className={`px-4 py-2 text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
+                  activeTab === "overview"
+                    ? "text-primary font-medium"
+                    : "text-secondary hover:text-primary font-light"
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Overview</span>
+              </Link>
+              
+              <span className="text-secondary select-none font-extralight text-xs opacity-60">|</span>
+
+              <Link
+                href="/profile/information"
+                className={`px-4 py-2 text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
+                  activeTab === "profile"
+                    ? "text-primary font-medium"
+                    : "text-secondary hover:text-primary font-light"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+
+              <span className="text-secondary select-none font-extralight text-xs opacity-60">|</span>
+
+              <Link
+                href="/account?tab=orders"
+                className={`px-4 py-2 text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
+                  activeTab === "orders"
+                    ? "text-primary font-medium"
+                    : "text-secondary hover:text-primary font-light"
+                }`}
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span>Orders</span>
+              </Link>
+
+              <span className="text-secondary select-none font-extralight text-xs opacity-60">|</span>
+
+              <Link
+                href="/account?tab=wishlist"
+                className={`px-4 py-2 text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
+                  activeTab === "wishlist"
+                    ? "text-primary font-medium"
+                    : "text-secondary hover:text-primary font-light"
+                }`}
+              >
+                <Heart className="h-4 w-4" />
+                <span>Wishlist</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 ml-1 ${
+                    activeTab === "wishlist"
+                      ? "bg-primary text-inverse font-semibold"
+                      : "bg-surface-alt text-secondary"
+                  }`}
+                >
+                  {wishlistItems.length}
+                </span>
+              </Link>
+
+              <span className="text-secondary select-none font-extralight text-xs opacity-60">|</span>
+
+              <Link
+                href="/address"
+                className={`px-4 py-2 text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
+                  activeTab === "addresses"
+                    ? "text-primary font-medium"
+                    : "text-secondary hover:text-primary font-light"
+                }`}
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Addresses</span>
+              </Link>
+
+              {(user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
+                <>
+                  <span className="text-secondary select-none font-extralight text-xs opacity-60">|</span>
+                  <Link
+                    href="/admin"
+                    className="px-4 py-2 text-sm flex items-center space-x-2 text-secondary hover:text-primary transition-colors whitespace-nowrap font-light"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Admin Panel</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-1">
               <div className="bg-surface p-6 border border-light sticky top-8">
-                {/* User Profile Card */}
-                <div className="flex items-center space-x-4 mb-6 pb-6 border-b border-light">
-                  {user.avatar ? (
-                    <div className="w-14 h-14 rounded-full overflow-hidden relative flex-shrink-0 border border-light">
-                      <Image
-                        src={getAvatarSrc(user.avatar) || ""}
-                        alt="Profile"
-                        fill
-                        className="object-cover"
-                        sizes="56px"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-14 h-14 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-base border border-dark flex-shrink-0 select-none">
-                      {getInitials(user.fullName)}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-primary truncate">
-                      {user.fullName}
-                    </div>
-                    <div className="text-sm text-secondary truncate">{user.email}</div>
-                  </div>
-                </div>
-
                 {/* Navigation */}
                 <nav className="space-y-1">
                   <Link
@@ -208,13 +312,6 @@ export default function AccountLayout({
                       <span className="font-light">Admin Panel</span>
                     </Link>
                   )}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-error hover:bg-error-light transition-colors flex items-center space-x-3 mt-4"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-light">Sign Out</span>
-                  </button>
                 </nav>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthProvider";
 import { useCurrency } from "../context/CurrencyProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useBrand } from "../context/BrandProvider";
 import { getInitials } from "../app/utils/image";
 import CurrencySelector from "./CurrencySelector";
 import CartItem from "./CartItem";
@@ -35,6 +36,7 @@ const featuredItems = [
 ];
 
 export default function Header() {
+  const { brandName } = useBrand();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -85,7 +87,7 @@ export default function Header() {
               href="/"
               className="text-xl sm:text-2xl font-bold uppercase tracking-[0.25em] text-primary font-manrope whitespace-nowrap hover:opacity-85 transition-opacity"
             >
-              VELLVISTA
+              {brandName}
             </Link>
           </div>
 

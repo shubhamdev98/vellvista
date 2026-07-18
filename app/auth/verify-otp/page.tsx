@@ -5,8 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/AuthProvider";
+import { useBrand } from "../../../context/BrandProvider";
 
 function VerifyOtpForm() {
+  const { brandName, brandLogo } = useBrand();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [otp, setOtp] = useState("");
@@ -108,8 +110,8 @@ function VerifyOtpForm() {
           <div className="text-center mb-6 flex flex-col items-center justify-center">
             <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
               <Image
-                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="Vellvista"
+                src={brandLogo}
+                alt={brandName}
                 fill
                 className="object-contain"
                 priority

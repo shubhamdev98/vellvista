@@ -31,6 +31,9 @@ function useQueryWrapper<T, I>(
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
+  const [trigger, setTrigger] = useState(0);
+
+  const refetch = () => setTrigger((prev) => prev + 1);
 
   useEffect(() => {
     if (!enabled) {
@@ -63,9 +66,9 @@ function useQueryWrapper<T, I>(
     return () => {
       active = false;
     };
-  }, [JSON.stringify(input), enabled]);
+  }, [JSON.stringify(input), enabled, trigger]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, refetch };
 }
 
 function useMutationWrapper<T, I>(
@@ -725,5 +728,26 @@ export function useDeleteMarqueeMessage() {
   }>((input) => trpc.deleteMarqueeMessage(input));
 }
 
+// Brand Settings Hooks
+export interface BrandSettings {
+  id: number;
+  brandName: string;
+  brandLogo: string;
+  updatedAt?: string;
+}
 
+export function useBrandSettings() {
+  return useQueryWrapper<BrandSettings, void>(
+    () => trpc.getBrandSettings(),
+    undefined as any,
+    true
+  );
+}
 
+export function useUpdateBrandSettings() {
+  return useMutationWrapper<{ success: boolean }, {
+    adminId: string;
+    brandName: string;
+    brandLogo: string;
+  }>((input) => trpc.updateBrandSettings(input));
+}

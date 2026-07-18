@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, MessageCircle, Send, CreditCard, Truck, Shield, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { useSocialLinks, usePaymentMethods } from '../app/hooks/useApi';
+import { useBrand } from '../context/BrandProvider';
 
 const Footer = () => {
+  const { brandName, brandLogo } = useBrand();
   const [email, setEmail] = useState('');
   const { data: socialLinks } = useSocialLinks();
   const { data: paymentMethods } = usePaymentMethods();
@@ -54,8 +56,8 @@ const Footer = () => {
           <div className="col-span-2 lg:col-span-1">
             <div className="relative h-10 w-[7.5rem] mb-4">
               <Image
-                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="VellVista"
+                src={brandLogo}
+                alt={brandName}
                 fill
                 className="object-contain brightness-0 invert"
                 priority

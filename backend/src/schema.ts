@@ -357,6 +357,14 @@ export const marqueeMessages = pgTable('marquee_messages', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Brand settings table
+export const brandSettings = pgTable('brand_settings', {
+  id: serial('id').primaryKey(),
+  brandName: text('brand_name').notNull().default('VellVista'),
+  brandLogo: text('brand_logo').notNull().default('https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -406,5 +414,8 @@ export type PromoBanner = typeof promoBanner.$inferSelect;
 export type NewPromoBanner = typeof promoBanner.$inferInsert;
 export type HeroSettings = typeof heroSettings.$inferSelect;
 export type NewHeroSettings = typeof heroSettings.$inferInsert;
+export type BrandSettings = typeof brandSettings.$inferSelect;
+export type NewBrandSettings = typeof brandSettings.$inferInsert;
+
 
 

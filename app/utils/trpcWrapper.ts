@@ -419,6 +419,14 @@ export const trpc = {
   deleteMarqueeMessage: (input: { adminId: string; id: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).deleteMarqueeMessage.mutate(input),
+
+  // Brand settings operations
+  getBrandSettings: () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).getBrandSettings.query(),
+  updateBrandSettings: (input: { adminId: string; brandName: string; brandLogo: string }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateBrandSettings.mutate(input),
 };
 
 

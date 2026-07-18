@@ -3,7 +3,6 @@
 import AccountLayout from "../../../components/AccountLayout";
 import { useAuth } from "../../../context/AuthProvider";
 import { useWishlist } from "../../../context/WishlistProvider";
-import { useCurrency } from "../../../context/CurrencyProvider";
 import { ShoppingBag, Heart, User } from "lucide-react";
 import Link from "next/link";
 import { useUserOrders } from "../../hooks/useApi";
@@ -11,7 +10,6 @@ import { useUserOrders } from "../../hooks/useApi";
 export default function AccountOverviewPage() {
   const { user } = useAuth();
   const { wishlistItems } = useWishlist();
-  const { formatPrice } = useCurrency();
   const { data: userOrders, isLoading: isLoadingOrders } = useUserOrders(user?.email || undefined);
 
   if (!user) return null;
@@ -19,99 +17,61 @@ export default function AccountOverviewPage() {
   return (
     <AccountLayout activeTab="overview">
       <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="hidden lg:flex bg-background-alt border border-light p-6 md:p-8 flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold text-primary">
+              Welcome back!
+            </h2>
+            <p className="text-secondary text-sm mt-1 font-light">
+              Here is a summary of your account activity, orders, and details.
+            </p>
+          </div>
+          <Link
+            href="/profile/information"
+            className="px-4 py-2 border border-primary text-primary hover:bg-primary hover:text-inverse text-xs font-light transition-all whitespace-nowrap cursor-pointer"
+          >
+            Edit Profile
+          </Link>
+        </div>
+
         {/* Account Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-surface p-6 border border-light">
-            <div className="flex items-center justify-between mb-4">
-              <ShoppingBag className="h-6 w-6 text-secondary" />
+          {/* Card 1: Orders */}
+          <div className="bg-surface p-6 border border-light flex items-center justify-between hover:border-dark transition-all">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wider text-muted font-light">Total Orders</p>
               {isLoadingOrders ? (
                 <div className="h-8 w-12 bg-background-alt animate-pulse" />
               ) : (
-                <span className="text-3xl font-semibold text-primary">{userOrders ? userOrders.length : 0}</span>
+                <h3 className="text-3xl font-semibold text-primary">{userOrders ? userOrders.length : 0}</h3>
               )}
             </div>
-            <p className="text-secondary font-light">Total Orders</p>
-          </div>
-          <div className="bg-surface p-6 border border-light">
-            <div className="flex items-center justify-between mb-4">
-              <Heart className="h-6 w-6 text-secondary" />
-              <span className="text-3xl font-semibold text-primary">{wishlistItems.length}</span>
+            <div className="p-3 bg-background-alt border border-light">
+              <ShoppingBag className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-secondary font-light">Wishlist Items</p>
           </div>
-          <div className="bg-surface p-6 border border-light">
-            <div className="flex items-center justify-between mb-4">
-              <User className="h-6 w-6 text-secondary" />
-              <span className="text-3xl font-semibold text-primary">VIP</span>
-            </div>
-            <p className="text-secondary font-light">Member Status</p>
-          </div>
-        </div>
 
-        {/* Recent Orders */}
-        <div className="bg-surface p-6 border border-light">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-primary">Recent Orders</h3>
-            <Link href="/account?tab=orders" className="text-secondary hover:text-primary font-light flex items-center">
-              View all
-              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+          {/* Card 2: Wishlist */}
+          <div className="bg-surface p-6 border border-light flex items-center justify-between hover:border-dark transition-all">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wider text-muted font-light">Wishlist Items</p>
+              <h3 className="text-3xl font-semibold text-primary">{wishlistItems.length}</h3>
+            </div>
+            <div className="p-3 bg-background-alt border border-light">
+              <Heart className="h-6 w-6 text-primary" />
+            </div>
           </div>
-          <div className="space-y-4">
-            {isLoadingOrders ? (
-              <div className="space-y-4">
-                <div className="h-20 bg-background-alt animate-pulse border border-light" />
-                <div className="h-20 bg-background-alt animate-pulse border border-light" />
-              </div>
-            ) : !userOrders || userOrders.length === 0 ? (
-              <div className="text-center py-6 text-secondary font-light">
-                No recent orders found.
-              </div>
-            ) : (
-              userOrders.slice(0, 3).map((order) => {
-                const orderDate = order.createdAt 
-                  ? new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                  : "N/A";
-                const displayStatus = order.status.charAt(0).toUpperCase() + order.status.slice(1);
-                const isCompleted = order.status === "completed" || order.status === "shipped" || order.status === "delivered";
-                const isCancelled = order.status === "cancelled";
-                
-                return (
-                  <div
-                    key={order.id}
-                    className="flex items-center justify-between p-4 bg-background-muted hover:bg-surface-alt transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="font-semibold text-primary mb-1">Order #{order.id}</div>
-                      <div className="text-sm text-secondary">Placed on {orderDate}</div>
-                      <div className="text-sm text-secondary mt-1">
-                        <span
-                          className={`inline-block px-2 py-1 text-xs font-light ${
-                            isCompleted
-                              ? "bg-success-light text-success-dark"
-                              : isCancelled
-                              ? "bg-error-light text-error-dark"
-                              : "bg-warning-light text-warning-dark"
-                          }`}
-                        >
-                          {displayStatus}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-right">
-                        <div className="font-semibold text-primary">{formatPrice(parseFloat(order.totalAmount))}</div>
-                      </div>
-                      <button className="px-4 py-2 bg-surface border border-dark text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+
+          {/* Card 3: Membership */}
+          <div className="bg-surface p-6 border border-light flex items-center justify-between hover:border-dark transition-all">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wider text-muted font-light">Member Status</p>
+              <h3 className="text-3xl font-semibold text-primary">VIP</h3>
+            </div>
+            <div className="p-3 bg-background-alt border border-light">
+              <User className="h-6 w-6 text-primary" />
+            </div>
           </div>
         </div>
       </div>

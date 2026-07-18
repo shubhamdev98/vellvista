@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import nodemailer from "nodemailer";
 import { db } from "./db";
-import { user, session, account, verification } from "./schema";
+import { user, session, account, verification, brandSettings } from "./schema";
 
 import os from 'os';
 
@@ -81,18 +81,30 @@ export const auth = betterAuth({
       console.log("Password reset URL generated:", url);
       const resetFrontendUrl = process.env.FRONTEND_URL || frontendUrl;
       
+      let activeLogo = "https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png";
+      let activeBrandName = "Vellvista";
+      try {
+        const existing = await db.select().from(brandSettings).limit(1);
+        if (existing.length > 0) {
+          activeLogo = existing[0].brandLogo || activeLogo;
+          activeBrandName = existing[0].brandName || activeBrandName;
+        }
+      } catch (err) {
+        console.error("Failed to query dynamic brand settings for auth email:", err);
+      }
+
       const mailOptions = {
-        from: `"Vellvista" <${process.env.SMTP_USER}>`,
+        from: `"${activeBrandName}" <${process.env.SMTP_USER}>`,
         to: user.email,
-        subject: "Reset Your Password - Vellvista",
+        subject: `Reset Your Password - ${activeBrandName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
+              <img src="${activeLogo}" alt="${activeBrandName} Logo" style="height: 40px; object-fit: contain;" />
             </div>
             <h2 style="color: #111827; text-align: center;">Reset Your Password</h2>
             <p style="color: #4b5563; font-size: 16px;">Hello,</p>
-            <p style="color: #4b5563; font-size: 16px;">We received a request to reset your password for your Vellvista account. Click the button below to choose a new password:</p>
+            <p style="color: #4b5563; font-size: 16px;">We received a request to reset your password for your ${activeBrandName} account. Click the button below to choose a new password:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${url}" style="background-color: #111827; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px; display: inline-block;">Reset Password</a>
             </div>

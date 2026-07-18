@@ -6,10 +6,11 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials } from "../../app/utils/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout, Settings } from "lucide-react";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, type AppNotification } from "../hooks/useApi";
 import { useSocket } from "../../context/SocketProvider";
 import { useToast } from "../../context/ToastProvider";
+import { useBrand } from "../../context/BrandProvider";
 
 function formatRelativeTime(dateInput: Date | string) {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -38,6 +39,7 @@ function formatRelativeTime(dateInput: Date | string) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
+  const { brandName, brandLogo } = useBrand();
   const router = useRouter();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -191,6 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Brand Settings", href: "/admin/brand", icon: Settings },
     { name: "Homepage Manager", href: "/admin/homepage", icon: Layout },
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
@@ -230,8 +233,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setIsMobileOpen(false)}
             >
               <Image
-                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="VellVista Admin"
+                src={brandLogo}
+                alt={`${brandName} Admin`}
                 fill
                 className="object-contain object-left"
                 priority

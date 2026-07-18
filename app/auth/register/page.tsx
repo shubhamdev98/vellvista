@@ -6,8 +6,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../../context/AuthProvider";
+import { useBrand } from "../../../context/BrandProvider";
 
 export default function RegisterPage() {
+  const { brandName, brandLogo } = useBrand();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
@@ -98,8 +100,8 @@ export default function RegisterPage() {
           <div className="text-center mb-4 flex flex-col items-center justify-center">
             <Link href="/" className="relative h-10 w-[7.5rem] block mb-2">
               <Image
-                src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png"
-                alt="Vellvista"
+                src={brandLogo}
+                alt={brandName}
                 fill
                 className="object-contain"
                 priority

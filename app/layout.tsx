@@ -7,6 +7,7 @@ import { WishlistProvider } from "../context/WishlistProvider";
 import { ToastProvider } from "../context/ToastProvider";
 import { SocketProvider } from "../context/SocketProvider";
 import { CurrencyProvider } from "../context/CurrencyProvider";
+import { BrandProvider } from "../context/BrandProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +42,9 @@ export default function RootLayout({
               <SocketProvider>
                 <CartProvider>
                   <WishlistProvider>
-                    {children}
+                    <BrandProvider>
+                      {children}
+                    </BrandProvider>
                   </WishlistProvider>
                 </CartProvider>
               </SocketProvider>

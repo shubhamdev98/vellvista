@@ -6,7 +6,7 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings, faqs, homepageCategories, marqueeMessages } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings, faqs, homepageCategories, marqueeMessages, brandSettings } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
@@ -22,6 +22,26 @@ const t = initTRPC.create();
 // Create router
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+// Helper to retrieve brand settings dynamically
+async function getDynamicBrandSettings() {
+  const fallback = {
+    brandName: "VellVista",
+    brandLogo: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png",
+  };
+  try {
+    const existing = await db.select().from(brandSettings).limit(1);
+    if (existing.length > 0) {
+      return {
+        brandName: existing[0].brandName || fallback.brandName,
+        brandLogo: existing[0].brandLogo || fallback.brandLogo,
+      };
+    }
+  } catch (err) {
+    console.error("Failed to query dynamic brand settings for trpc email helper:", err);
+  }
+  return fallback;
+}
 
 // Zod schemas for validation
 const ProductSchema = z.object({
@@ -238,31 +258,33 @@ export const appRouter = router({
 
         // Send OTP email asynchronously in the background so it does not block the registration request
         const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
-        const mailOptions = {
-          from: `"Vellvista" <${process.env.SMTP_USER}>`,
-          to: email,
-          subject: "Verify Your Email - Vellvista",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-              <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
-            </div>
-              <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
-              <p style="color: #4b5563; font-size: 16px;">Hello ${fullName},</p>
-              <p style="color: #4b5563; font-size: 16px;">Thank you for registering with Vellvista. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
+        getDynamicBrandSettings().then((brandInfo) => {
+          const mailOptions = {
+            from: `"${brandInfo.brandName}" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: `Verify Your Email - ${brandInfo.brandName}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <img src="${brandInfo.brandLogo}" alt="${brandInfo.brandName} Logo" style="height: 40px; object-fit: contain;" />
+                </div>
+                <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
+                <p style="color: #4b5563; font-size: 16px;">Hello ${fullName},</p>
+                <p style="color: #4b5563; font-size: 16px;">Thank you for registering with ${brandInfo.brandName}. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
+                </div>
+                <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
               </div>
-              <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
-              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-              <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
-            </div>
-          `,
-        };
-        transporter.sendMail(mailOptions)
-          .then(() => {
-            console.log(`OTP email sent successfully to ${email}`);
-          })
+            `,
+          };
+          return transporter.sendMail(mailOptions);
+        })
+        .then(() => {
+          console.log(`OTP email sent successfully to ${email}`);
+        })
           .catch((mailErr) => {
             console.error("Failed to send OTP email:", mailErr);
           });
@@ -303,31 +325,33 @@ export const appRouter = router({
 
       // Send OTP email asynchronously in the background so it does not block the request
       const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
-      const mailOptions = {
-        from: `"Vellvista" <${process.env.SMTP_USER}>`,
-        to: input.email,
-        subject: "Verify Your Email - Vellvista",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png" alt="Vellvista Logo" style="height: 40px; object-fit: contain;" />
+      getDynamicBrandSettings().then((brandInfo) => {
+        const mailOptions = {
+          from: `"${brandInfo.brandName}" <${process.env.SMTP_USER}>`,
+          to: input.email,
+          subject: `Verify Your Email - ${brandInfo.brandName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="${brandInfo.brandLogo}" alt="${brandInfo.brandName} Logo" style="height: 40px; object-fit: contain;" />
+              </div>
+              <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
+              <p style="color: #4b5563; font-size: 16px;">Hello,</p>
+              <p style="color: #4b5563; font-size: 16px;">We received a request to resend the verification code for your ${brandInfo.brandName} account. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
+              </div>
+              <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
             </div>
-            <h2 style="color: #111827; text-align: center;">Verify Your Email</h2>
-            <p style="color: #4b5563; font-size: 16px;">Hello,</p>
-            <p style="color: #4b5563; font-size: 16px;">We received a request to resend the verification code for your Vellvista account. Please use the following One-Time Password (OTP) to verify your email address. This OTP is valid for 10 minutes:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #111827; background-color: #f3f4f6; padding: 10px 20px; border-radius: 4px; border: 1px solid #e5e7eb;">${otp}</span>
-            </div>
-            <p style="color: #6b7280; font-size: 14px;">If you did not request this verification code, please ignore this email.</p>
-            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-            <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated email, please do not reply.</p>
-          </div>
-        `,
-      };
-      transporter.sendMail(mailOptions)
-        .then(() => {
-          console.log(`Resent OTP email sent successfully to ${input.email}`);
-        })
+          `,
+        };
+        return transporter.sendMail(mailOptions);
+      })
+      .then(() => {
+        console.log(`Resent OTP email sent successfully to ${input.email}`);
+      })
         .catch((mailErr) => {
           console.error("Failed to send resent OTP email:", mailErr);
         });
@@ -2299,6 +2323,68 @@ export const appRouter = router({
       } catch (err: any) {
         console.error('Error deleting marquee message:', err);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to delete marquee message' });
+      }
+    }),
+
+  // Brand Settings CRUD
+  getBrandSettings: publicProcedure
+    .query(async () => {
+      try {
+        const existing = await db.select().from(brandSettings).limit(1);
+        if (existing.length === 0) {
+          // Auto-seed default brand settings
+          await db.insert(brandSettings).values({
+            brandName: 'VellVista',
+            brandLogo: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png',
+          });
+          const created = await db.select().from(brandSettings).limit(1);
+          return created[0];
+        }
+        return existing[0];
+      } catch (err: any) {
+        console.error('Error fetching brand settings, falling back to default:', err);
+        return {
+          id: 0,
+          brandName: 'VellVista',
+          brandLogo: 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png',
+        };
+      }
+    }),
+
+  updateBrandSettings: publicProcedure
+    .input(z.object({
+      adminId: z.string(),
+      brandName: z.string().min(1),
+      brandLogo: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update brand settings.' });
+      }
+      try {
+        const existing = await db.select().from(brandSettings).limit(1);
+        if (existing.length === 0) {
+          await db.insert(brandSettings).values({
+            brandName: input.brandName,
+            brandLogo: input.brandLogo,
+          });
+        } else {
+          await db.update(brandSettings)
+            .set({
+              brandName: input.brandName,
+              brandLogo: input.brandLogo,
+              updatedAt: new Date(),
+            })
+            .where(eq(brandSettings.id, existing[0].id));
+        }
+        return { success: true };
+      } catch (err: any) {
+        console.error('Error updating brand settings:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to update brand settings',
+        });
       }
     }),
 
