@@ -5,7 +5,7 @@ set -e
 cd /app/backend
 
 echo "Running database schema migrations / push..."
-npx drizzle-kit push:pg --config=drizzle.config.ts --force
+yes "" | npx drizzle-kit push:pg --config=drizzle.config.ts
 
 echo "Starting VellVista backend server..."
 exec npm start
