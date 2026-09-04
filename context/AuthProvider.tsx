@@ -10,7 +10,7 @@ interface User {
   fullName: string;
   avatar?: string;
   createdAt: string;
-  role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role?: 'USER' | 'VENDOR' | 'ADMIN' | 'SUPER_ADMIN' | string;
 }
 
 interface AuthContextType {

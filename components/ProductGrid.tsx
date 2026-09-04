@@ -216,13 +216,13 @@ function ProductCard({
                 .catch(() => showToast("Failed to copy link.", "error"));
             }
           }}
-          className="absolute top-3 right-[3.25rem] z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 text-secondary hover:text-primary cursor-pointer"
+          className="absolute top-3 right-[3.25rem] z-10 w-8 h-8 hidden md:flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 text-secondary hover:text-primary cursor-pointer"
           aria-label={`Share ${product.name}`}
         >
           <Share2 className="h-4 w-4" />
         </button>
 
-        {/* Wishlist Heart - visible on hover or if in wishlist */}
+        {/* Wishlist Heart - visible on hover or if in wishlist (desktop only to prevent invisible mobile click overlay) */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -233,7 +233,7 @@ function ProductCard({
               addToWishlist(product.id);
             }
           }}
-          className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 cursor-pointer ${
+          className={`absolute top-3 right-3 z-10 w-8 h-8 hidden md:flex items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 cursor-pointer ${
             isInWishlist(product.id) ? "text-red-500 opacity-100" : "text-secondary hover:text-red-500"
           }`}
           aria-label={`Add ${product.name} to wishlist`}

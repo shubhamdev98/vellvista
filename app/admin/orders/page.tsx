@@ -110,15 +110,17 @@ export default function AdminOrders() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-surface p-4 border border-light flex items-center gap-3">
-        <Search className="h-5 w-5 text-secondary shrink-0" />
-        <input
-          type="text"
-          placeholder="Search orders by customer name, email, or Order ID..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-transparent text-primary text-sm focus:outline-none w-full"
-        />
+      <div className="bg-surface p-6 border border-light">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-secondary" />
+          <input
+            type="text"
+            placeholder="Search orders by customer name, email, or Order ID..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-dark bg-background text-primary text-sm focus:outline-none focus:border-primary transition-all"
+          />
+        </div>
       </div>
 
       {/* Orders Table */}

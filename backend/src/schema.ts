@@ -1,13 +1,13 @@
 import { pgTable, serial, text, numeric, boolean, timestamp, integer, index } from 'drizzle-orm/pg-core';
 
-// Users table (Better Auth schema extended with custom app properties)
+// Users table (Better Auth schema extended with custom app properties & marketplace roles)
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
-  role: text('is_admin').default('USER'),
+  role: text('is_admin').default('USER'), // CUSTOMER (USER), VENDOR, ADMIN, SUPER_ADMIN
   password: text('password'),
   googleId: text('google_id').unique(),
   isActive: boolean('is_active').default(true),
@@ -54,15 +54,127 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Vendors table (Multi-vendor platform seller profiles)
+export const vendors = pgTable('vendors', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  storeName: text('store_name').notNull(),
+  slug: text('slug').notNull().unique(),
+  ownerName: text('owner_name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  description: text('description'),
+  address: text('address'),
+  logo: text('logo'),
+  banner: text('banner'),
+  taxId: text('tax_id'),
+  bankDetails: text('bank_details'),
+  status: text('status').notNull().default('PENDING'), // PENDING, APPROVED, REJECTED, SUSPENDED
+  rating: numeric('rating', { precision: 3, scale: 2 }).default('0'),
+  reviewCount: integer('review_count').default(0),
+  commissionRate: numeric('commission_rate', { precision: 5, scale: 2 }), // optional custom commission % override
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('vendors_user_id_idx').on(table.userId),
+    slugIdx: index('vendors_slug_idx').on(table.slug),
+    statusIdx: index('vendors_status_idx').on(table.status),
+  };
+});
+
+// Categories table
+export const categories = pgTable('categories', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  slug: text('slug'),
+  description: text('description'),
+  image: text('image'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// SubCategories table
+export const subCategories = pgTable('sub_categories', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  image: text('image'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    categoryIdIdx: index('sub_categories_category_id_idx').on(table.categoryId),
+  };
+});
+
+// Brands table
+export const brands = pgTable('brands', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  slug: text('slug').notNull().unique(),
+  logo: text('logo'),
+  description: text('description'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Products table (Generic multi-category marketplace product model)
+export const products = pgTable('products', {
+  id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').references(() => vendors.id),
+  categoryId: integer('category_id').references(() => categories.id),
+  subCategoryId: integer('sub_category_id').references(() => subCategories.id),
+  brandId: integer('brand_id').references(() => brands.id),
+  name: text('name').notNull(),
+  slug: text('slug'),
+  brand: text('brand').notNull(),
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  originalPrice: numeric('original_price', { precision: 10, scale: 2 }),
+  compareAtPrice: numeric('compare_at_price', { precision: 10, scale: 2 }),
+  costPrice: numeric('cost_price', { precision: 10, scale: 2 }),
+  rating: numeric('rating', { precision: 3, scale: 2 }).notNull().default('0'),
+  reviews: integer('reviews').notNull().default(0),
+  image: text('image').notNull(),
+  images: text('images'), // JSON array string
+  description: text('description'),
+  shortDescription: text('short_description'),
+  sku: text('sku'),
+  isNew: boolean('is_new').default(false),
+  isSale: boolean('is_sale').default(false),
+  isFeatured: boolean('is_featured').default(false),
+  category: text('category').notNull().default('fragrance'),
+  stock: integer('stock').notNull().default(0),
+  status: text('status').notNull().default('ACTIVE'), // DRAFT, ACTIVE, ARCHIVED, PENDING_APPROVAL
+  specifications: text('specifications'), // JSON string for category-specific properties
+  attributes: text('attributes'), // JSON string for key-value tags
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    vendorIdIdx: index('products_vendor_id_idx').on(table.vendorId),
+    categoryIdIdx: index('products_category_id_idx').on(table.categoryId),
+    slugIdx: index('products_slug_idx').on(table.slug),
+    statusIdx: index('products_status_idx').on(table.status),
+  };
+});
+
 // Product variants table
 export const productVariants = pgTable('product_variants', {
   id: serial('id').primaryKey(),
-  productId: integer('product_id').notNull().references(() => products.id),
+  productId: integer('productId').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  name: text('name'), // e.g. "Red / XL" or "100ml / EDP"
   size: text('size'),
-  volume: text('volume'), // e.g., 50ml, 100ml
+  volume: text('volume'),
+  color: text('color'),
+  attributeName: text('attribute_name'),
+  attributeValue: text('attribute_value'),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
   stock: integer('stock').notNull().default(0),
-  sku: text('sku').unique(),
+  sku: text('sku'),
+  image: text('image'),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -75,8 +187,10 @@ export const productVariants = pgTable('product_variants', {
 // Reviews table
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
-  productId: integer('product_id').notNull().references(() => products.id),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  vendorId: integer('vendor_id').references(() => vendors.id),
   userId: text('user_id').references(() => user.id),
+  orderId: integer('order_id'),
   rating: integer('rating').notNull(), // 1-5
   title: text('title'),
   comment: text('comment'),
@@ -90,47 +204,77 @@ export const reviews = pgTable('reviews', {
 }, (table) => {
   return {
     productIdIdx: index('reviews_product_id_idx').on(table.productId),
+    vendorIdIdx: index('reviews_vendor_id_idx').on(table.vendorId),
     userIdIdx: index('reviews_user_id_idx').on(table.userId),
   };
 });
 
-// Products table
-export const products = pgTable('products', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  brand: text('brand').notNull(),
-  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
-  originalPrice: numeric('original_price', { precision: 10, scale: 2 }),
-  rating: numeric('rating', { precision: 3, scale: 2 }).notNull().default('0'),
-  reviews: integer('reviews').notNull().default(0),
-  image: text('image').notNull(),
-  description: text('description'),
-  isNew: boolean('is_new').default(false),
-  isSale: boolean('is_sale').default(false),
-  category: text('category').notNull().default('fragrance'),
-  stock: integer('stock').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
-// Categories table
-export const categories = pgTable('categories', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull().unique(),
-  description: text('description'),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-
-// Orders table
+// Parent Orders table
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
+  userId: text('user_id').references(() => user.id),
   customerName: text('customer_name').notNull(),
   customerEmail: text('customer_email').notNull(),
+  customerPhone: text('customer_phone'),
   totalAmount: numeric('total_amount', { precision: 10, scale: 2 }).notNull(),
-  status: text('status').notNull().default('pending'),
+  shippingAmount: numeric('shipping_amount', { precision: 10, scale: 2 }).default('0'),
+  discountAmount: numeric('discount_amount', { precision: 10, scale: 2 }).default('0'),
+  status: text('status').notNull().default('pending'), // pending, processing, shipped, delivered, cancelled
+  paymentStatus: text('payment_status').default('pending'), // pending, paid, failed, refunded
   shippingAddress: text('shipping_address').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('orders_user_id_idx').on(table.userId),
+    statusIdx: index('orders_status_idx').on(table.status),
+  };
+});
+
+// Vendor Sub-Orders table (Partitioned orders per vendor in a single checkout)
+export const vendorOrders = pgTable('vendor_orders', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  vendorId: integer('vendor_id').notNull().references(() => vendors.id),
+  status: text('status').notNull().default('PENDING'), // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED, REFUNDED
+  subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
+  shippingCost: numeric('shipping_cost', { precision: 10, scale: 2 }).default('0'),
+  commissionAmount: numeric('commission_amount', { precision: 10, scale: 2 }).default('0'),
+  vendorEarnings: numeric('vendor_earnings', { precision: 10, scale: 2 }).default('0'),
+  trackingNumber: text('tracking_number'),
+  carrier: text('carrier'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    orderIdIdx: index('vendor_orders_order_id_idx').on(table.orderId),
+    vendorIdIdx: index('vendor_orders_vendor_id_idx').on(table.vendorId),
+    statusIdx: index('vendor_orders_status_idx').on(table.status),
+  };
+});
+
+// Order Items table
+export const orderItems = pgTable('order_items', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  vendorOrderId: integer('vendor_order_id').references(() => vendorOrders.id, { onDelete: 'cascade' }),
+  vendorId: integer('vendor_id').references(() => vendors.id),
+  productId: integer('product_id').notNull().references(() => products.id),
+  variantId: integer('variant_id').references(() => productVariants.id),
+  productName: text('product_name').notNull(),
+  productImage: text('product_image'),
+  variantInfo: text('variant_info'),
+  quantity: integer('quantity').notNull().default(1),
+  unitPrice: numeric('unit_price', { precision: 10, scale: 2 }).notNull(),
+  totalPrice: numeric('total_price', { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    orderIdIdx: index('order_items_order_id_idx').on(table.orderId),
+    vendorOrderIdIdx: index('order_items_vendor_order_id_idx').on(table.vendorOrderId),
+    vendorIdIdx: index('order_items_vendor_id_idx').on(table.vendorId),
+    productIdIdx: index('order_items_product_id_idx').on(table.productId),
+  };
 });
 
 // Newsletter subscribers
@@ -144,8 +288,8 @@ export const subscribers = pgTable('subscribers', {
 // Wishlist table
 export const wishlist = pgTable('wishlist', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id),
-  productId: integer('product_id').notNull().references(() => products.id),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => {
   return {
@@ -155,12 +299,13 @@ export const wishlist = pgTable('wishlist', {
   };
 });
 
-// Shopping cart table
+// Shopping cart table (Supports multi-vendor cart items)
 export const shoppingCart = pgTable('shopping_cart', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').references(() => user.id),
+  userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
   sessionId: text('session_id'),
-  productId: integer('product_id').notNull().references(() => products.id),
+  vendorId: integer('vendor_id').references(() => vendors.id),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   variantId: integer('variant_id').references(() => productVariants.id),
   quantity: integer('quantity').notNull().default(1),
   createdAt: timestamp('created_at').defaultNow(),
@@ -169,6 +314,7 @@ export const shoppingCart = pgTable('shopping_cart', {
   return {
     userIdIdx: index('shopping_cart_user_id_idx').on(table.userId),
     sessionIdIdx: index('shopping_cart_session_id_idx').on(table.sessionId),
+    vendorIdIdx: index('shopping_cart_vendor_id_idx').on(table.vendorId),
     productIdIdx: index('shopping_cart_product_id_idx').on(table.productId),
     userProductIdx: index('shopping_cart_user_product_idx').on(table.userId, table.productId),
     sessionProductIdx: index('shopping_cart_session_product_idx').on(table.sessionId, table.productId),
@@ -178,7 +324,7 @@ export const shoppingCart = pgTable('shopping_cart', {
 // Addresses table
 export const addresses = pgTable('addresses', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   fullName: text('full_name').notNull(),
   addressLine1: text('address_line_1').notNull(),
   addressLine2: text('address_line_2'),
@@ -188,7 +334,7 @@ export const addresses = pgTable('addresses', {
   country: text('country').notNull(),
   phone: text('phone'),
   isDefault: boolean('is_default').default(false),
-  addressType: text('address_type'), // billing, shipping, both
+  addressType: text('address_type'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -196,8 +342,8 @@ export const addresses = pgTable('addresses', {
 // Notifications table
 export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id),
-  type: text('type').notNull(), // order, promotion, account, etc.
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
   title: text('title').notNull(),
   message: text('message').notNull(),
   isRead: boolean('is_read').default(false),
@@ -205,9 +351,35 @@ export const notifications = pgTable('notifications', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// Platform Commission Settings
+export const commissions = pgTable('commissions', {
+  id: serial('id').primaryKey(),
+  defaultRate: numeric('default_rate', { precision: 5, scale: 2 }).notNull().default('10.00'), // 10.00%
+  description: text('description').default('Global platform commission percentage'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Vendor Payouts table
+export const vendorPayouts = pgTable('vendor_payouts', {
+  id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').notNull().references(() => vendors.id),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  status: text('status').notNull().default('PENDING'), // PENDING, PROCESSING, COMPLETED, FAILED
+  referenceNumber: text('reference_number'),
+  notes: text('notes'),
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    vendorIdIdx: index('vendor_payouts_vendor_id_idx').on(table.vendorId),
+  };
+});
+
 // Coupons table
 export const coupons = pgTable('coupons', {
   id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').references(() => vendors.id), // Null for platform coupons, vendor ID for vendor-specific promotions
   code: text('code').notNull().unique(),
   description: text('description'),
   discountType: text('discount_type').notNull(), // percentage, fixed_amount
@@ -226,7 +398,7 @@ export const coupons = pgTable('coupons', {
 // Applied coupons table
 export const appliedCoupons = pgTable('applied_coupons', {
   id: serial('id').primaryKey(),
-  orderId: integer('order_id').notNull().references(() => orders.id),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   couponId: integer('coupon_id').notNull().references(() => coupons.id),
   discountAmount: numeric('discount_amount', { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
@@ -247,10 +419,10 @@ export const shippingMethods = pgTable('shipping_methods', {
 // Payment methods table
 export const paymentMethods = pgTable('payment_methods', {
   id: serial('id').primaryKey(),
-  name: text('name').notNull(), // e.g. "Google Pay", "Debit Card", "Credit Card", "UPI"
-  code: text('code').notNull().unique(), // e.g. "gpay", "debit_card", "credit_card", "upi"
+  name: text('name').notNull(),
+  code: text('code').notNull().unique(),
   description: text('description'),
-  image: text('image'), // custom gateway image/logo uploaded by admin
+  image: text('image'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -259,19 +431,18 @@ export const paymentMethods = pgTable('payment_methods', {
 // Social links table
 export const socialLinks = pgTable('social_links', {
   id: serial('id').primaryKey(),
-  name: text('name').notNull(), // e.g. "Facebook", "Instagram", "Twitter", "YouTube"
+  name: text('name').notNull(),
   url: text('url').notNull(),
-  image: text('image').notNull(), // icon image URL (uploaded by admin)
+  image: text('image').notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-
 // Order shipping details table
 export const orderShippingDetails = pgTable('order_shipping_details', {
   id: serial('id').primaryKey(),
-  orderId: integer('order_id').notNull().references(() => orders.id),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   shippingMethodId: integer('shipping_method_id').references(() => shippingMethods.id),
   trackingNumber: text('tracking_number'),
   carrier: text('carrier'),
@@ -285,11 +456,11 @@ export const orderShippingDetails = pgTable('order_shipping_details', {
 // Payments table
 export const payments = pgTable('payments', {
   id: serial('id').primaryKey(),
-  orderId: integer('order_id').notNull().references(() => orders.id),
-  paymentMethod: text('payment_method').notNull(), // credit_card, paypal, etc.
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  paymentMethod: text('payment_method').notNull(),
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
   currency: text('currency').default('USD'),
-  status: text('status').notNull(), // pending, completed, failed, refunded
+  status: text('status').notNull(),
   transactionId: text('transaction_id').unique(),
   paymentDate: timestamp('payment_date'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -300,7 +471,7 @@ export const payments = pgTable('payments', {
 export const countries = pgTable('countries', {
   id: serial('id').primaryKey(),
   name: text('name').notNull().unique(),
-  code: text('code').notNull().unique(), // ISO 2-letter code, e.g. 'US'
+  code: text('code').notNull().unique(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -368,12 +539,26 @@ export const brandSettings = pgTable('brand_settings', {
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
+export type Vendor = typeof vendors.$inferSelect;
+export type NewVendor = typeof vendors.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+export type SubCategory = typeof subCategories.$inferSelect;
+export type NewSubCategory = typeof subCategories.$inferInsert;
+export type Brand = typeof brands.$inferSelect;
+export type NewBrand = typeof brands.$inferInsert;
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
+export type VendorOrder = typeof vendorOrders.$inferSelect;
+export type NewVendorOrder = typeof vendorOrders.$inferInsert;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;
+export type Commission = typeof commissions.$inferSelect;
+export type NewCommission = typeof commissions.$inferInsert;
+export type VendorPayout = typeof vendorPayouts.$inferSelect;
+export type NewVendorPayout = typeof vendorPayouts.$inferInsert;
 export type Subscriber = typeof subscribers.$inferSelect;
 export type NewSubscriber = typeof subscribers.$inferInsert;
 export type Faq = typeof faqs.$inferSelect;
@@ -416,6 +601,3 @@ export type HeroSettings = typeof heroSettings.$inferSelect;
 export type NewHeroSettings = typeof heroSettings.$inferInsert;
 export type BrandSettings = typeof brandSettings.$inferSelect;
 export type NewBrandSettings = typeof brandSettings.$inferInsert;
-
-
-

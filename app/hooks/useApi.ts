@@ -15,6 +15,9 @@ export interface Product {
   isSale?: boolean;
   stock?: number;
   category?: string;
+  vendorId?: number;
+  vendorStoreName?: string;
+  vendorSlug?: string;
 }
 
 export interface Category {

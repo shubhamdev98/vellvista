@@ -385,19 +385,32 @@ export default function CheckoutPage() {
     try {
       setIsProcessing(true);
 
-      // 1. Create order in our local database
-      const orderRes = await trpc.createOrder({
-        customerName: activeAddress.fullName,
-        customerEmail: user.email,
-        totalAmount: total.toFixed(2),
-        shippingAddress: shippingAddressString,
+      // 1. Create multi-vendor order in our backend with vendor partitioning
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const multiOrderRes = await fetch(`${backendUrl}/trpc/createMultiVendorOrder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          customerName: activeAddress.fullName,
+          customerEmail: user.email,
+          customerPhone: activeAddress.phone,
+          shippingAddress: shippingAddressString,
+          items: items.map((i) => ({
+            productId: i.id,
+            quantity: i.quantity,
+            price: i.price.toString(),
+            vendorId: (i as any).vendorId || (i as any).product?.vendorId || 1,
+          })),
+        }),
       });
 
-      if (!orderRes || !orderRes.orderId) {
-        throw new Error("Failed to create order in database");
+      const multiOrderData = await multiOrderRes.json();
+      if (!multiOrderData.result?.data?.success || !multiOrderData.result?.data?.orderId) {
+        throw new Error(multiOrderData.error?.message || "Failed to create multi-vendor order in database");
       }
 
-      const orderId = orderRes.orderId;
+      const orderId = multiOrderData.result.data.orderId;
 
       // Save shipping details
       await trpc.createOrderShipping({

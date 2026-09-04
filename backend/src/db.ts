@@ -26,9 +26,26 @@ if (!useSupabase) {
   }
 }
 
-// Client for queries
-const client = postgres(connectionString, { prepare: false });
+// Global connection singleton to prevent connection leaks during hot reloading or multiple module imports
+const globalForDb = globalThis as unknown as {
+  postgresClient?: ReturnType<typeof postgres>;
+};
+
+export const client =
+  globalForDb.postgresClient ||
+  postgres(connectionString, {
+    prepare: false,
+    max: 3,
+    idle_timeout: 3,
+    connect_timeout: 10,
+    onnotice: () => {},
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForDb.postgresClient = client;
+}
+
 export const db = drizzle(client, { schema });
 
-// Client for migrations
-export const migrationClient = postgres(connectionString, { prepare: false });
+// Lightweight migration client reusing global pool connection
+export const migrationClient = client;

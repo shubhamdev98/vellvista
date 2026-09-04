@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { products, categories, reviews } from '../schema';
+import { products, categories, subCategories, reviews, vendors } from '../schema';
 import { eq, like, and, or, gte, lte, desc, count, sql } from 'drizzle-orm';
 import type { Product, NewProduct } from '../schema';
 
@@ -17,27 +17,44 @@ export class ProductService {
       .as('rev_stats');
   }
 
-  // Helper to execute select query with left join on review stats
+  // Helper to execute select query with left join on review stats & vendor details
   private static getProductsWithStatsQuery(reviewsSub: ReturnType<typeof ProductService.getReviewsSubquery>) {
     return db
       .select({
         id: products.id,
+        vendorId: products.vendorId,
+        vendorStoreName: vendors.storeName,
+        vendorSlug: vendors.slug,
+        vendorLogo: vendors.logo,
+        categoryId: products.categoryId,
+        subCategoryId: products.subCategoryId,
         name: products.name,
+        slug: products.slug,
         brand: products.brand,
         price: products.price,
         originalPrice: products.originalPrice,
+        compareAtPrice: products.compareAtPrice,
+        costPrice: products.costPrice,
         image: products.image,
+        images: products.images,
         description: products.description,
+        shortDescription: products.shortDescription,
+        sku: products.sku,
         isNew: products.isNew,
         isSale: products.isSale,
+        isFeatured: products.isFeatured,
         category: products.category,
         stock: products.stock,
+        status: products.status,
+        specifications: products.specifications,
+        attributes: products.attributes,
         createdAt: products.createdAt,
         updatedAt: products.updatedAt,
         rating: sql<string>`coalesce(${reviewsSub.avgRating}, '0')`,
         reviews: sql<number>`coalesce(${reviewsSub.reviewsCount}, 0)`,
       })
       .from(products)
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
       .leftJoin(reviewsSub, eq(products.id, reviewsSub.productId));
   }
 
@@ -93,10 +110,13 @@ export class ProductService {
     return result.length > 0;
   }
 
-  // Search products
+  // Search & Filter products across categories and vendors
   static async searchProducts(filters: {
     query?: string;
     category?: string;
+    categoryId?: number;
+    subCategoryId?: number;
+    vendorId?: number;
     minPrice?: string;
     maxPrice?: string;
     limit?: number;
@@ -105,6 +125,9 @@ export class ProductService {
     const {
       query,
       category,
+      categoryId,
+      subCategoryId,
+      vendorId,
       minPrice,
       maxPrice,
       limit = 20,
@@ -115,12 +138,29 @@ export class ProductService {
 
     if (query) {
       whereConditions.push(
-        like(products.name, `%${query}%`)
+        or(
+          like(products.name, `%${query}%`),
+          like(products.brand, `%${query}%`),
+          like(products.description, `%${query}%`),
+          like(vendors.storeName, `%${query}%`)
+        )
       );
     }
 
-    if (category) {
+    if (category && category !== 'All') {
       whereConditions.push(eq(products.category, category));
+    }
+
+    if (categoryId) {
+      whereConditions.push(eq(products.categoryId, categoryId));
+    }
+
+    if (subCategoryId) {
+      whereConditions.push(eq(products.subCategoryId, subCategoryId));
+    }
+
+    if (vendorId) {
+      whereConditions.push(eq(products.vendorId, vendorId));
     }
 
     if (minPrice !== undefined) {
@@ -146,6 +186,7 @@ export class ProductService {
     const totalCount = await db
       .select({ count: count() })
       .from(products)
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
       .where(whereClause);
 
     return {
@@ -154,13 +195,14 @@ export class ProductService {
     };
   }
 
-  // Get featured products (new or sale items)
+  // Get featured products
   static async getFeaturedProducts(limit = 8) {
     const reviewsSub = ProductService.getReviewsSubquery();
     const result = await ProductService.getProductsWithStatsQuery(reviewsSub)
       .where(or(
         eq(products.isNew, true),
-        eq(products.isSale, true)
+        eq(products.isSale, true),
+        eq(products.isFeatured, true)
       ))
       .limit(limit)
       .orderBy(desc(products.createdAt));

@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'VellVista Dashboards'
+    orgId: 1
+    folder: 'VellVista Observability'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

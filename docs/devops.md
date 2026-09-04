@@ -33,8 +33,12 @@ All deployment-related assets reside in the [infra/](file:///e:/program/Next.js/
 The file [infra/docker-compose.yml](file:///e:/program/Next.js/my-app/infra/docker-compose.yml) orchestrates the local dev/testing stack:
 
 *   **`db` service**: Runs PostgreSQL 15 Alpine. Maps port `5432:5432` locally. Mounts `postgres_data` volume for persistence.
-*   **`backend` service**: Builds from `backend.Dockerfile`. Depends on `db` service (healthcheck ensures the DB is ready before backend start). Maps port `3001:3001` locally. Mounts `backend_uploads` volume for review media storage.
+*   **`backend` service**: Builds from `backend.Dockerfile`. Depends on `db` service (healthcheck ensures the DB is ready before backend start). Maps port `3001:3001` locally. Exposes `/metrics` endpoint. Mounts `backend_uploads` volume for review media storage.
 *   **`frontend` service**: Builds from `frontend.Dockerfile` passing the API URL build-arg. Maps port `3000:3000` locally.
+*   **`prometheus` service**: Scrapes application & system metrics on port `9090:9090` from `backend:3001/metrics`.
+*   **`loki` service**: Log aggregation engine listening on port `3100:3100`.
+*   **`promtail` service**: Ships Docker container log streams directly to Loki.
+*   **`grafana` service**: Unified visualization portal on port `3002:3000` (`http://localhost:3002`, default login `admin`/`admin`), pre-provisioned with Prometheus & Loki datasources and the VellVista System Overview dashboard.
 
 ### Execution Command:
 ```bash
@@ -43,6 +47,22 @@ docker compose up --build
 ```
 
 ---
+
+## 📊 Monitoring & Observability Stack
+
+The VellVista application includes an end-to-end telemetry stack for real-time performance and log management:
+
+1. **Prometheus Metrics (`http://localhost:9090`)**:
+   - `prom-client` integrated into Express backend.
+   - Collects CPU/Memory usage, event loop lag, HTTP request counts, and HTTP latency percentiles (p50, p95, p99).
+2. **Loki & Promtail Logging (`http://localhost:3100`)**:
+   - Promtail tails container output from Docker socket and pushes structured log events into Loki.
+3. **Grafana Dashboards (`http://localhost:3002`)**:
+   - Auto-loaded datasources and dashboards in `infra/docker/grafana/provisioning`.
+   - Real-time visualization of API traffic, system performance, error rates, and live logs.
+
+---
+
 
 ## ☸️ Production Orchestration (Kubernetes)
 

@@ -1,0 +1,687 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "VellVista Luxury Fragrance Store API Portal",
+    "description": "Interactive OpenAPI 3.0 Documentation for **VellVista** backend API. Includes REST endpoints, Better Auth user authentication, tRPC procedures, media file uploads, and Socket.io WebSockets.",
+    "termsOfService": "https://vellvista.com/terms",
+    "contact": {
+      "name": "VellVista Engineering Team",
+      "email": "engineering@vellvista.com",
+      "url": "https://vellvista.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Development API Backend Server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Next.js Development Frontend"
+    },
+    {
+      "url": "https://api.vellvista.com",
+      "description": "Production API Server"
+    }
+  ],
+  "tags": [
+    { "name": "System & Health", "description": "System operational status and heartbeats" },
+    { "name": "Authentication", "description": "Better Auth and tRPC account login, sign-up, session, and OTP operations" },
+    { "name": "Products & Catalog", "description": "Fragrance products, search, categories, and variant management" },
+    { "name": "Reviews & Ratings", "description": "Customer ratings, image uploads, and review approvals" },
+    { "name": "File Uploads", "description": "Cloudinary image and video upload services" },
+    { "name": "Shopping Cart", "description": "User cart items, updates, and basket management" },
+    { "name": "Wishlist", "description": "Saved customer favorite products" },
+    { "name": "Orders & Checkout", "description": "Order placement, tracking, and admin status updates" },
+    { "name": "Payments & Billing", "description": "Razorpay payment creation and signature verification" },
+    { "name": "User & Account", "description": "Profile management, user directories, and role permissions" },
+    { "name": "Addresses & Geography", "description": "Customer shipping addresses, country, state, and city APIs" },
+    { "name": "Coupons & Marketing", "description": "Promotions, coupons, newsletter subscriptions, and marquee announcements" },
+    { "name": "Notifications", "description": "In-app real-time and persistent user notifications" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System & Health"],
+        "summary": "Express API Health Check",
+        "description": "Returns current operational status and server timestamp.",
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "timestamp": { "type": "string", "format": "date-time", "example": "2026-08-30T18:54:48.000Z" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{productId}": {
+      "get": {
+        "tags": ["Reviews & Ratings"],
+        "summary": "Get product reviews by Product ID",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "description": "Numeric ID of the product",
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviews for the specified product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Review" }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/api/reviews": {
+      "post": {
+        "tags": ["Reviews & Ratings"],
+        "summary": "Submit a product review with optional image upload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["productId", "rating"],
+                "properties": {
+                  "productId": { "type": "integer", "example": 1 },
+                  "userId": { "type": "string", "example": "user_123" },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5, "example": 5 },
+                  "title": { "type": "string", "example": "Captivating and long-lasting scent!" },
+                  "comment": { "type": "string", "example": "Notes of bergamot and oud linger all day." },
+                  "userName": { "type": "string", "example": "Eleanor Vance" },
+                  "image": { "type": "string", "format": "binary", "description": "Review image file (JPEG, PNG, WebP)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "review": { "$ref": "#/components/schemas/Review" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/api/upload-product-image": {
+      "post": {
+        "tags": ["File Uploads"],
+        "summary": "Upload product image to Cloudinary",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["image"],
+                "properties": {
+                  "image": { "type": "string", "format": "binary", "description": "Image file up to 5MB" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "url": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/product/perfume.jpg" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "No file uploaded or invalid file format" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/api/upload-image": {
+      "post": {
+        "tags": ["File Uploads"],
+        "summary": "Upload general image to Cloudinary",
+        "parameters": [
+          {
+            "name": "folder",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "default": "general", "example": "avatars" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["image"],
+                "properties": {
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "url": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/general/banner.png" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload-video": {
+      "post": {
+        "tags": ["File Uploads"],
+        "summary": "Upload hero section video file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["video"],
+                "properties": {
+                  "video": { "type": "string", "format": "binary", "description": "Video file up to 50MB (MP4, WebM, MOV)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "url": { "type": "string", "example": "https://res.cloudinary.com/demo/video/upload/v1/vellvista/hero/promo.mp4" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sign-in/email": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Better Auth Email/Password Sign In",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "user@example.com" },
+                  "password": { "type": "string", "format": "password", "example": "SecurePass123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sign in successful; returns user and session token in cookie/body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "session": { "$ref": "#/components/schemas/Session" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/auth/get-session": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get Current Authenticated Session",
+        "responses": {
+          "200": {
+            "description": "Active session object or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "session": { "$ref": "#/components/schemas/Session" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/healthCheck": {
+      "get": {
+        "tags": ["System & Health"],
+        "summary": "tRPC Procedure: Health Check",
+        "responses": {
+          "200": {
+            "description": "tRPC response payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "string", "example": "ok" },
+                            "timestamp": { "type": "string", "example": "2026-08-30T18:54:48.000Z" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/getProducts": {
+      "get": {
+        "tags": ["Products & Catalog"],
+        "summary": "tRPC Procedure: Get Fragrance Products",
+        "parameters": [
+          { "name": "input", "in": "query", "required": false, "schema": { "type": "string", "example": "{\"limit\":10,\"offset\":0}" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated array of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Product" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/getProductById": {
+      "get": {
+        "tags": ["Products & Catalog"],
+        "summary": "tRPC Procedure: Get Product details by ID",
+        "parameters": [
+          { "name": "input", "in": "query", "required": true, "schema": { "type": "string", "example": "{\"id\":1}" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/Product" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/createProduct": {
+      "post": {
+        "tags": ["Products & Catalog"],
+        "summary": "tRPC Procedure: Create new product (Admin)",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "price", "category"],
+                "properties": {
+                  "name": { "type": "string", "example": "Velvet Oud Eau de Parfum" },
+                  "price": { "type": "number", "example": 149.99 },
+                  "description": { "type": "string", "example": "A rich fusion of rare cambodian oud and wild rose." },
+                  "category": { "type": "string", "example": "Woody" },
+                  "image": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/product/velvet-oud.png" },
+                  "stock": { "type": "integer", "example": 50 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Created product object" }
+        }
+      }
+    },
+    "/trpc/getCart": {
+      "get": {
+        "tags": ["Shopping Cart"],
+        "summary": "tRPC Procedure: Get current user shopping cart",
+        "parameters": [
+          { "name": "input", "in": "query", "required": false, "schema": { "type": "string", "example": "{\"userId\":\"user_123\"}" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cart items list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CartItem" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/addToCart": {
+      "post": {
+        "tags": ["Shopping Cart"],
+        "summary": "tRPC Procedure: Add product variant to shopping cart",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId", "quantity"],
+                "properties": {
+                  "userId": { "type": "string", "example": "user_123" },
+                  "productId": { "type": "integer", "example": 1 },
+                  "variantId": { "type": "integer", "example": 2 },
+                  "quantity": { "type": "integer", "example": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated cart state" }
+        }
+      }
+    },
+    "/trpc/createPayment": {
+      "post": {
+        "tags": ["Payments & Billing"],
+        "summary": "tRPC Procedure: Initialize Razorpay order payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount", "currency"],
+                "properties": {
+                  "amount": { "type": "number", "example": 299.50 },
+                  "currency": { "type": "string", "example": "INR" },
+                  "orderId": { "type": "integer", "example": 1042 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Razorpay order object with payment ID and keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "example": "order_NzK89aJ11x8s2" },
+                            "amount": { "type": "number", "example": 29950 },
+                            "currency": { "type": "string", "example": "INR" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/getAllOrders": {
+      "get": {
+        "tags": ["Orders & Checkout"],
+        "summary": "tRPC Procedure: Get all store orders (Admin)",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Order" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "better-auth.session_token"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "ServerError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean", "example": false },
+                "error": { "type": "string", "example": "Failed to process request" },
+                "details": { "type": "string", "example": "Detailed exception stack trace in dev mode" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "usr_99812" },
+          "name": { "type": "string", "example": "Siddharth Malhotra" },
+          "email": { "type": "string", "example": "siddharth@example.com" },
+          "role": { "type": "string", "enum": ["USER", "ADMIN", "SUPER_ADMIN"], "example": "USER" },
+          "avatar": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/avatar.jpg" },
+          "isActive": { "type": "boolean", "example": true }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "sess_88123" },
+          "userId": { "type": "string", "example": "usr_99812" },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Midnight Amber Extrait de Parfum" },
+          "slug": { "type": "string", "example": "midnight-amber-extrait" },
+          "description": { "type": "string", "example": "An enchanting blend of warm amber, vanilla bean, and cedarwood." },
+          "price": { "type": "number", "example": 185.00 },
+          "originalPrice": { "type": "number", "example": 220.00 },
+          "category": { "type": "string", "example": "Oriental" },
+          "rating": { "type": "number", "example": 4.9 },
+          "reviewCount": { "type": "integer", "example": 24 },
+          "image": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/product/amber.png" },
+          "isFeatured": { "type": "boolean", "example": true },
+          "stock": { "type": "integer", "example": 35 }
+        }
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 101 },
+          "productId": { "type": "integer", "example": 1 },
+          "userId": { "type": "string", "example": "usr_99812" },
+          "userName": { "type": "string", "example": "Eleanor Vance" },
+          "rating": { "type": "integer", "example": 5 },
+          "title": { "type": "string", "example": "Exquisite Packaging & Fragrance" },
+          "comment": { "type": "string", "example": "The bottle design is stunning and scent longevity is over 12 hours!" },
+          "image": { "type": "string", "nullable": true, "example": "https://res.cloudinary.com/demo/image/upload/v1/vellvista/reviews/review1.jpg" },
+          "isApproved": { "type": "boolean", "example": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CartItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 12 },
+          "userId": { "type": "string", "example": "usr_99812" },
+          "productId": { "type": "integer", "example": 1 },
+          "quantity": { "type": "integer", "example": 2 },
+          "product": { "$ref": "#/components/schemas/Product" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1042 },
+          "userId": { "type": "string", "example": "usr_99812" },
+          "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"], "example": "processing" },
+          "totalAmount": { "type": "number", "example": 370.00 },
+          "paymentStatus": { "type": "string", "example": "paid" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

@@ -47,6 +47,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setWishlistItems(items);
     } catch (error) {
       console.error('Error fetching wishlist:', error);
+      setWishlistItems([]);
     } finally {
       setIsLoading(false);
     }

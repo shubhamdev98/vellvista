@@ -14,8 +14,12 @@ import CartItem from "./CartItem";
 
 const navLinks = [
   { name: "Shop All", href: "/products" },
-  { name: "New Arrivals", href: "/products?filter=new" },
-  { name: "Sale", href: "/products?filter=sale" },
+  { name: "Perfumes", href: "/products?category=fragrance" },
+  { name: "Skincare", href: "/products?category=skincare" },
+  { name: "Cosmetics", href: "/products?category=cosmetics" },
+  { name: "Electronics", href: "/products?category=electronics" },
+  { name: "Sell on VellVista", href: "/vendor/apply" },
+  { name: "Vendor Dashboard", href: "/vendor/dashboard" },
 ];
 
 const featuredItems = [

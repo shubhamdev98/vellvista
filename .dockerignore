@@ -25,3 +25,8 @@ backend/.env
 .vscode
 .idea
 .windsurf
+
+# Ignore documentation, k8s manifests, and non-application assets
+docs/
+infra/k8s/
+*.md

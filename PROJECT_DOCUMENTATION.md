@@ -76,3 +76,9 @@ For detailed engineering and deployment workflows, please refer to the following
 *   **Local Orchestration**: Multi-container Compose networks and database health gates.
 *   **Kubernetes Cluster Deployment**: Deployments, services, PersistentVolumeClaims, and ingress rules.
 *   **GitOps CI/CD Process**: Push-to-production lifecycle mapping out unit tests, registry pushes, rolling rollouts, and automatic migrations.
+
+### 6. 📜 [Swagger & OpenAPI 3.0 Documentation Portal](file:///e:/program/Next.js/my-app/docs/swagger.md)
+*   **Express Swagger UI**: Live interactive testing at `http://localhost:3001/docs`.
+*   **OpenAPI 3.0 Schemas**: OpenAPI YAML (`docs/openapi.yaml`) and JSON (`docs/swagger.json`) specs.
+*   **Next.js API Explorer**: Frontend interactive portal at `http://localhost:3000/docs/api`.
+

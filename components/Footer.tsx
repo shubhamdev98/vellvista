@@ -153,7 +153,8 @@ const Footer = () => {
                       alt={link.name}
                       width={20}
                       height={20}
-                      className="object-contain"
+                      style={{ width: "20px", height: "20px" }}
+                      className="w-5 h-5 object-contain"
                     />
                   </a>
                 ))}
@@ -206,15 +207,16 @@ const Footer = () => {
             {/* Payment Methods */}
             <div className="flex items-center space-x-4">
               <span className="text-muted text-sm">We accept:</span>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 {displayedPayments.map((pm, idx) => (
                   <Image
                     key={idx}
                     src={pm.image}
                     alt={pm.name}
-                    width={pm.width}
-                    height={24}
-                    className="object-contain"
+                    width={pm.width || 38}
+                    height={20}
+                    style={{ height: "20px", width: "auto" }}
+                    className="h-5 w-auto object-contain"
                   />
                 ))}
               </div>

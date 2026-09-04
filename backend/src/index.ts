@@ -9,6 +9,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
 
 import { db } from './db';
 import fs from 'fs';
@@ -17,6 +18,7 @@ import { eq, or } from 'drizzle-orm';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
 import { v2 as cloudinary } from 'cloudinary';
+import { metricsMiddleware, metricsHandler } from './metrics';
 
 import os from 'os';
 
@@ -117,6 +119,9 @@ app.use(cors({
   credentials: true,
 }));
 
+// Collect HTTP request metrics with Prometheus middleware
+app.use(metricsMiddleware);
+
 // Better Auth handler must be mounted before body parsing middleware
 app.all("/api/auth/*", toNodeHandler(auth));
 
@@ -131,6 +136,27 @@ app.use(
     createContext: () => ({}),
   })
 );
+
+// Load Swagger / OpenAPI Specification
+const swaggerSpecPath = path.join(__dirname, '../public/swagger.json');
+let swaggerSpec: any = {};
+try {
+  if (fs.existsSync(swaggerSpecPath)) {
+    swaggerSpec = JSON.parse(fs.readFileSync(swaggerSpecPath, 'utf8'));
+  }
+} catch (err) {
+  console.error('Failed to load swagger.json:', err);
+}
+
+// Serve raw OpenAPI JSON schema endpoint
+app.get('/api-docs/json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Serve interactive Swagger UI portal
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Ensure reviews uploads directory exists
 const reviewsUploadPath = path.join(__dirname, '../public/reviews');
@@ -348,6 +374,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Prometheus metrics endpoint
+app.get('/metrics', metricsHandler);
+
 // Get reviews for a product
 app.get('/api/reviews/:productId', async (req: Request, res: Response) => {
   try {
@@ -467,8 +496,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Start server
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Swagger UI API Docs at ${backendUrl}/docs`);
   console.log(`tRPC endpoint available at ${backendUrl}/trpc`);
   console.log(`Health check at ${backendUrl}/health`);
+  console.log(`Prometheus metrics at ${backendUrl}/metrics`);
   console.log(`Socket.io server running`);
 });
 

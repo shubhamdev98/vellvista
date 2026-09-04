@@ -6,11 +6,11 @@ import type { NewProduct, NewUser } from './schema';
 import { ProductService } from './services/productService';
 import { UserService } from './services/userService';
 import { db } from './db';
-import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings, faqs, homepageCategories, marqueeMessages, brandSettings } from './schema';
+import { wishlist, products, reviews, addresses, shoppingCart, payments, shippingMethods, orderShippingDetails, coupons, appliedCoupons, notifications, productVariants, orders, subscribers, countries, paymentMethods, socialLinks, user, promoBanner, heroSettings, faqs, homepageCategories, marqueeMessages, brandSettings, vendors, categories, subCategories, brands, vendorOrders, orderItems, commissions, vendorPayouts } from './schema';
 
 // In-memory OTP store: email -> { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
-import { eq, and, desc, asc, or } from 'drizzle-orm';
+import { eq, and, desc, asc, or, count } from 'drizzle-orm';
 import { transporter } from './auth';
 import { RazorpayService } from './services/razorpayService';
 
@@ -128,6 +128,618 @@ async function notifyAdminsOfNewOrder(orderId: number) {
 
 // Create tRPC router with procedures
 export const appRouter = router({
+  // --- MULTI-VENDOR & MULTI-CATEGORY PROCEDURES ---
+
+  // Vendor Application Onboarding
+  applyForVendor: publicProcedure
+    .input(z.object({
+      userId: z.string(),
+      storeName: z.string().min(2),
+      slug: z.string().min(2),
+      ownerName: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().optional(),
+      description: z.string().optional(),
+      address: z.string().optional(),
+      logo: z.string().optional(),
+      banner: z.string().optional(),
+      taxId: z.string().optional(),
+      bankDetails: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const cleanSlug = input.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const existingVendor = await db.select().from(vendors).where(or(eq(vendors.slug, cleanSlug), eq(vendors.userId, input.userId))).limit(1);
+        if (existingVendor.length > 0) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'A vendor application with this store name or user already exists.' });
+        }
+
+        const [newVendor] = await db.insert(vendors).values({
+          userId: input.userId,
+          storeName: input.storeName,
+          slug: cleanSlug,
+          ownerName: input.ownerName,
+          email: input.email,
+          phone: input.phone,
+          description: input.description,
+          address: input.address,
+          logo: input.logo || 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png',
+          banner: input.banner || 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626156/vellvista/product/hzbpvaobukfgznudrw7x.jpg',
+          taxId: input.taxId,
+          bankDetails: input.bankDetails,
+          status: 'PENDING',
+        }).returning();
+
+        // Update user role to VENDOR
+        await db.update(user).set({ role: 'VENDOR' }).where(eq(user.id, input.userId));
+
+        // Notify user
+        await db.insert(notifications).values({
+          userId: input.userId,
+          type: 'vendor',
+          title: 'Vendor Application Submitted',
+          message: `Your vendor application for '${input.storeName}' has been submitted and is currently pending admin review.`,
+          actionUrl: '/vendor/dashboard',
+        });
+
+        return { success: true, vendor: newVendor };
+      } catch (err: any) {
+        console.error('Error applying for vendor:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to submit vendor application' });
+      }
+    }),
+
+  // Get Vendor Profile for User
+  getVendorProfile: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input }) => {
+      const vendorList = await db.select().from(vendors).where(eq(vendors.userId, input.userId)).limit(1);
+      return vendorList[0] || null;
+    }),
+
+  // Update Vendor Profile
+  updateVendorProfile: publicProcedure
+    .input(z.object({
+      vendorId: z.number(),
+      userId: z.string(),
+      storeName: z.string().optional(),
+      description: z.string().optional(),
+      address: z.string().optional(),
+      phone: z.string().optional(),
+      logo: z.string().optional(),
+      banner: z.string().optional(),
+      bankDetails: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const v = await db.select().from(vendors).where(and(eq(vendors.id, input.vendorId), eq(vendors.userId, input.userId))).limit(1);
+      if (v.length === 0) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Unauthorized vendor modification' });
+      }
+
+      await db.update(vendors)
+        .set({
+          storeName: input.storeName ?? v[0].storeName,
+          description: input.description ?? v[0].description,
+          address: input.address ?? v[0].address,
+          phone: input.phone ?? v[0].phone,
+          logo: input.logo ?? v[0].logo,
+          banner: input.banner ?? v[0].banner,
+          bankDetails: input.bankDetails ?? v[0].bankDetails,
+          updatedAt: new Date(),
+        })
+        .where(eq(vendors.id, input.vendorId));
+
+      return { success: true };
+    }),
+
+  // Public Vendor Storefront Profile by Slug
+  getVendorBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      const v = await db.select().from(vendors).where(eq(vendors.slug, input.slug)).limit(1);
+      if (v.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Vendor store not found' });
+      }
+      const vendorObj = v[0];
+      const vendorProductsCount = await db.select({ count: count() }).from(products).where(and(eq(products.vendorId, vendorObj.id), eq(products.status, 'ACTIVE')));
+      return {
+        ...vendorObj,
+        productsCount: vendorProductsCount[0]?.count || 0,
+      };
+    }),
+
+  // Public Vendor Storefront Products
+  getVendorProductsBySlug: publicProcedure
+    .input(z.object({ slug: z.string(), limit: z.number().default(20), offset: z.number().default(0) }))
+    .query(async ({ input }) => {
+      const v = await db.select().from(vendors).where(eq(vendors.slug, input.slug)).limit(1);
+      if (v.length === 0) return { products: [], total: 0 };
+      return await ProductService.searchProducts({ vendorId: v[0].id, limit: input.limit, offset: input.offset });
+    }),
+
+  // Admin Vendor List
+  adminGetVendors: publicProcedure
+    .input(z.object({ status: z.string().optional() }).optional())
+    .query(async ({ input }) => {
+      if (input?.status) {
+        return await db.select().from(vendors).where(eq(vendors.status, input.status)).orderBy(desc(vendors.createdAt));
+      }
+      return await db.select().from(vendors).orderBy(desc(vendors.createdAt));
+    }),
+
+  // Admin Vendor Actions (Approve, Reject, Suspend)
+  adminApproveVendor: publicProcedure
+    .input(z.object({ adminId: z.string(), vendorId: z.number() }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Only admins can approve vendor applications' });
+      }
+      await db.update(vendors).set({ status: 'APPROVED', updatedAt: new Date() }).where(eq(vendors.id, input.vendorId));
+      return { success: true };
+    }),
+
+  adminRejectVendor: publicProcedure
+    .input(z.object({ adminId: z.string(), vendorId: z.number() }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Only admins can reject vendor applications' });
+      }
+      await db.update(vendors).set({ status: 'REJECTED', updatedAt: new Date() }).where(eq(vendors.id, input.vendorId));
+      return { success: true };
+    }),
+
+  adminSuspendVendor: publicProcedure
+    .input(z.object({ adminId: z.string(), vendorId: z.number(), suspend: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Only admins can suspend vendors' });
+      }
+      await db.update(vendors).set({ status: input.suspend ? 'SUSPENDED' : 'APPROVED', updatedAt: new Date() }).where(eq(vendors.id, input.vendorId));
+      return { success: true };
+    }),
+
+  // Hierarchical Category & Subcategory Procedures
+  getAllCategoriesWithSubcategories: publicProcedure.query(async () => {
+    const cats = await db.select().from(categories).orderBy(categories.name);
+    const subs = await db.select().from(subCategories).orderBy(subCategories.name);
+    return cats.map(cat => ({
+      ...cat,
+      subcategories: subs.filter(s => s.categoryId === cat.id)
+    }));
+  }),
+
+  adminCreateCategory: publicProcedure
+    .input(z.object({ name: z.string().min(1), slug: z.string().optional(), description: z.string().optional(), image: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      const slug = input.slug || input.name.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      const [newCat] = await db.insert(categories).values({
+        name: input.name,
+        slug,
+        description: input.description,
+        image: input.image,
+      }).returning();
+      return { success: true, category: newCat };
+    }),
+
+  adminCreateSubcategory: publicProcedure
+    .input(z.object({ categoryId: z.number(), name: z.string().min(1), slug: z.string().optional(), description: z.string().optional(), image: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      const slug = input.slug || input.name.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      const [newSub] = await db.insert(subCategories).values({
+        categoryId: input.categoryId,
+        name: input.name,
+        slug,
+        description: input.description,
+        image: input.image,
+      }).returning();
+      return { success: true, subcategory: newSub };
+    }),
+
+  // Vendor Product Management Procedures
+  vendorGetProducts: publicProcedure
+    .input(z.object({ vendorId: z.number() }))
+    .query(async ({ input }) => {
+      return await ProductService.searchProducts({ vendorId: input.vendorId, limit: 100 });
+    }),
+
+  vendorCreateProduct: publicProcedure
+    .input(z.object({
+      vendorId: z.number(),
+      name: z.string().min(1),
+      brand: z.string().min(1),
+      price: z.string(),
+      originalPrice: z.string().optional(),
+      compareAtPrice: z.string().optional(),
+      costPrice: z.string().optional(),
+      category: z.string().default('general'),
+      categoryId: z.number().optional(),
+      subCategoryId: z.number().optional(),
+      image: z.string().min(1),
+      images: z.string().optional(),
+      description: z.string().optional(),
+      shortDescription: z.string().optional(),
+      sku: z.string().optional(),
+      stock: z.number().default(10),
+      isNew: z.boolean().default(true),
+      isSale: z.boolean().default(false),
+      isFeatured: z.boolean().default(false),
+      specifications: z.string().optional(),
+      attributes: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const slug = input.name.toLowerCase().replace(/[^a-z0-9-]/g, '-') + '-' + Math.floor(Math.random() * 1000);
+      const newProd = await ProductService.createProduct({
+        ...input,
+        slug,
+        status: 'ACTIVE',
+      });
+      return { success: true, product: newProd };
+    }),
+
+  vendorUpdateProduct: publicProcedure
+    .input(z.object({
+      vendorId: z.number(),
+      id: z.number(),
+      data: z.object({
+        name: z.string().optional(),
+        brand: z.string().optional(),
+        price: z.string().optional(),
+        originalPrice: z.string().optional(),
+        compareAtPrice: z.string().optional(),
+        image: z.string().optional(),
+        description: z.string().optional(),
+        shortDescription: z.string().optional(),
+        category: z.string().optional(),
+        categoryId: z.number().optional(),
+        subCategoryId: z.number().optional(),
+        stock: z.number().optional(),
+        isNew: z.boolean().optional(),
+        isSale: z.boolean().optional(),
+        isFeatured: z.boolean().optional(),
+        specifications: z.string().optional(),
+        attributes: z.string().optional(),
+      })
+    }))
+    .mutation(async ({ input }) => {
+      const prod = await db.select().from(products).where(and(eq(products.id, input.id), eq(products.vendorId, input.vendorId))).limit(1);
+      if (prod.length === 0) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to update this product.' });
+      }
+      const updated = await ProductService.updateProduct(input.id, input.data);
+      return { success: true, product: updated };
+    }),
+
+  vendorDeleteProduct: publicProcedure
+    .input(z.object({ vendorId: z.number(), id: z.number() }))
+    .mutation(async ({ input }) => {
+      const prod = await db.select().from(products).where(and(eq(products.id, input.id), eq(products.vendorId, input.vendorId))).limit(1);
+      if (prod.length === 0) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You are not authorized to delete this product.' });
+      }
+      await ProductService.deleteProduct(input.id);
+      return { success: true };
+    }),
+
+  // Multi-Vendor Cart & Single Checkout Engine
+  getMultiVendorCart: publicProcedure
+    .input(z.object({ userId: z.string().optional(), sessionId: z.string().optional() }))
+    .query(async ({ input }) => {
+      const whereCondition = input.userId
+        ? eq(shoppingCart.userId, input.userId)
+        : input.sessionId
+        ? eq(shoppingCart.sessionId, input.sessionId)
+        : undefined;
+
+      if (!whereCondition) return { vendorGroups: [], grandTotal: 0 };
+
+      const cartItems = await db
+        .select({
+          cartId: shoppingCart.id,
+          quantity: shoppingCart.quantity,
+          productId: products.id,
+          productName: products.name,
+          productPrice: products.price,
+          productImage: products.image,
+          vendorId: products.vendorId,
+          vendorStoreName: vendors.storeName,
+          vendorSlug: vendors.slug,
+          vendorLogo: vendors.logo,
+        })
+        .from(shoppingCart)
+        .leftJoin(products, eq(shoppingCart.productId, products.id))
+        .leftJoin(vendors, eq(products.vendorId, vendors.id))
+        .where(whereCondition);
+
+      const groupsMap = new Map<number, {
+        vendorId: number;
+        storeName: string;
+        slug: string;
+        logo: string;
+        subtotal: number;
+        items: any[];
+      }>();
+
+      let grandTotal = 0;
+
+      for (const item of cartItems) {
+        const vId = item.vendorId || 1;
+        const vName = item.vendorStoreName || 'VellVista Flagship Store';
+        const vSlug = item.vendorSlug || 'vellvista-official';
+        const vLogo = item.vendorLogo || 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png';
+        const itemPrice = parseFloat(item.productPrice || '0');
+        const itemTotal = itemPrice * item.quantity;
+        grandTotal += itemTotal;
+
+        if (!groupsMap.has(vId)) {
+          groupsMap.set(vId, {
+            vendorId: vId,
+            storeName: vName,
+            slug: vSlug,
+            logo: vLogo,
+            subtotal: 0,
+            items: [],
+          });
+        }
+
+        const group = groupsMap.get(vId)!;
+        group.subtotal += itemTotal;
+        group.items.push({
+          cartId: item.cartId,
+          productId: item.productId,
+          name: item.productName,
+          price: item.productPrice,
+          image: item.productImage,
+          quantity: item.quantity,
+          total: itemTotal,
+        });
+      }
+
+      return {
+        vendorGroups: Array.from(groupsMap.values()),
+        grandTotal,
+      };
+    }),
+
+  // Multi-Vendor Checkout Creation
+  createMultiVendorOrder: publicProcedure
+    .input(z.object({
+      userId: z.string().optional(),
+      customerName: z.string().min(1),
+      customerEmail: z.string().email(),
+      customerPhone: z.string().optional(),
+      shippingAddress: z.string().min(1),
+      items: z.array(z.object({
+        productId: z.number(),
+        quantity: z.number().min(1),
+        price: z.string(),
+        vendorId: z.number().optional(),
+      }))
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        let totalOrderAmount = 0;
+        input.items.forEach(i => {
+          totalOrderAmount += parseFloat(i.price) * i.quantity;
+        });
+
+        const [parentOrder] = await db.insert(orders).values({
+          userId: input.userId,
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          customerPhone: input.customerPhone,
+          totalAmount: totalOrderAmount.toFixed(2),
+          shippingAddress: input.shippingAddress,
+          status: 'pending',
+          paymentStatus: 'pending',
+        }).returning();
+
+        const commSettings = await db.select().from(commissions).limit(1);
+        const globalCommRate = commSettings.length > 0 ? parseFloat(commSettings[0].defaultRate) : 10.0;
+
+        const vendorItemsMap = new Map<number, any[]>();
+        for (const item of input.items) {
+          const vId = item.vendorId || 1;
+          if (!vendorItemsMap.has(vId)) {
+            vendorItemsMap.set(vId, []);
+          }
+          vendorItemsMap.get(vId)!.push(item);
+        }
+
+        for (const [vendorId, vItems] of vendorItemsMap.entries()) {
+          let vendorSubtotal = 0;
+          vItems.forEach(i => { vendorSubtotal += parseFloat(i.price) * i.quantity; });
+
+          const commissionAmount = (vendorSubtotal * (globalCommRate / 100));
+          const vendorEarnings = (vendorSubtotal - commissionAmount);
+
+          const [vendorOrderObj] = await db.insert(vendorOrders).values({
+            orderId: parentOrder.id,
+            vendorId,
+            status: 'PENDING',
+            subtotal: vendorSubtotal.toFixed(2),
+            commissionAmount: commissionAmount.toFixed(2),
+            vendorEarnings: vendorEarnings.toFixed(2),
+          }).returning();
+
+          for (const item of vItems) {
+            const prodList = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+            const prodName = prodList[0]?.name || 'Marketplace Item';
+            const prodImg = prodList[0]?.image || '';
+
+            await db.insert(orderItems).values({
+              orderId: parentOrder.id,
+              vendorOrderId: vendorOrderObj.id,
+              vendorId,
+              productId: item.productId,
+              productName: prodName,
+              productImage: prodImg,
+              quantity: item.quantity,
+              unitPrice: item.price,
+              totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
+            });
+          }
+
+          const vendorObj = await db.select().from(vendors).where(eq(vendors.id, vendorId)).limit(1);
+          if (vendorObj.length > 0) {
+            await db.insert(notifications).values({
+              userId: vendorObj[0].userId,
+              type: 'order',
+              title: 'New Vendor Order Received',
+              message: `You received a new order #${vendorOrderObj.id} for $${vendorSubtotal.toFixed(2)}.`,
+              actionUrl: '/vendor/dashboard',
+            });
+          }
+        }
+
+        if (input.userId) {
+          await db.delete(shoppingCart).where(eq(shoppingCart.userId, input.userId));
+        }
+
+        return { success: true, orderId: parentOrder.id };
+      } catch (err: any) {
+        console.error('Failed to create multi-vendor order:', err);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message || 'Failed to process order' });
+      }
+    }),
+
+  // Vendor Dashboard Order List
+  vendorGetOrders: publicProcedure
+    .input(z.object({ vendorId: z.number() }))
+    .query(async ({ input }) => {
+      const vOrders = await db
+        .select({
+          id: vendorOrders.id,
+          parentOrderId: vendorOrders.orderId,
+          status: vendorOrders.status,
+          subtotal: vendorOrders.subtotal,
+          commissionAmount: vendorOrders.commissionAmount,
+          vendorEarnings: vendorOrders.vendorEarnings,
+          trackingNumber: vendorOrders.trackingNumber,
+          carrier: vendorOrders.carrier,
+          createdAt: vendorOrders.createdAt,
+          customerName: orders.customerName,
+          customerEmail: orders.customerEmail,
+          shippingAddress: orders.shippingAddress,
+        })
+        .from(vendorOrders)
+        .leftJoin(orders, eq(vendorOrders.orderId, orders.id))
+        .where(eq(vendorOrders.vendorId, input.vendorId))
+        .orderBy(desc(vendorOrders.createdAt));
+
+      return vOrders;
+    }),
+
+  // Vendor Order Status Update
+  vendorUpdateOrderStatus: publicProcedure
+    .input(z.object({
+      vendorId: z.number(),
+      vendorOrderId: z.number(),
+      status: z.string(),
+      trackingNumber: z.string().optional(),
+      carrier: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const vOrder = await db.select().from(vendorOrders).where(and(eq(vendorOrders.id, input.vendorOrderId), eq(vendorOrders.vendorId, input.vendorId))).limit(1);
+      if (vOrder.length === 0) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Unauthorized vendor order update' });
+      }
+
+      await db.update(vendorOrders)
+        .set({
+          status: input.status,
+          trackingNumber: input.trackingNumber || vOrder[0].trackingNumber,
+          carrier: input.carrier || vOrder[0].carrier,
+          updatedAt: new Date(),
+        })
+        .where(eq(vendorOrders.id, input.vendorOrderId));
+
+      return { success: true };
+    }),
+
+  // Vendor Financial Earnings & Analytics
+  vendorGetAnalytics: publicProcedure
+    .input(z.object({ vendorId: z.number() }))
+    .query(async ({ input }) => {
+      const vOrders = await db.select().from(vendorOrders).where(eq(vendorOrders.vendorId, input.vendorId));
+      const vProductsCount = await db.select({ count: count() }).from(products).where(eq(products.vendorId, input.vendorId));
+
+      let totalGrossSales = 0;
+      let totalCommission = 0;
+      let totalNetEarnings = 0;
+      let pendingOrders = 0;
+      let deliveredOrders = 0;
+
+      vOrders.forEach(o => {
+        totalGrossSales += parseFloat(o.subtotal || '0');
+        totalCommission += parseFloat(o.commissionAmount || '0');
+        totalNetEarnings += parseFloat(o.vendorEarnings || '0');
+        if (o.status === 'PENDING' || o.status === 'PROCESSING') pendingOrders++;
+        if (o.status === 'DELIVERED') deliveredOrders++;
+      });
+
+      return {
+        grossSales: totalGrossSales.toFixed(2),
+        commissionPaid: totalCommission.toFixed(2),
+        netEarnings: totalNetEarnings.toFixed(2),
+        totalOrders: vOrders.length,
+        pendingOrders,
+        deliveredOrders,
+        totalProducts: vProductsCount[0]?.count || 0,
+      };
+    }),
+
+  // Admin Marketplace Global Analytics
+  adminGetMarketplaceAnalytics: publicProcedure.query(async () => {
+    const allVendorsCount = await db.select({ count: count() }).from(vendors);
+    const pendingVendorsCount = await db.select({ count: count() }).from(vendors).where(eq(vendors.status, 'PENDING'));
+    const allProductsCount = await db.select({ count: count() }).from(products);
+    const allOrdersCount = await db.select({ count: count() }).from(orders);
+
+    const allVendorOrders = await db.select().from(vendorOrders);
+
+    let gmv = 0;
+    let platformCommission = 0;
+    allVendorOrders.forEach(vo => {
+      gmv += parseFloat(vo.subtotal || '0');
+      platformCommission += parseFloat(vo.commissionAmount || '0');
+    });
+
+    const commSetting = await db.select().from(commissions).limit(1);
+
+    return {
+      totalGMV: gmv.toFixed(2),
+      platformCommissionRevenue: platformCommission.toFixed(2),
+      commissionRate: commSetting.length > 0 ? commSetting[0].defaultRate : '10.00',
+      totalVendors: allVendorsCount[0]?.count || 0,
+      pendingVendors: pendingVendorsCount[0]?.count || 0,
+      totalProducts: allProductsCount[0]?.count || 0,
+      totalOrders: allOrdersCount[0]?.count || 0,
+    };
+  }),
+
+  // Admin Update Global Commission Percentage
+  adminUpdateCommissionRate: publicProcedure
+    .input(z.object({ adminId: z.string(), rate: z.string() }))
+    .mutation(async ({ input }) => {
+      const admin = await UserService.getUserById(input.adminId);
+      if (!admin || (admin.role !== 'SUPER_ADMIN' && admin.role !== 'ADMIN')) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Only super admins can configure platform commission rates' });
+      }
+
+      const existing = await db.select().from(commissions).limit(1);
+      if (existing.length === 0) {
+        await db.insert(commissions).values({ defaultRate: input.rate });
+      } else {
+        await db.update(commissions).set({ defaultRate: input.rate, updatedAt: new Date() }).where(eq(commissions.id, existing[0].id));
+      }
+      return { success: true };
+    }),
+
+  // --- END MULTI-VENDOR PROCEDURES ---
+
   // Product procedures
   getProducts: publicProcedure
     .input(z.object({ 

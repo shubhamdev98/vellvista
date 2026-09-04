@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials } from "../../app/utils/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout, Settings, Building2 } from "lucide-react";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, type AppNotification } from "../hooks/useApi";
 import { useSocket } from "../../context/SocketProvider";
 import { useToast } from "../../context/ToastProvider";
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Brand Settings", href: "/admin/brand", icon: Settings },
+    { name: "Vendors & Marketplace", href: "/admin/vendors", icon: Building2 },
     { name: "Homepage Manager", href: "/admin/homepage", icon: Layout },
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
@@ -262,7 +262,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Navigation links */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -273,7 +273,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 title={isCollapsed ? item.name : undefined}
                 onClick={() => setIsMobileOpen(false)}
                 className={`flex items-center transition-all ${isCollapsed
-                  ? "justify-center rounded-lg mx-auto w-12 h-11"
+                  ? "justify-center rounded mx-auto w-12 h-11"
                   : "gap-3 px-4 py-3 text-sm font-light"
                   } ${isActive
                     ? "bg-primary text-inverse"
@@ -297,7 +297,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }}
             title={isCollapsed ? "Sign Out" : undefined}
             className={`flex items-center transition-all text-error hover:bg-error-light text-left cursor-pointer ${isCollapsed
-              ? "justify-center rounded-lg mx-auto w-12 h-11"
+              ? "justify-center rounded mx-auto w-12 h-11"
               : "w-full gap-3 px-4 py-2 text-sm"
               }`}
           >

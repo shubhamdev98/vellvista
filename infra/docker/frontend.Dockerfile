@@ -1,39 +1,37 @@
 # Build stage
 FROM node:20-alpine AS builder
 WORKDIR /app
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy package configurations
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY backend/package.json ./backend/
 
-# Install all dependencies (including build devDependencies)
-RUN pnpm install --frozen-lockfile
+# Install dependencies with build cache mount
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 
-# Copy frontend source code
+# Copy frontend & workspace source code
 COPY . .
 
 # Set environment variables for Next.js build-time configuration
 ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 
-# Build the Next.js production bundle
+# Build the Next.js production bundle (standalone output)
 RUN pnpm run build
 
 # Runner stage
 FROM node:20-alpine AS runner
 WORKDIR /app
-RUN npm install -g pnpm
 
-# Copy only the configuration files and compiled app bundles
-COPY package.json pnpm-lock.yaml next.config.ts postcss.config.mjs ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-
-# Install production dependencies only
 ENV NODE_ENV=production
-RUN pnpm install --prod --frozen-lockfile
-
-EXPOSE 3000
 ENV PORT=3000
 
-CMD ["pnpm", "start"]
+# Copy standalone server, static assets, and public directory
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

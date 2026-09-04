@@ -5,7 +5,7 @@ import { useCurrency } from '@/context/CurrencyProvider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getProductImageUrl } from '@/app/utils/image';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Store, ShoppingBag } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -26,6 +26,16 @@ export default function CartPage() {
   const { formatPrice } = useCurrency();
 
   const [localCoupon, setLocalCoupon] = useState('');
+
+  // Group items by Vendor
+  const groupedItemsMap = new Map<string, typeof items>();
+  items.forEach((item) => {
+    const storeName = (item as any).vendorStoreName || (item as any).product?.vendorStoreName || "VellVista Flagship Store";
+    if (!groupedItemsMap.has(storeName)) {
+      groupedItemsMap.set(storeName, []);
+    }
+    groupedItemsMap.get(storeName)!.push(item);
+  });
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const TAX_RATE = 0.08;
@@ -58,106 +68,134 @@ export default function CartPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
         <Breadcrumb items={breadcrumbItems} />
         
-        <h1 className="text-2xl font-semibold text-primary">Your Shopping Cart</h1>
+        <div className="flex items-center justify-between border-b pb-4">
+          <h1 className="text-2xl font-semibold text-primary flex items-center gap-2">
+            <ShoppingBag className="w-6 h-6 text-accent" /> Multi-Vendor Shopping Cart ({totalItems} items)
+          </h1>
+        </div>
 
         {items.length === 0 ? (
-          <p className="text-muted">Your cart is empty.</p>
+          <div className="text-center py-16 space-y-4">
+            <ShoppingBag className="w-12 h-12 text-secondary mx-auto" />
+            <p className="text-muted text-base">Your shopping cart is empty.</p>
+            <Link href="/products" className="inline-block px-6 py-2.5 bg-primary text-inverse text-xs uppercase font-semibold">
+              Browse Marketplace Products
+            </Link>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div key={item.cartItemId} className="flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
-                <div className="w-16 h-16 relative flex-shrink-0 sm:w-20 sm:h-20">
-                  <Image
-                    src={getProductImageUrl(item.image)}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
+          <div className="space-y-8">
+            {/* Vendor Grouped Cart Display */}
+            {Array.from(groupedItemsMap.entries()).map(([storeName, vendorGroupItems]) => {
+              const vendorSubtotal = vendorGroupItems.reduce((s, item) => s + item.price * item.quantity, 0);
+              return (
+                <div key={storeName} className="border border-light rounded-xl overflow-hidden bg-surface shadow-sm space-y-2">
+                  {/* Vendor Store Header */}
+                  <div className="bg-background-muted px-4 py-3 border-b border-light flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Store className="w-4 h-4 text-accent" />
+                      <span className="text-xs font-bold text-primary">Store: {storeName}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-secondary">Subtotal: {formatPrice(vendorSubtotal)}</span>
+                  </div>
+
+                  {/* Vendor Product Items */}
+                  <div className="divide-y divide-light px-4">
+                    {vendorGroupItems.map((item) => (
+                      <div key={item.cartItemId} className="flex items-center gap-4 py-4">
+                        <div className="w-16 h-16 relative flex-shrink-0 bg-background-muted rounded overflow-hidden">
+                          <Image
+                            src={getProductImageUrl(item.image)}
+                            alt={item.name}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-sm font-medium text-primary truncate">{item.name}</h2>
+                          <p className="text-xs text-secondary">{formatPrice(item.price * item.quantity)}</p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded"
+                          >−</button>
+                          <span className="w-6 text-center text-xs text-primary font-semibold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded"
+                          >+</button>
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.cartItemId)}
+                          className="p-1.5 text-muted hover:text-error flex-shrink-0"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-medium text-primary truncate">{item.name}</h2>
-                  {/* FIX: Display line total (unit price × quantity) instead of just unit price.
-                      This is consistent with the sidebar cart (CartItem.tsx) and ensures
-                      the displayed price updates correctly when quantity changes. */}
-                  <p className="text-sm text-secondary">{formatPrice(item.price * item.quantity)}</p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                    className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 sm:w-7 sm:h-7 sm:text-sm"
-                  >−</button>
-                  <span className="w-6 text-center text-sm text-primary sm:w-8">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                    className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 sm:w-7 sm:h-7 sm:text-sm"
-                  >+</button>
-                </div>
-                <button
-                  onClick={() => removeItem(item.cartItemId)}
-                  className="p-1.5 text-muted hover:text-error flex-shrink-0 sm:p-2"
-                  aria-label="Remove item"
-                >
-                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Pricing Summary */}
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between text-sm text-muted">
+            <div className="border-t border-light pt-6 space-y-3 bg-surface p-6 rounded-xl">
+              <div className="flex justify-between text-sm text-secondary">
                 <span>Subtotal</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-sm text-muted">
+              <div className="flex justify-between text-sm text-secondary">
                 <span>Tax (8%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               {discountRate > 0 && (
-                <div className="flex justify-between text-sm text-success">
+                <div className="flex justify-between text-sm text-success font-semibold">
                   <span>Discount</span>
                   <span>-{formatPrice(discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-semibold text-primary">
-                <span>Total</span>
+              <div className="flex justify-between text-lg font-bold text-primary pt-2 border-t border-light">
+                <span>Grand Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
 
             {/* Coupon Section */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Coupon code"
                 value={localCoupon}
                 onChange={(e) => setLocalCoupon(e.target.value)}
-                className="flex-1 border border-default rounded px-3 py-2 text-sm"
+                className="flex-1 border border-border rounded px-4 py-2 text-sm bg-surface text-primary focus:outline-none"
               />
               <button
                 onClick={handleApply}
-                className="bg-accent text-inverse px-4 py-2 rounded hover:bg-accent-light"
+                className="bg-primary text-inverse px-5 py-2 rounded text-xs font-bold uppercase tracking-wider hover:opacity-90"
               >
                 Apply
               </button>
               {discountRate > 0 && (
                 <button
                   onClick={handleRemove}
-                  className="text-primary underline"
+                  className="text-primary underline text-xs"
                 >
                   Remove
                 </button>
               )}
             </div>
 
-            <div className="flex gap-4 mt-6">
+            <div className="flex gap-4 pt-4">
               <button
                 onClick={clearCart}
-                className="flex-1 border border-dark py-2 hover:bg-surface-alt text-primary"
+                className="flex-1 border border-primary py-3 hover:bg-black/5 text-primary text-xs uppercase font-bold tracking-wider rounded-lg"
               >
                 Clear Cart
               </button>
-              <Link href="/checkout" className="flex-1 bg-primary text-inverse py-2 hover:bg-primary-light text-center flex items-center justify-center text-sm font-light">
-                Proceed to Checkout
+              <Link href="/checkout" className="flex-1 bg-primary text-inverse py-3 hover:opacity-90 text-center flex items-center justify-center text-xs uppercase font-bold tracking-wider rounded-lg">
+                Proceed to Single Unified Checkout
               </Link>
             </div>
           </div>
@@ -179,26 +217,6 @@ function CartSkeleton() {
         <div className="space-y-4">
           <div className="h-24 bg-background-alt animate-pulse border border-light" />
           <div className="h-24 bg-background-alt animate-pulse border border-light" />
-        </div>
-
-        <div className="border-t border-light pt-6 space-y-3">
-          <div className="flex justify-between">
-            <div className="h-4 w-20 bg-background-alt animate-pulse" />
-            <div className="h-4 w-16 bg-background-alt animate-pulse" />
-          </div>
-          <div className="flex justify-between">
-            <div className="h-4 w-20 bg-background-alt animate-pulse" />
-            <div className="h-4 w-16 bg-background-alt animate-pulse" />
-          </div>
-          <div className="flex justify-between border-t border-light pt-3">
-            <div className="h-6 w-24 bg-background-alt animate-pulse" />
-            <div className="h-6 w-20 bg-background-alt animate-pulse" />
-          </div>
-        </div>
-
-        <div className="flex gap-4 mt-6">
-          <div className="h-10 bg-background-alt animate-pulse flex-1" />
-          <div className="h-10 bg-background-alt animate-pulse flex-1" />
         </div>
       </main>
       <Footer />

@@ -46,6 +46,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
   interface Product {
     id: number;
+    vendorId?: number;
+    vendorStoreName?: string;
+    vendorSlug?: string;
+    vendorLogo?: string;
     name: string;
     brand: string;
     price: string | number;
@@ -343,6 +347,27 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 {product.name}
               </h1>
               <p className="text-xl text-primary/70 mb-4">{product.brand}</p>
+
+              {/* Vendor Store Information */}
+              <div className="bg-background-muted p-4 rounded-xl border border-light flex items-center justify-between my-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    🏪
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted uppercase tracking-wider font-semibold">Sold & Shipped by</span>
+                    <h4 className="font-bold text-sm text-primary">{product.vendorStoreName || "VellVista Flagship Store"}</h4>
+                  </div>
+                </div>
+                {product.vendorSlug && (
+                  <Link
+                    href={`/store/${product.vendorSlug}`}
+                    className="px-3.5 py-1.5 rounded-lg bg-primary text-inverse hover:opacity-90 transition-opacity text-xs font-semibold"
+                  >
+                    Visit Store
+                  </Link>
+                )}
+              </div>
 
               {/* Rating - based on real reviews only */}
               {reviews.length > 0 ? (
