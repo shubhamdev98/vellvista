@@ -233,15 +233,28 @@ export async function ensureDatabaseSchema() {
     );
   `, 'create_table_product_variants');
 
+  await execSql(`ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS name TEXT;`, 'add_product_variants_name');
+  await execSql(`ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS color TEXT;`, 'add_product_variants_color');
+  await execSql(`ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS attribute_name TEXT;`, 'add_product_variants_attribute_name');
+  await execSql(`ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS attribute_value TEXT;`, 'add_product_variants_attribute_value');
+  await execSql(`ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS image TEXT;`, 'add_product_variants_image');
+
   await execSql(`ALTER TABLE shopping_cart ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'add_shopping_cart_vendor_id');
   await execSql(`ALTER TABLE shopping_cart ADD COLUMN IF NOT EXISTS variant_id INTEGER;`, 'add_shopping_cart_variant_id');
 
   await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'add_reviews_vendor_id');
   await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS order_id INTEGER;`, 'add_reviews_order_id');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS title TEXT;`, 'add_reviews_title');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS user_name TEXT;`, 'add_reviews_user_name');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS image TEXT;`, 'add_reviews_image');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;`, 'add_reviews_is_verified');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT false;`, 'add_reviews_is_approved');
+  await execSql(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS helpful_count INTEGER DEFAULT 0;`, 'add_reviews_helpful_count');
 
   await execSql(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS vendor_order_id INTEGER REFERENCES vendor_orders(id) ON DELETE CASCADE;`, 'add_order_items_vendor_order_id');
   await execSql(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'add_order_items_vendor_id');
   await execSql(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variant_id INTEGER;`, 'add_order_items_variant_id');
+  await execSql(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variant_info TEXT;`, 'add_order_items_variant_info');
 
   await execSql(`
     CREATE TABLE IF NOT EXISTS vendor_payouts (
