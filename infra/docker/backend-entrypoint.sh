@@ -1,11 +1,15 @@
 #!/bin/sh
 set -e
 
-# Change directory to backend
+# Change directory to backend workspace
 cd /app/backend
 
-echo "Running database schema migrations / push..."
-yes "" | npx drizzle-kit push:pg --config=drizzle.config.ts
+if [ -f "./node_modules/drizzle-kit/bin.cjs" ]; then
+  echo "Running database schema migrations..."
+  printf "\n\n\n\n" | node ./node_modules/drizzle-kit/bin.cjs push:pg --config=drizzle.config.ts || true
+fi
 
 echo "Starting VellVista backend server..."
-exec npm start
+exec node dist/index.js
+
+

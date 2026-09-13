@@ -1,6 +1,8 @@
 # Build stage
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy package configurations
@@ -10,7 +12,7 @@ COPY backend/package.json ./backend/
 # Install frontend dependencies with build cache mount
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter my-app... --prefer-offline
 
-# Copy frontend & workspace source code
+# Copy workspace source code
 COPY . .
 
 # Set environment variables for Next.js build-time configuration
@@ -26,12 +28,19 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy standalone server, static assets, and public directory
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy standalone server, static assets, and public directory with proper ownership
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
 
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+

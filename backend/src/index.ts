@@ -19,6 +19,7 @@ import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
 import { v2 as cloudinary } from 'cloudinary';
 import { metricsMiddleware, metricsHandler } from './metrics';
+import { ensureDatabaseSchema } from './dbInit';
 
 import os from 'os';
 
@@ -494,8 +495,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start server
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  await ensureDatabaseSchema();
   console.log(`Swagger UI API Docs at ${backendUrl}/docs`);
   console.log(`tRPC endpoint available at ${backendUrl}/trpc`);
   console.log(`Health check at ${backendUrl}/health`);

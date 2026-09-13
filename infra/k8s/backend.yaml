@@ -52,6 +52,10 @@ spec:
       labels:
         app: vellvista-backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: backend
           image: vellvista-backend:latest
@@ -95,23 +99,27 @@ spec:
               mountPath: /app/backend/public
           resources:
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "500m"
+              memory: 512Mi
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: "100m"
+              memory: 128Mi
           readinessProbe:
             httpGet:
               path: /health
               port: 3001
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 3001
-            initialDelaySeconds: 20
-            periodSeconds: 10
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
       volumes:
         - name: uploads-volume
           persistentVolumeClaim:
@@ -131,3 +139,4 @@ spec:
   selector:
     app: vellvista-backend
   type: ClusterIP
+

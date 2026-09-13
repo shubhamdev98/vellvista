@@ -25,6 +25,10 @@ spec:
       labels:
         app: vellvista-frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: frontend
           image: vellvista-frontend:latest
@@ -50,23 +54,27 @@ spec:
                   key: INTERNAL_BACKEND_URL
           resources:
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "500m"
+              memory: 512Mi
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: "100m"
+              memory: 128Mi
           readinessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 20
-            periodSeconds: 10
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -82,3 +90,4 @@ spec:
   selector:
     app: vellvista-frontend
   type: ClusterIP
+
