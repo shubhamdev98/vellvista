@@ -19,8 +19,8 @@ export default function ForgotPassword() {
     setMessage("");
 
     try {
-      // Using better-auth forgot password flow - call API directly
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001"}/api/auth/request-password-reset`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
+      const response = await fetch(`${backendUrl}/api/auth/request-password-reset`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

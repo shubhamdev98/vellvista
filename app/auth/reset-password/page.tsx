@@ -42,8 +42,8 @@ function ResetPasswordForm() {
     }
 
     try {
-      // Using better-auth reset password flow - call API directly
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001"}/api/auth/reset-password`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
+      const response = await fetch(`${backendUrl}/api/auth/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

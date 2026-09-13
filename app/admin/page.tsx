@@ -42,7 +42,7 @@ export default function AdminDashboard() {
     totalGMV: string;
   } | null>(null);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
   // Fetch live vendor marketplace analytics
   useEffect(() => {

@@ -96,17 +96,20 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
           setLoading(false);
           return;
         }
-        const [productData, variantsData] = await Promise.all([
-          trpc.getProductById({ id: productId }),
-          trpc.getProductVariants({ productId }),
-        ]);
+        const productData = await trpc.getProductById({ id: productId });
         if (!productData) {
           setError("Product not found");
         } else {
           setProduct(productData);
-          setVariants(variantsData || []);
-          if (variantsData && variantsData.length > 0) {
-            setSelectedSize(variantsData[0].size || variantsData[0].volume || "");
+          try {
+            const variantsData = await trpc.getProductVariants({ productId });
+            setVariants(variantsData || []);
+            if (variantsData && variantsData.length > 0) {
+              setSelectedSize(variantsData[0].size || variantsData[0].volume || "");
+            }
+          } catch (varErr) {
+            console.warn("Could not fetch product variants:", varErr);
+            setVariants([]);
           }
         }
       } catch (err) {
@@ -124,7 +127,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     // Fetch reviews from database
     const fetchReviews = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001';
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
         const response = await fetch(`${backendUrl}/api/reviews/${product.id}`);
         if (response.ok) {
           const data = await response.json();
@@ -245,7 +248,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     console.log('FormData created, sending to backend...');
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
       const response = await fetch(`${backendUrl}/api/reviews`, {
         method: 'POST',
         body: formData,

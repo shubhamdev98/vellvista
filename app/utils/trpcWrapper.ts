@@ -1,13 +1,15 @@
 import { createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
 
+const getBackendUrl = () => {
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) return process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (typeof window !== 'undefined') return window.location.origin;
+  return process.env.INTERNAL_BACKEND_URL || 'http://localhost:3001';
+};
+
 const getBaseUrl = () => {
   const trpcUrl = process.env.NEXT_PUBLIC_TRPC_URL;
   if (trpcUrl) return trpcUrl;
-  const backendUrl = typeof window === 'undefined'
-    ? (process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL)
-    : process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (backendUrl) return `${backendUrl}/trpc`;
-  return 'http://172.29.214.47:3001/trpc';
+  return `${getBackendUrl()}/trpc`;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +35,7 @@ const client = createTRPCProxyClient<any>({
 export const trpc = {
   // Auth mutations
   register: async (input: { email: string; fullName: string; password: string }) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001'}/trpc/register`, {
+    const response = await fetch(`${getBackendUrl()}/trpc/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +49,7 @@ export const trpc = {
     return data.result.data;
   },
   verifyRegistrationOtp: async (input: { email: string; otp: string }) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001'}/trpc/verifyRegistrationOtp`, {
+    const response = await fetch(`${getBackendUrl()}/trpc/verifyRegistrationOtp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ export const trpc = {
   },
   login: async (input: { email: string; password: string }) => {
     console.log('Direct fetch login called with:', input);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001'}/trpc/login`, {
+    const response = await fetch(`${getBackendUrl()}/trpc/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

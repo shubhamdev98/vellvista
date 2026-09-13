@@ -869,7 +869,7 @@ export const appRouter = router({
         otpStore.set(email, { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
 
         // Send OTP email asynchronously in the background so it does not block the registration request
-        const frontendUrl = process.env.FRONTEND_URL || "http://172.29.214.47:3000";
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
         getDynamicBrandSettings().then((brandInfo) => {
           const mailOptions = {
             from: `"${brandInfo.brandName}" <${process.env.SMTP_USER}>`,

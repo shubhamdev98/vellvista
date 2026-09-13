@@ -164,7 +164,7 @@ export const products = pgTable('products', {
 // Product variants table
 export const productVariants = pgTable('product_variants', {
   id: serial('id').primaryKey(),
-  productId: integer('productId').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   name: text('name'), // e.g. "Red / XL" or "100ml / EDP"
   size: text('size'),
   volume: text('volume'),

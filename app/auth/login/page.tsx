@@ -9,10 +9,14 @@ import { useAuth } from "../../../context/AuthProvider";
 import { authClient } from "../../../app/utils/auth-client";
 import { useBrand } from "../../../context/BrandProvider";
 
-const backendUrl =
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://172.29.214.47:3001";
+const getBackendUrl = () => {
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) return process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== 'undefined') return window.location.origin;
+  return 'http://localhost:3001';
+};
+
+const backendUrl = getBackendUrl();
 
 const isBackendAvailable = async () => {
   try {

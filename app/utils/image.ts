@@ -3,9 +3,16 @@ export function getProductImageUrl(image?: string | null): string {
     return 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg';
   }
   if (image.startsWith('/') || image.startsWith('\\')) {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://172.29.214.47:3001';
     const cleanPath = image.replace(/\\/g, '/');
-    return `${backendUrl}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+    const formattedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+    if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+      return `${process.env.NEXT_PUBLIC_BACKEND_URL}${formattedPath}`;
+    }
+    if (typeof window !== 'undefined') {
+      return formattedPath;
+    }
+    const backendUrl = process.env.INTERNAL_BACKEND_URL || 'http://localhost:3001';
+    return `${backendUrl}${formattedPath}`;
   }
   return image;
 }

@@ -139,7 +139,7 @@ export default function AdminHomepageManager() {
     const uploadData = new FormData();
     uploadData.append("image", file);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
     try {
       const response = await fetch(`${backendUrl}/api/upload-image?folder=logo`, {
@@ -252,7 +252,7 @@ export default function AdminHomepageManager() {
     const uploadData = new FormData();
     uploadData.append("video", file);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
     try {
       const response = await fetch(`${backendUrl}/api/upload-hero-video?type=${type}`, {
@@ -325,7 +325,7 @@ export default function AdminHomepageManager() {
     const uploadData = new FormData();
     uploadData.append("image", file);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
     try {
       const response = await fetch(`${backendUrl}/api/upload-product-image`, {
@@ -469,7 +469,7 @@ export default function AdminHomepageManager() {
     const uploadData = new FormData();
     uploadData.append("image", file);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://172.29.214.47:3001";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
     try {
       const response = await fetch(`${backendUrl}/api/upload-product-image`, {
