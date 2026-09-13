@@ -192,17 +192,46 @@ export async function ensureDatabaseSchema() {
   `, 'create_table_order_items');
 
   // 2. Ensure columns exist on products, shopping_cart, reviews, and order_items
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS slug TEXT;`, 'add_products_slug');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'add_products_vendor_id');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id);`, 'add_products_category_id');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS sub_category_id INTEGER REFERENCES sub_categories(id);`, 'add_products_sub_category_id');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand_id INTEGER REFERENCES brands(id);`, 'add_products_brand_id');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS original_price NUMERIC(10, 2);`, 'add_products_original_price');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS compare_at_price NUMERIC(10, 2);`, 'add_products_compare_at_price');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10, 2);`, 'add_products_cost_price');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS rating NUMERIC(3, 2) DEFAULT '0';`, 'add_products_rating');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS reviews INTEGER DEFAULT 0;`, 'add_products_reviews');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS images TEXT;`, 'add_products_images');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS description TEXT;`, 'add_products_description');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS short_description TEXT;`, 'add_products_short_description');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS sku TEXT;`, 'add_products_sku');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new BOOLEAN DEFAULT false;`, 'add_products_is_new');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_sale BOOLEAN DEFAULT false;`, 'add_products_is_sale');
+  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false;`, 'add_products_is_featured');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ACTIVE';`, 'add_products_status');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS specifications TEXT;`, 'add_products_specifications');
   await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS attributes TEXT;`, 'add_products_attributes');
-  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS compare_at_price NUMERIC(10, 2);`, 'add_products_compare_at_price');
-  await execSql(`ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10, 2);`, 'add_products_cost_price');
+
+  await execSql(`
+    CREATE TABLE IF NOT EXISTS product_variants (
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      name TEXT,
+      size TEXT,
+      volume TEXT,
+      color TEXT,
+      attribute_name TEXT,
+      attribute_value TEXT,
+      price NUMERIC(10, 2) NOT NULL,
+      stock INTEGER DEFAULT 0 NOT NULL,
+      sku TEXT,
+      image TEXT,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+  `, 'create_table_product_variants');
 
   await execSql(`ALTER TABLE shopping_cart ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'add_shopping_cart_vendor_id');
   await execSql(`ALTER TABLE shopping_cart ADD COLUMN IF NOT EXISTS variant_id INTEGER;`, 'add_shopping_cart_variant_id');
