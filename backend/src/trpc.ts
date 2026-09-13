@@ -1338,10 +1338,10 @@ export const appRouter = router({
       }
 
       return cartItems.map(item => ({
-        id: item.shopping_cart.id,
-        productId: item.shopping_cart.productId,
-        variantId: item.shopping_cart.variantId,
-        quantity: item.shopping_cart.quantity,
+        id: item.shoppingCart?.id,
+        productId: item.shoppingCart?.productId,
+        variantId: item.shoppingCart?.variantId,
+        quantity: item.shoppingCart?.quantity,
         product: item.products
       }));
     }),
