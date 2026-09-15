@@ -24,7 +24,10 @@ import {
   Layers,
   Settings,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Upload,
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import { useToast } from '@/context/ToastProvider';
@@ -59,6 +62,45 @@ export default function VendorDashboardPage() {
   });
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleVendorImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const uploadData = new FormData();
+    uploadData.append('image', file);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/upload-product-image`, {
+        method: 'POST',
+        body: uploadData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.url) {
+          setProductForm((prev) => ({ ...prev, image: result.url }));
+          showToast('Local image uploaded successfully!', 'success');
+          return;
+        }
+      }
+      throw new Error('Upload failed');
+    } catch (err) {
+      console.warn('Server upload failed, converting file locally via FileReader:', err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setProductForm((prev) => ({ ...prev, image: event.target!.result as string }));
+          showToast('Local image loaded successfully!', 'success');
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const fetchVendorData = useCallback(async () => {
     if (!user) return;
@@ -607,16 +649,60 @@ export default function VendorDashboardPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Product Image URL *</label>
+                <div className="space-y-2 col-span-1 md:col-span-2 border-t border-slate-800 pt-3">
+                  <label className="text-xs font-semibold text-slate-300 block">Product Image *</label>
+                  
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shadow-md select-none">
+                      {isUploading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
+                      {isUploading ? "Uploading..." : "Upload Image from Device"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleVendorImageUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                    </label>
+                    <span className="text-xs text-slate-400">or enter image URL below</span>
+                  </div>
+
                   <input
-                    type="url"
+                    type="text"
                     required
-                    placeholder="https://..."
+                    placeholder="https://... or upload local image above"
                     value={productForm.image}
                     onChange={(e) => setProductForm((p) => ({ ...p, image: e.target.value }))}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
                   />
+
+                  {productForm.image && (
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                      <img
+                        src={productForm.image}
+                        alt="Product Preview"
+                        className="h-12 w-12 object-cover rounded-lg border border-slate-800 shrink-0"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                      />
+                      <div className="text-xs text-slate-400 overflow-hidden flex-1 min-w-0">
+                        <p className="font-bold text-amber-400 truncate flex items-center gap-1">
+                          <ImageIcon className="w-3.5 h-3.5" /> Image Selected
+                        </p>
+                        <p className="truncate text-[11px] text-slate-400 mt-0.5">{productForm.image.startsWith('data:') ? 'Local file uploaded' : productForm.image}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setProductForm((p) => ({ ...p, image: '' }))}
+                        className="text-xs text-rose-400 hover:underline shrink-0 font-medium px-2 py-1"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product } from "../../hooks/useApi";
-import { Plus, Edit2, Trash2, Search, X, ChevronDown, Store, Package } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, ChevronDown, Store, Package, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import { getProductImageUrl } from "../../utils/image";
 import { useToast } from "../../../context/ToastProvider";
 import { TableRowSkeleton } from "../../../components/ui/Skeleton";
@@ -87,19 +87,29 @@ export default function AdminProducts() {
         body: uploadData,
       });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.url) {
+          setFormData((prev) => ({ ...prev, image: result.url }));
+          showToast("Local image uploaded successfully!", "success");
+          return;
+        }
       }
-
-      const result = await response.json();
-      if (result.success && result.url) {
-        setFormData((prev) => ({ ...prev, image: result.url }));
-      } else {
-        throw new Error(result.error || "Failed to upload image");
-      }
+      throw new Error("Server upload returned unsuccessful response");
     } catch (err) {
-      console.error(err);
-      setUploadError(err instanceof Error ? err.message : "Failed to upload image");
+      console.warn("Server upload failed, converting file locally via FileReader:", err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setFormData((prev) => ({ ...prev, image: event.target!.result as string }));
+          showToast("Local image loaded successfully!", "success");
+        }
+      };
+      reader.onerror = () => {
+        setUploadError("Failed to read local file.");
+        showToast("Failed to load local file.", "error");
+      };
+      reader.readAsDataURL(file);
     } finally {
       setIsUploading(false);
     }
@@ -582,15 +592,66 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-secondary mb-1">Image URL *</label>
+              <div className="space-y-2 border-t border-light pt-3">
+                <label className="block text-xs font-semibold text-secondary mb-1">Product Image *</label>
+                
+                {/* Local File Upload Button & File Input */}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 border border-primary text-primary text-xs font-semibold hover:bg-primary/5 transition-all select-none rounded-sm">
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    {isUploading ? "Uploading Local Image..." : "Upload Image from Device"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-xs text-secondary">or enter URL below</span>
+                </div>
+
+                {uploadError && (
+                  <p className="text-xs text-error font-medium">{uploadError}</p>
+                )}
+
                 <input
                   type="text"
                   required
+                  placeholder="https://... or upload local image above"
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-default focus:outline-none focus:ring-1 focus:ring-primary bg-background text-primary"
                 />
+
+                {/* Selected Image Preview */}
+                {formData.image && (
+                  <div className="mt-2 flex items-center gap-3 p-2.5 border border-light bg-surface-alt rounded-sm">
+                    <img
+                      src={getProductImageUrl(formData.image)}
+                      alt="Product Preview"
+                      className="h-14 w-14 object-cover rounded border border-default shrink-0 bg-background"
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                    <div className="text-xs text-secondary overflow-hidden flex-1 min-w-0">
+                      <p className="font-semibold text-primary truncate flex items-center gap-1">
+                        <ImageIcon className="h-3.5 w-3.5 text-accent" /> Image Ready
+                      </p>
+                      <p className="truncate text-[11px] text-secondary mt-0.5">{formData.image.startsWith('data:') ? 'Local file uploaded' : formData.image}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, image: "" }))}
+                      className="text-xs text-error hover:underline shrink-0 font-medium px-2 py-1 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 flex justify-end gap-3 border-t border-light">
