@@ -35,9 +35,9 @@ export const client =
   globalForDb.postgresClient ||
   postgres(connectionString, {
     prepare: false,
-    max: 3,
-    idle_timeout: 3,
-    connect_timeout: 10,
+    max: 10,
+    idle_timeout: 30,
+    connect_timeout: 15,
     onnotice: () => {},
   });
 
