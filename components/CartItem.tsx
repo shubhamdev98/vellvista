@@ -18,6 +18,7 @@ interface CartItemProps {
 
 const CartItem: React.FC<CartItemProps> = React.memo(({ item, updateQuantity, removeItem }) => {
   const { formatPrice } = useCurrency();
+  const safePrice = typeof item.price === "number" && !isNaN(item.price) ? item.price : parseFloat(String(item.price ?? 0)) || 0;
   return (
         <div className="flex items-center gap-3 mb-4 py-2 border-b border-gray-200 last:border-0">
           <div className="w-14 h-14 sm:w-16 sm:h-16 relative shrink-0">
@@ -25,7 +26,7 @@ const CartItem: React.FC<CartItemProps> = React.memo(({ item, updateQuantity, re
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-light text-primary truncate">{item.name}</h3>
-            <p className="text-sm text-secondary">{formatPrice(item.price)}</p>
+            <p className="text-sm text-secondary">{formatPrice(safePrice)}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <button

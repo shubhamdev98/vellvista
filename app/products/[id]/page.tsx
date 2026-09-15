@@ -373,39 +373,49 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               </div>
 
               {/* Rating - based on real reviews only */}
-              {reviews.length > 0 ? (
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="flex items-center">
-                    {renderStars(
-                      Math.round(
-                        reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length * 10
-                      ) / 10
-                    )}
-                  </div>
-                  <span className="text-primary/70">
-                    {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)} ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
-                  </span>
-                </div>
-              ) : (
-                <p className="text-primary/50 text-sm mb-4">No reviews yet</p>
-              )}
+              {(() => {
+                const totalRating = reviews.reduce((sum, r) => sum + (typeof r.rating === "number" && !isNaN(r.rating) ? r.rating : 5), 0);
+                const avgRatingRaw = reviews.length > 0 ? totalRating / reviews.length : 0;
+                const avgRating = isNaN(avgRatingRaw) ? 0 : avgRatingRaw;
+                const prodPriceNum = typeof product.price === "number" ? product.price : parseFloat(String(product.price ?? 0)) || 0;
+                const origPriceNum = product.originalPrice ? (typeof product.originalPrice === "number" ? product.originalPrice : parseFloat(String(product.originalPrice))) : null;
+                const safeOrigPriceNum = origPriceNum && !isNaN(origPriceNum) ? origPriceNum : null;
+                const savingsNum = safeOrigPriceNum && safeOrigPriceNum > prodPriceNum ? safeOrigPriceNum - prodPriceNum : 0;
 
-              {/* Price */}
-              <div className="flex items-center space-x-3 mb-6">
-                <span className="text-3xl font-semibold text-primary">
-                  {formatPrice(Number(product.price))}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-xl text-primary/50 line-through">
-                    {formatPrice(Number(product.originalPrice))}
-                  </span>
-                )}
-                {product.originalPrice && (
-                  <span className="bg-primary text-inverse px-3 py-1 text-sm font-semibold">
-                    Save {formatPrice(Number(product.originalPrice) - Number(product.price))}
-                  </span>
-                )}
-              </div>
+                return (
+                  <>
+                    {reviews.length > 0 ? (
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="flex items-center">
+                          {renderStars(Math.round(avgRating * 10) / 10)}
+                        </div>
+                        <span className="text-primary/70">
+                          {avgRating.toFixed(1)} ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-primary/50 text-sm mb-4">No reviews yet</p>
+                    )}
+
+                    {/* Price */}
+                    <div className="flex items-center space-x-3 mb-6">
+                      <span className="text-3xl font-semibold text-primary">
+                        {formatPrice(prodPriceNum)}
+                      </span>
+                      {safeOrigPriceNum && (
+                        <span className="text-xl text-primary/50 line-through">
+                          {formatPrice(safeOrigPriceNum)}
+                        </span>
+                      )}
+                      {safeOrigPriceNum && savingsNum > 0 && (
+                        <span className="bg-primary text-inverse px-3 py-1 text-sm font-semibold">
+                          Save {formatPrice(savingsNum)}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
 
               {/* Description */}
               <p className="text-primary/70 mb-6 leading-relaxed">

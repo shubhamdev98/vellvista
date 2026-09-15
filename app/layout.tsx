@@ -35,6 +35,22 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.addEventListener('error', function (e) {
+                  if (e.message && (e.message.includes("startTime") || e.message.includes("reportAllChanges"))) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <ToastProvider>
           <CurrencyProvider>

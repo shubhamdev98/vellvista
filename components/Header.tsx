@@ -332,13 +332,18 @@ function CartSidebar({
   const { formatPrice } = useCurrency();
   const [couponInput, setCouponInput] = useState('');
   const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => {
+      const p = typeof item.price === "number" && !isNaN(item.price) ? item.price : parseFloat(String(item.price ?? 0)) || 0;
+      const q = typeof item.quantity === "number" && !isNaN(item.quantity) ? item.quantity : 1;
+      return sum + p * q;
+    },
     0,
   );
-  const subtotal = total;
+  const subtotal = isNaN(total) ? 0 : total;
   const TAX_RATE = 0.08;
+  const safeDiscountRate = typeof discountRate === "number" && !isNaN(discountRate) ? discountRate : 0;
   const taxAmount = subtotal * TAX_RATE;
-  const discountAmount = subtotal * discountRate;
+  const discountAmount = subtotal * safeDiscountRate;
   const grandTotal = subtotal + taxAmount - discountAmount;
 
   useEffect(() => {

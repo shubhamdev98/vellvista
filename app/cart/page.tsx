@@ -37,10 +37,16 @@ export default function CartPage() {
     groupedItemsMap.get(storeName)!.push(item);
   });
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const calculatedSubtotal = items.reduce((sum, i) => {
+    const p = typeof i.price === "number" && !isNaN(i.price) ? i.price : parseFloat(String(i.price ?? 0)) || 0;
+    const q = typeof i.quantity === "number" && !isNaN(i.quantity) ? i.quantity : 1;
+    return sum + p * q;
+  }, 0);
+  const subtotal = isNaN(calculatedSubtotal) ? 0 : calculatedSubtotal;
   const TAX_RATE = 0.08;
+  const safeDiscountRate = typeof discountRate === "number" && !isNaN(discountRate) ? discountRate : 0;
   const tax = subtotal * TAX_RATE;
-  const discount = subtotal * discountRate;
+  const discount = subtotal * safeDiscountRate;
   const total = subtotal + tax - discount;
 
   const handleApply = () => {
@@ -86,7 +92,12 @@ export default function CartPage() {
           <div className="space-y-8">
             {/* Vendor Grouped Cart Display */}
             {Array.from(groupedItemsMap.entries()).map(([storeName, vendorGroupItems]) => {
-              const vendorSubtotal = vendorGroupItems.reduce((s, item) => s + item.price * item.quantity, 0);
+              const vendorSubtotalRaw = vendorGroupItems.reduce((s, item) => {
+                const p = typeof item.price === "number" && !isNaN(item.price) ? item.price : parseFloat(String(item.price ?? 0)) || 0;
+                const q = typeof item.quantity === "number" && !isNaN(item.quantity) ? item.quantity : 1;
+                return s + p * q;
+              }, 0);
+              const vendorSubtotal = isNaN(vendorSubtotalRaw) ? 0 : vendorSubtotalRaw;
               return (
                 <div key={storeName} className="border border-light rounded-xl overflow-hidden bg-surface shadow-sm space-y-2">
                   {/* Vendor Store Header */}

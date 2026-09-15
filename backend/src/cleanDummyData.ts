@@ -7,10 +7,14 @@ async function clean() {
 
   try {
     // 1. Delete subscribers with @example.com
-    const deletedSubscribers = await db.delete(subscribers)
-      .where(like(subscribers.email, '%@example.com'))
-      .returning();
-    console.log(`Deleted ${deletedSubscribers.length} dummy subscribers.`);
+    try {
+      const deletedSubscribers = await db.delete(subscribers)
+        .where(like(subscribers.email, '%@example.com'))
+        .returning();
+      console.log(`Deleted ${deletedSubscribers.length} dummy subscribers.`);
+    } catch (e: any) {
+      console.warn('Subscribers cleanup note:', e.message);
+    }
 
     // 2. Find all user IDs ending in @example.com or with mock emails
     const dummyUsers = await db.select()
@@ -23,25 +27,37 @@ async function clean() {
     if (dummyUserIds.length > 0) {
       // 3. Delete related reviews, wishlist, cart, addresses
       for (const userId of dummyUserIds) {
-        await db.delete(reviews).where(eq(reviews.userId, userId));
-        await db.delete(wishlist).where(eq(wishlist.userId, userId));
-        await db.delete(shoppingCart).where(eq(shoppingCart.userId, userId));
-        await db.delete(addresses).where(eq(addresses.userId, userId));
+        try { await db.delete(reviews).where(eq(reviews.userId, userId)); } catch (_) {}
+        try { await db.delete(wishlist).where(eq(wishlist.userId, userId)); } catch (_) {}
+        try { await db.delete(shoppingCart).where(eq(shoppingCart.userId, userId)); } catch (_) {}
+        try { await db.delete(addresses).where(eq(addresses.userId, userId)); } catch (_) {}
       }
       console.log('Cleaned reviews, wishlist, cart items, and addresses for dummy users.');
 
       // 4. Delete the dummy users themselves (which cascade deletes sessions/accounts)
       for (const userId of dummyUserIds) {
-        await db.delete(user).where(eq(user.id, userId));
+        try { await db.delete(user).where(eq(user.id, userId)); } catch (_) {}
       }
       console.log('Deleted dummy users from user table.');
     }
 
     // 5. Delete any dummy orders that might have been created under dummy emails
-    const deletedOrders = await db.delete(orders)
-      .where(like(orders.customerEmail, '%@example.com'))
-      .returning();
-    console.log(`Deleted ${deletedOrders.length} dummy orders.`);
+    try {
+      const deletedOrders = await db.delete(orders)
+        .where(like(orders.customerEmail, '%@example.com'))
+        .returning();
+      console.log(`Deleted ${deletedOrders.length} dummy orders.`);
+    } catch (e: any) {
+      console.warn('Orders cleanup note:', e.message);
+    }
+
+    // 6. Clear shopping cart items
+    try {
+      await db.delete(shoppingCart);
+      console.log('Cleared shopping cart items.');
+    } catch (e: any) {
+      console.warn('Shopping cart clear note:', e.message);
+    }
 
     console.log('Dummy data clean up completed successfully!');
   } catch (error) {

@@ -150,9 +150,13 @@ function ProductCard({
 }: ProductCardProps) {
   const [clicked, setClicked] = useState(false);
 
-  const discountPercent = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const safePrice = typeof product.price === "number" && !isNaN(product.price) ? product.price : parseFloat(String(product.price ?? 0)) || 0;
+  const safeOrigPrice = product.originalPrice ? (typeof product.originalPrice === "number" && !isNaN(product.originalPrice) ? product.originalPrice : parseFloat(String(product.originalPrice)) || undefined) : undefined;
+  
+  const discountPercent = (safeOrigPrice && safeOrigPrice > safePrice)
+    ? Math.round(((safeOrigPrice - safePrice) / safeOrigPrice) * 100)
     : 0;
+  const safeDiscountPercent = isNaN(discountPercent) ? 0 : discountPercent;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -266,15 +270,15 @@ function ProductCard({
         {/* Price Row */}
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-sm font-semibold text-secondary">
-            {formatPrice(product.price)}
+            {formatPrice(safePrice)}
           </span>
-          {product.originalPrice && (
+          {safeOrigPrice && (
             <>
               <span className="text-xs text-secondary/60 line-through font-light">
-                {formatPrice(product.originalPrice)}
+                {formatPrice(safeOrigPrice)}
               </span>
               <span className="text-[10px] font-semibold text-error">
-                {discountPercent}% off
+                {safeDiscountPercent}% off
               </span>
             </>
           )}
@@ -310,19 +314,30 @@ export default function ProductGrid({
         const data = await trpc.getProducts({ limit: 50 });
         if (data && data.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const mapped = data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            brand: p.brand,
-            price: parseFloat(p.price),
-            originalPrice: p.originalPrice ? parseFloat(p.originalPrice) : undefined,
-            rating: parseFloat(p.rating || "5"),
-            reviews: p.reviews || 0,
-            image: p.image,
-            isNew: p.isNew || false,
-            isSale: p.isSale || false,
-            category: p.category || "unisex",
-          }));
+          const mapped = data.map((p: any) => {
+            const parsedPrice = typeof p.price === "number" ? p.price : parseFloat(String(p.price ?? 0));
+            const safePPrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+            const parsedOrig = p.originalPrice ? (typeof p.originalPrice === "number" ? p.originalPrice : parseFloat(String(p.originalPrice))) : undefined;
+            const safePOrig = parsedOrig !== undefined && !isNaN(parsedOrig) ? parsedOrig : undefined;
+            const parsedRating = typeof p.rating === "number" ? p.rating : parseFloat(String(p.rating ?? "5"));
+            const safePRating = isNaN(parsedRating) ? 5 : parsedRating;
+            const parsedReviews = parseInt(String(p.reviews ?? 0), 10);
+            const safePReviews = isNaN(parsedReviews) ? 0 : parsedReviews;
+
+            return {
+              id: p.id,
+              name: p.name || "",
+              brand: p.brand || "",
+              price: safePPrice,
+              originalPrice: safePOrig,
+              rating: safePRating,
+              reviews: safePReviews,
+              image: p.image || "",
+              isNew: p.isNew || false,
+              isSale: p.isSale || false,
+              category: p.category || "unisex",
+            };
+          });
           setDbProducts(mapped);
         }
       } catch (err) {

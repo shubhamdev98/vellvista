@@ -50,7 +50,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
 
   const subtotal = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return items.reduce((sum, item) => {
+      const p = typeof item.price === "number" && !isNaN(item.price) ? item.price : parseFloat(String(item.price ?? 0)) || 0;
+      const q = typeof item.quantity === "number" && !isNaN(item.quantity) ? item.quantity : 1;
+      return sum + p * q;
+    }, 0);
   }, [items]);
 
   // Re-validate coupon when subtotal changes
@@ -172,14 +176,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const cartData = await trpc.getCart({ userId, sessionId: sessionId || undefined });
-      const mappedItems = cartData.map((item: { productId: number; id: number; product?: { name?: string; price?: string; image?: string }; quantity: number }) => ({
-        id: item.productId,
-        cartItemId: item.id,
-        name: item.product?.name || "",
-        price: parseFloat(item.product?.price || "0"),
-        image: item.product?.image || "",
-        quantity: item.quantity,
-      }));
+      const mappedItems = cartData.map((item: any) => {
+        const rawPrice = item.product?.price ?? item.price;
+        const parsedPrice = typeof rawPrice === "number" ? rawPrice : parseFloat(String(rawPrice ?? "0"));
+        const safePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+        const safeQty = typeof item.quantity === "number" && !isNaN(item.quantity) ? item.quantity : 1;
+        return {
+          id: item.productId || item.id,
+          cartItemId: item.id,
+          name: item.product?.name || item.name || "",
+          price: safePrice,
+          image: item.product?.image || item.image || "",
+          quantity: safeQty,
+        };
+      });
       setItems(mappedItems);
     } catch (error: unknown) {
       if (isNetworkError(error)) {
@@ -207,12 +217,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const tempCartItemId = -Date.now();
     let previousItems: CartItem[] = [];
     
+    const parsedItemPrice = typeof item.price === "number" ? item.price : parseFloat(String(item.price ?? 0));
+    const safeItemPrice = isNaN(parsedItemPrice) ? 0 : parsedItemPrice;
+    
     setItems(prev => {
       previousItems = prev;
       const existingIndex = prev.findIndex(i => i.id === item.id);
       if (existingIndex > -1) {
         return prev.map((i, idx) => 
-          idx === existingIndex ? { ...i, quantity: i.quantity + 1 } : i
+          idx === existingIndex ? { ...i, quantity: (i.quantity || 1) + 1 } : i
         );
       } else {
         return [
@@ -221,7 +234,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             id: item.id,
             cartItemId: tempCartItemId,
             name: item.name,
-            price: item.price,
+            price: safeItemPrice,
             image: item.image,
             quantity: 1,
           },

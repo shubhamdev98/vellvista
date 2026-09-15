@@ -26,8 +26,8 @@ export const CURRENCIES: CurrencyConfig[] = [
 type CurrencyContextType = {
   currency: CurrencyConfig;
   setCurrency: (code: CurrencyCode) => void;
-  formatPrice: (priceInUSD: number) => string;
-  convertPrice: (priceInUSD: number) => number;
+  formatPrice: (priceInUSD: number | string | null | undefined) => string;
+  convertPrice: (priceInUSD: number | string | null | undefined) => number;
   availableCurrencies: CurrencyConfig[];
   setCountryCode: (countryCode: string) => void;
 };
@@ -151,38 +151,45 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
   }, [availableCurrencies, setCountryCode]);
 
-  const convertPrice = useCallback((priceInUSD: number): number => {
-    return priceInUSD * currency.rate;
-  }, [currency.rate]);
+  const convertPrice = useCallback((priceInUSD: number | string | null | undefined): number => {
+    const num = typeof priceInUSD === "number" ? priceInUSD : parseFloat(String(priceInUSD ?? 0));
+    const safePrice = isNaN(num) ? 0 : num;
+    const rate = currency?.rate && !isNaN(currency.rate) ? currency.rate : 1.0;
+    return safePrice * rate;
+  }, [currency?.rate]);
 
-  const formatPrice = useCallback((priceInUSD: number): string => {
+  const formatPrice = useCallback((priceInUSD: number | string | null | undefined): string => {
     const converted = convertPrice(priceInUSD);
-    if (currency.code === "USD") {
-      return `$${converted.toFixed(2)}`;
+    const safeConverted = isNaN(converted) ? 0 : converted;
+    const symbol = currency?.symbol || "$";
+    const code = currency?.code || "USD";
+
+    if (code === "USD") {
+      return `$${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "EUR") {
-      return `€${converted.toFixed(2)}`;
+    if (code === "EUR") {
+      return `€${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "GBP") {
-      return `£${converted.toFixed(2)}`;
+    if (code === "GBP") {
+      return `£${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "CAD") {
-      return `C$${converted.toFixed(2)}`;
+    if (code === "CAD") {
+      return `C$${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "AUD") {
-      return `A$${converted.toFixed(2)}`;
+    if (code === "AUD") {
+      return `A$${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "SGD") {
-      return `S$${converted.toFixed(2)}`;
+    if (code === "SGD") {
+      return `S$${safeConverted.toFixed(2)}`;
     }
-    if (currency.code === "JPY") {
-      return `¥${converted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    if (code === "JPY") {
+      return `¥${safeConverted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     }
-    if (currency.code === "MXN") {
-      return `MX$${converted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    if (code === "MXN") {
+      return `MX$${safeConverted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     }
-    return `${currency.symbol}${converted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  }, [currency.code, currency.symbol, convertPrice]);
+    return `${symbol}${safeConverted.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  }, [currency?.code, currency?.symbol, convertPrice]);
 
   const value = useMemo(
     () => ({ currency, setCurrency, formatPrice, convertPrice, availableCurrencies, setCountryCode }),

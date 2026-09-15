@@ -181,14 +181,21 @@ export default function CheckoutPage() {
   }, []);
 
   // Calculate pricing summary
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const rawSubtotal = items.reduce((sum, i) => {
+    const p = typeof i.price === "number" && !isNaN(i.price) ? i.price : parseFloat(String(i.price ?? 0)) || 0;
+    const q = typeof i.quantity === "number" && !isNaN(i.quantity) ? i.quantity : 1;
+    return sum + p * q;
+  }, 0);
+  const subtotal = isNaN(rawSubtotal) ? 0 : rawSubtotal;
   const TAX_RATE = 0.08;
+  const safeDiscountRate = typeof discountRate === "number" && !isNaN(discountRate) ? discountRate : 0;
   const tax = subtotal * TAX_RATE;
-  const discount = subtotal * discountRate;
+  const discount = subtotal * safeDiscountRate;
 
   const activeShippingMethod = shippingMethodsList.find(m => m.id === selectedShippingMethodId);
   const isFreeStandard = activeShippingMethod && subtotal >= 50 && activeShippingMethod.name.toLowerCase().includes("standard");
-  const shippingCost = activeShippingMethod ? (isFreeStandard ? 0 : parseFloat(activeShippingMethod.cost)) : 0;
+  const rawShippingCost = activeShippingMethod ? (isFreeStandard ? 0 : parseFloat(activeShippingMethod.cost)) : 0;
+  const shippingCost = isNaN(rawShippingCost) ? 0 : rawShippingCost;
 
   const total = subtotal + tax - discount + shippingCost;
 
