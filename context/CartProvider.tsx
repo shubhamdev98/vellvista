@@ -18,8 +18,8 @@ type CartContextType = {
   items: CartItem[];
   totalItems: number;
   addItem: (item: Omit<CartItem, "quantity" | "cartItemId">) => Promise<void>;
-  removeItem: (cartItemId: number) => Promise<void>;
-  updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
+  removeItem: (cartItemId: number, productId?: number) => Promise<void>;
+  updateQuantity: (cartItemId: number, quantity: number, productId?: number) => Promise<void>;
   clearCart: () => Promise<void>;
   isLoading: boolean;
   requiresLogin: boolean;
@@ -176,21 +176,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const cartData = await trpc.getCart({ userId, sessionId: sessionId || undefined });
-      const mappedItems = cartData.map((item: any) => {
+      
+      // Deduplicate items by product ID to prevent repetitive duplicate rows
+      const mergedMap = new Map<number, CartItem>();
+      
+      cartData.forEach((item: any) => {
+        const productId = item.productId || item.product?.id || item.id;
         const rawPrice = item.product?.price ?? item.price;
         const parsedPrice = typeof rawPrice === "number" ? rawPrice : parseFloat(String(rawPrice ?? "0"));
         const safePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
         const safeQty = typeof item.quantity === "number" && !isNaN(item.quantity) ? item.quantity : 1;
-        return {
-          id: item.productId || item.id,
-          cartItemId: item.id,
-          name: item.product?.name || item.name || "",
-          price: safePrice,
-          image: item.product?.image || item.image || "",
-          quantity: safeQty,
-        };
+        const cartItemId = item.id || productId;
+
+        if (mergedMap.has(productId)) {
+          const existing = mergedMap.get(productId)!;
+          existing.quantity += safeQty;
+          // Prefer positive database cartItemId
+          if (cartItemId > 0) {
+            existing.cartItemId = cartItemId;
+          }
+        } else {
+          mergedMap.set(productId, {
+            id: productId,
+            cartItemId: cartItemId,
+            name: item.product?.name || item.name || "",
+            price: safePrice,
+            image: item.product?.image || item.image || "",
+            quantity: safeQty,
+            vendorStoreName: item.product?.vendorStoreName || item.vendorStoreName || "VellVista Flagship Store",
+          } as any);
+        }
       });
-      setItems(mappedItems);
+
+      setItems(Array.from(mergedMap.values()));
     } catch (error: unknown) {
       if (isNetworkError(error)) {
         if (!hasWarnedBackendUnavailable.current) {
@@ -222,10 +240,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     
     setItems(prev => {
       previousItems = prev;
-      const existingIndex = prev.findIndex(i => i.id === item.id);
-      if (existingIndex > -1) {
-        return prev.map((i, idx) => 
-          idx === existingIndex ? { ...i, quantity: (i.quantity || 1) + 1 } : i
+      const existing = prev.find(i => i.id === item.id);
+      if (existing) {
+        return prev.map(i => 
+          i.id === item.id ? { ...i, quantity: (i.quantity || 1) + 1 } : i
         );
       } else {
         return [
@@ -237,7 +255,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             price: safeItemPrice,
             image: item.image,
             quantity: 1,
-          },
+            vendorStoreName: (item as any).vendorStoreName || "VellVista Flagship Store",
+          } as any,
         ];
       }
     });
@@ -253,7 +272,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       if (res && res.cartItemId) {
         setItems(prev =>
-          prev.map(i => (i.cartItemId === tempCartItemId ? { ...i, cartItemId: res.cartItemId } : i))
+          prev.map(i => (i.id === item.id ? { ...i, cartItemId: res.cartItemId } : i))
         );
       }
     } catch (error) {
@@ -263,34 +282,56 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, sessionId]);
 
-  const removeItem = useCallback(async (cartItemId: number) => {
+  const removeItem = useCallback(async (cartItemId: number, productId?: number) => {
     let previousItems: CartItem[] = [];
     setItems(prev => {
       previousItems = prev;
-      return prev.filter(item => item.cartItemId !== cartItemId);
+      return prev.filter(item => {
+        if (item.cartItemId === cartItemId) return false;
+        if (productId && item.id === productId) return false;
+        if (item.id === cartItemId) return false;
+        return true;
+      });
     });
     try {
-      await trpc.removeFromCart({ id: cartItemId });
+      const targetItem = previousItems.find(i => i.cartItemId === cartItemId || i.id === cartItemId || (productId && i.id === productId));
+      const targetProductId = productId || targetItem?.id;
+      await trpc.removeFromCart({
+        id: cartItemId > 0 ? cartItemId : undefined,
+        productId: targetProductId,
+        userId: user?.id,
+        sessionId: sessionId,
+      });
     } catch (error) {
       console.error("Error removing from cart:", error);
       setItems(previousItems);
     }
-  }, []);
+  }, [user?.id, sessionId]);
 
-  const updateQuantity = useCallback(async (cartItemId: number, quantity: number) => {
+  const updateQuantity = useCallback(async (cartItemId: number, quantity: number, productId?: number) => {
+    if (quantity <= 0) {
+      return removeItem(cartItemId, productId);
+    }
     let previousItems: CartItem[] = [];
-    const newQty = Math.max(1, quantity);
+    const newQty = quantity;
     setItems(prev => {
       previousItems = prev;
-      return prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item);
+      return prev.map(item => {
+        if (item.cartItemId === cartItemId || item.id === cartItemId || (productId && item.id === productId)) {
+          return { ...item, quantity: newQty };
+        }
+        return item;
+      });
     });
     try {
-      await trpc.updateCartItem({ id: cartItemId, quantity: newQty });
+      const targetItem = previousItems.find(i => i.cartItemId === cartItemId || i.id === cartItemId || (productId && i.id === productId));
+      const targetCartItemId = targetItem?.cartItemId && targetItem.cartItemId > 0 ? targetItem.cartItemId : cartItemId;
+      await trpc.updateCartItem({ id: targetCartItemId, quantity: newQty });
     } catch (error) {
       console.error("Error updating cart quantity:", error);
       setItems(previousItems);
     }
-  }, []);
+  }, [removeItem]);
 
   const clearCart = useCallback(async () => {
     let previousItems: CartItem[] = [];

@@ -6,14 +6,15 @@ import { useCurrency } from "../context/CurrencyProvider";
 
 interface CartItemProps {
   item: {
+    id?: number;
     cartItemId: number;
     name: string;
     price: number;
     image: string;
     quantity: number;
   };
-  updateQuantity: (cartItemId: number, quantity: number) => void;
-  removeItem: (cartItemId: number) => void;
+  updateQuantity: (cartItemId: number, quantity: number, productId?: number) => void;
+  removeItem: (cartItemId: number, productId?: number) => void;
 }
 
 const CartItem: React.FC<CartItemProps> = React.memo(({ item, updateQuantity, removeItem }) => {
@@ -30,18 +31,18 @@ const CartItem: React.FC<CartItemProps> = React.memo(({ item, updateQuantity, re
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={() => updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}
-              className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200"
+              onClick={() => updateQuantity(item.cartItemId, item.quantity - 1, item.id)}
+              className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 cursor-pointer"
               aria-label="Decrease quantity"
             >−</button>
             <span className="w-5 text-center text-xs text-primary">{item.quantity}</span>
             <button
-              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-              className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200"
+              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1, item.id)}
+              className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 cursor-pointer"
               aria-label="Increase quantity"
             >+</button>
           </div>
-          <button onClick={() => removeItem(item.cartItemId)} className="p-1 text-muted hover:text-error shrink-0">
+          <button onClick={() => removeItem(item.cartItemId, item.id)} className="p-1 text-muted hover:text-error shrink-0 cursor-pointer">
             <Trash2 className="h-4 w-4" />
           </button>
         </div>

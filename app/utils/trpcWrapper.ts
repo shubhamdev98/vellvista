@@ -175,7 +175,7 @@ export const trpc = {
   updateCartItem: (input: { id: number; quantity: number }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).updateCartItem.mutate(input),
-  removeFromCart: (input: { id: number }) =>
+  removeFromCart: (input: { id?: number; productId?: number; userId?: string; sessionId?: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).removeFromCart.mutate(input),
   clearCart: (input: { userId?: string; sessionId?: string }) =>

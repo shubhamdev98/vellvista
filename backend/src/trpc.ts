@@ -1355,22 +1355,30 @@ export const appRouter = router({
       quantity: z.number().default(1)
     }))
     .mutation(async ({ input }) => {
-      const existingItem = await db.select()
+      const existingItems = await db.select()
         .from(shoppingCart)
         .where(and(
           input.userId ? eq(shoppingCart.userId, input.userId) : eq(shoppingCart.sessionId, input.sessionId || ""),
           eq(shoppingCart.productId, input.productId),
           input.variantId ? eq(shoppingCart.variantId, input.variantId) : undefined
-        ))
-        .limit(1);
+        ));
 
       let cartItemId: number;
-      if (existingItem.length > 0) {
+      if (existingItems.length > 0) {
+        const primaryItem = existingItems[0];
+        const newQuantity = primaryItem.quantity + input.quantity;
         const result = await db.update(shoppingCart)
-          .set({ quantity: existingItem[0].quantity + input.quantity })
-          .where(eq(shoppingCart.id, existingItem[0].id))
+          .set({ quantity: newQuantity })
+          .where(eq(shoppingCart.id, primaryItem.id))
           .returning({ id: shoppingCart.id });
         cartItemId = result[0].id;
+
+        // Clean up duplicate rows for the same product if any exist
+        if (existingItems.length > 1) {
+          for (let i = 1; i < existingItems.length; i++) {
+            await db.delete(shoppingCart).where(eq(shoppingCart.id, existingItems[i].id));
+          }
+        }
       } else {
         const result = await db.insert(shoppingCart).values({
           userId: input.userId,
@@ -1403,9 +1411,31 @@ export const appRouter = router({
     }),
 
   removeFromCart: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({
+      id: z.number().optional(),
+      productId: z.number().optional(),
+      userId: z.string().optional(),
+      sessionId: z.string().optional(),
+    }))
     .mutation(async ({ input }) => {
-      await db.delete(shoppingCart).where(eq(shoppingCart.id, input.id));
+      if (input.id && input.id > 0) {
+        await db.delete(shoppingCart).where(eq(shoppingCart.id, input.id));
+      }
+      if (input.productId) {
+        if (input.userId) {
+          await db.delete(shoppingCart).where(and(
+            eq(shoppingCart.productId, input.productId),
+            eq(shoppingCart.userId, input.userId)
+          ));
+        } else if (input.sessionId) {
+          await db.delete(shoppingCart).where(and(
+            eq(shoppingCart.productId, input.productId),
+            eq(shoppingCart.sessionId, input.sessionId)
+          ));
+        } else {
+          await db.delete(shoppingCart).where(eq(shoppingCart.productId, input.productId));
+        }
+      }
       return { success: true, message: 'Removed from cart' };
     }),
 

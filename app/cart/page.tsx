@@ -122,18 +122,18 @@ export default function CartPage() {
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded"
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1, item.id)}
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer"
                           >−</button>
                           <span className="w-6 text-center text-xs text-primary font-semibold">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded"
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1, item.id)}
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer"
                           >+</button>
                         </div>
                         <button
-                          onClick={() => removeItem(item.cartItemId)}
-                          className="p-1.5 text-muted hover:text-error flex-shrink-0"
+                          onClick={() => removeItem(item.cartItemId, item.id)}
+                          className="p-1.5 text-muted hover:text-error flex-shrink-0 cursor-pointer"
                           aria-label="Remove item"
                         >
                           <Trash2 className="h-4 w-4" />
