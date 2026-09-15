@@ -307,6 +307,26 @@ export default function ProductGrid({
   const [isDoubleColumn, setIsDoubleColumn] = useState(true);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
+
+  useEffect(() => {
+    const footerEl = document.querySelector("footer");
+    if (!footerEl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsFooterVisible(entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.05,
+      }
+    );
+
+    observer.observe(footerEl);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchDbProducts = async () => {
@@ -726,7 +746,13 @@ export default function ProductGrid({
 
       {/* Mobile Sticky Bottom Action Bar */}
       {!limit && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-default flex md:hidden h-12 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-default flex md:hidden h-12 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] transition-all duration-300 transform ${
+            isFooterVisible
+              ? "translate-y-full opacity-0 pointer-events-none"
+              : "translate-y-0 opacity-100 pointer-events-auto"
+          }`}
+        >
           <button
             onClick={() => setIsDoubleColumn(!isDoubleColumn)}
             className="flex-1 flex items-center justify-center gap-2 border-r border-default hover:bg-background-muted active:bg-background-muted text-primary text-sm font-medium transition-colors cursor-pointer"
