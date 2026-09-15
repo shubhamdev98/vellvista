@@ -73,12 +73,6 @@ export default function CartPage() {
       <Header />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
         <Breadcrumb items={breadcrumbItems} />
-        
-        <div className="flex items-center justify-between border-b pb-4">
-          <h1 className="text-2xl font-semibold text-primary flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6 text-accent" /> Multi-Vendor Shopping Cart ({totalItems} items)
-          </h1>
-        </div>
 
         {items.length === 0 ? (
           <div className="text-center py-16 space-y-4">
