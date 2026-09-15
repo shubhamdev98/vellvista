@@ -76,3 +76,6 @@ CREATE TABLE IF NOT EXISTS "commissions" (
 	"description" text DEFAULT 'Global platform commission percentage',
 	"updated_at" timestamp DEFAULT now()
 );
+
+ALTER TABLE "coupons" ADD COLUMN IF NOT EXISTS "vendor_id" integer;
+
