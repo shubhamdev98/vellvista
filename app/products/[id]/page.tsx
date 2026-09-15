@@ -352,22 +352,18 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <p className="text-xl text-primary/70 mb-4">{product.brand}</p>
 
               {/* Vendor Store Information */}
-              <div className="bg-background-muted p-4 rounded-xl border border-light flex items-center justify-between my-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                    🏪
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-muted uppercase tracking-wider font-semibold">Sold & Shipped by</span>
-                    <h4 className="font-bold text-sm text-primary">{product.vendorStoreName || "VellVista Flagship Store"}</h4>
-                  </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-light/60 mb-5 text-sm">
+                <div className="flex items-center space-x-1.5 text-xs">
+                  <span className="text-secondary font-medium">Sold & Shipped by</span>
+                  <span className="text-secondary font-medium">•</span>
+                  <span className="font-semibold text-primary">{product.vendorStoreName || "VellVista Flagship Store"}</span>
                 </div>
                 {product.vendorSlug && (
                   <Link
                     href={`/store/${product.vendorSlug}`}
-                    className="px-3.5 py-1.5 rounded-lg bg-primary text-inverse hover:opacity-90 transition-opacity text-xs font-semibold"
+                    className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
                   >
-                    Visit Store
+                    Visit Store &rarr;
                   </Link>
                 )}
               </div>
