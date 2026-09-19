@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -42,6 +42,16 @@ export default function VendorApplyPage() {
     taxId: '',
     bankDetails: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        ownerName: prev.ownerName || user.fullName || '',
+        email: prev.email || user.email || '',
+      }));
+    }
+  }, [user]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -110,7 +120,7 @@ export default function VendorApplyPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-light p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-default p-8">
           <AlertCircle className="w-12 h-12 text-primary mx-auto" />
           <h2 className="text-xl font-semibold text-primary">Authentication Required</h2>
           <p className="text-secondary text-sm">Please sign in to apply for a vendor account.</p>
@@ -128,7 +138,7 @@ export default function VendorApplyPage() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6 bg-surface border border-light p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-6 bg-surface border border-default p-8">
           <div className="w-16 h-16 bg-success-light border border-success/30 rounded-full flex items-center justify-center mx-auto text-success-dark">
             <CheckCircle2 className="w-8 h-8" />
           </div>
@@ -139,7 +149,7 @@ export default function VendorApplyPage() {
           <div className="pt-4 flex flex-col gap-3">
             <Link
               href="/vendor/dashboard"
-              className="w-full py-3 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-sm transition-all shadow-sm"
+              className="w-full py-3 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-sm transition-all"
             >
               Go to Vendor Dashboard
             </Link>
@@ -156,11 +166,9 @@ export default function VendorApplyPage() {
     <div className="min-h-screen bg-background-muted py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-5xl mx-auto space-y-12">
         {/* Header Hero Section */}
-        <div className="relative overflow-hidden bg-surface p-8 sm:p-12 border border-light shadow-sm">
+        <div className="relative overflow-hidden bg-surface p-8 sm:p-12 border border-default">
           <div className="relative z-10 space-y-4 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-background-alt border border-default text-primary text-xs font-medium uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> Partner with VellVista
-            </div>
+            
             <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight text-primary">
               Expand Your Brand on VellVista Marketplace
             </h1>
@@ -204,7 +212,7 @@ export default function VendorApplyPage() {
         </div>
 
         {/* Onboarding Form */}
-        <form onSubmit={handleSubmit} className="bg-surface border border-light p-8 sm:p-10 shadow-sm space-y-8">
+        <form onSubmit={handleSubmit} className="bg-surface border border-default p-8 sm:p-10 space-y-8">
           <div className="border-b border-light pb-6">
             <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
               <Store className="w-5 h-5 text-primary" /> Store & Business Information
@@ -375,7 +383,7 @@ export default function VendorApplyPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-base transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-base transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
                 'Submitting Application...'

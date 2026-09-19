@@ -17,7 +17,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-lg shadow-sm",
           variants[variant],
           className
         )}
