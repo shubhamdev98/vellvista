@@ -182,6 +182,10 @@ export default function Header() {
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-5 border-b border-border-light">
             <div className="flex items-center gap-3">
+              {/* Menu label for Desktop mode */}
+              <span className="hidden md:block font-manrope text-sm font-semibold tracking-wider text-secondary uppercase">
+                Menu
+              </span>
               {/* Country / Currency Selector (Mobile only: shown at top of side menu) */}
               <div className="md:hidden">
                 <CurrencySelector />
