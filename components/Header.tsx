@@ -97,8 +97,10 @@ export default function Header() {
 
           {/* Right: Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Country / Currency Selector */}
-            <CurrencySelector />
+            {/* Country / Currency Selector (Desktop only) */}
+            <div className="hidden md:block">
+              <CurrencySelector />
+            </div>
 
             {/* Desktop Search Bar */}
             <form onSubmit={handleSearchSubmit} className="hidden md:block relative">
@@ -179,9 +181,12 @@ export default function Header() {
         <div className="flex flex-col h-full font-inter">
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-5 border-b border-border-light">
-            <span className="font-manrope text-sm font-semibold tracking-wider text-secondary uppercase">
-              Menu
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Country / Currency Selector (Mobile only: shown at top of side menu) */}
+              <div className="md:hidden">
+                <CurrencySelector />
+              </div>
+            </div>
             <button
               onClick={() => setIsDrawerOpen(false)}
               className="p-1 hover:opacity-70 transition-opacity text-primary cursor-pointer"

@@ -23,21 +23,19 @@ export default function CategorySection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading Skeleton */}
-          <div className="mb-8 md:mb-12 font-inter animate-pulse">
-            <div className="h-3 bg-surface-alt rounded w-24 mb-2" />
-            <div className="h-9 bg-surface-alt rounded w-64" />
+          <div className="mb-6 md:mb-8 font-inter animate-pulse">
+            <div className="h-3 bg-surface-alt w-24 mb-2" />
+            <div className="h-9 bg-surface-alt w-64" />
           </div>
 
-          {/* Bento Grid Skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-            {/* Bento item 1 */}
-            <div className="col-span-1 md:col-span-2 row-span-2 bg-surface-alt h-[400px]" />
-            {/* Bento item 2 */}
-            <div className="col-span-1 bg-surface-alt h-[192px]" />
-            {/* Bento item 3 */}
-            <div className="col-span-1 bg-surface-alt h-[192px]" />
-            {/* Bento item 4 */}
-            <div className="col-span-1 md:col-span-2 bg-surface-alt h-[192px]" />
+          {/* Horizontal Row Skeleton */}
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar pb-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="w-[240px] sm:w-[280px] md:w-[320px] h-[320px] sm:h-[360px] bg-surface-alt animate-pulse shrink-0"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -62,32 +60,36 @@ export default function CategorySection() {
           </h2>
         </div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Horizontal Scrollable Row with Rounded Images */}
+        <div className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar pb-4 pt-1 snap-x snap-mandatory">
           {categories.map((item) => (
             <button
               key={item.id}
               onClick={() => handleCategoryClick(item.categorySlug)}
-              className={`${item.gridSpan || "col-span-1"} group relative overflow-hidden bg-surface-alt ${item.height || "h-[192px]"} text-left w-full cursor-pointer focus:outline-none`}
+              className="group relative w-[240px] sm:w-[280px] md:w-[320px] h-[320px] sm:h-[360px] md:h-[400px] shrink-0 overflow-hidden bg-surface-alt text-left cursor-pointer focus:outline-none shadow-md hover:shadow-xl transition-all duration-500 snap-start"
             >
+              {/* Rounded Image Container */}
               <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
                 <Image
                   src={getProductImageUrl(item.image)}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 768px) 280px, 320px"
                   className="object-cover object-center"
                 />
               </div>
-              {/* Soft dark overlay */}
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors duration-300" />
-              <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 font-inter z-10">
+
+              {/* Gradient Dark Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors duration-300" />
+
+              {/* Text overlay */}
+              <div className="absolute bottom-5 left-5 right-5 md:bottom-6 md:left-6 md:right-6 font-inter z-10">
                 {item.subtitle && (
-                  <p className="font-label-caps text-[9px] md:text-[10px] text-white/90 tracking-wider mb-1 font-semibold">
+                  <p className="font-label-caps text-[10px] md:text-xs text-white/90 tracking-wider mb-1 font-semibold uppercase">
                     {item.subtitle}
                   </p>
                 )}
-                <h3 className="font-headline-md text-lg md:text-2xl text-white font-semibold font-manrope">
+                <h3 className="font-headline-md text-xl sm:text-2xl text-white font-bold font-manrope leading-snug">
                   {item.title}
                 </h3>
               </div>

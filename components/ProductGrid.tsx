@@ -451,6 +451,9 @@ export default function ProductGrid({
             limit ? "" : "border-b border-border-light pb-4"
           }`}>
             <div>
+              <p className="font-label-caps text-xs text-secondary tracking-widest mb-1.5 font-semibold uppercase">
+                FRESH SELECTION
+              </p>
               <h2 className="font-headline-lg text-2xl sm:text-3xl font-bold font-manrope text-primary uppercase tracking-wider">
                 New Arrivals
               </h2>
