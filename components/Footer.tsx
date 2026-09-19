@@ -47,21 +47,21 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-primary-light text-inverse pt-16 pb-8">
+    <footer className="bg-primary-light text-inverse pt-16 pb-0 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 mb-12">
           
           {/* Company Info */}
-          <div className="col-span-2 lg:col-span-1">
-            <div className="relative h-10 w-[7.5rem] mb-4">
+          <div className="col-span-1 lg:pr-8 lg:border-r lg:border-white/10">
+            <div className="relative h-14 w-[11rem] mb-4">
               <Image
                 src={brandLogo}
                 alt={brandName}
                 fill
-                className="object-contain brightness-0 invert"
+                className="object-contain object-left brightness-0 invert"
                 priority
-                sizes="120px"
+                sizes="176px"
               />
             </div>
             <p className="text-muted mb-6 leading-relaxed text-sm">
@@ -84,7 +84,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="col-span-1">
+          <div className="col-span-1 lg:px-8 lg:border-r lg:border-white/10">
             <h3 className="text-lg font-semibold text-inverse mb-4">Quick Links</h3>
             <ul className="space-y-1.5">
               <li><a href="#home" className="text-muted hover:text-inverse transition-colors text-sm">Home</a></li>
@@ -98,7 +98,7 @@ const Footer = () => {
           </div>
 
           {/* Customer Service */}
-          <div className="col-span-1">
+          <div className="col-span-1 lg:px-8 lg:border-r lg:border-white/10">
             <h3 className="text-lg font-semibold text-inverse mb-4">Customer Service</h3>
             <ul className="space-y-1.5">
               <li><a href="#shipping" className="text-muted hover:text-inverse transition-colors text-sm">Shipping & Delivery</a></li>
@@ -112,7 +112,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="col-span-2 lg:col-span-1">
+          <div className="col-span-1 lg:pl-8">
             <h3 className="text-lg font-semibold text-inverse mb-6">Stay Connected</h3>
             <p className="text-muted mb-6 text-sm">Subscribe to receive exclusive offers, new product alerts, and fragrance tips.</p>
             
@@ -123,106 +123,42 @@ const Footer = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-primary border border-dark text-inverse placeholder:text-muted focus:outline-none focus:border-inverse text-sm"
+                  className="flex-1 px-4 py-3 bg-primary border border-white/20 text-inverse placeholder:text-muted focus:outline-none focus:border-white/50 text-sm"
                 />
                 <button
                   type="submit"
-                  className="bg-surface text-primary px-4 py-3 hover:bg-surface-alt transition-colors"
+                  className="bg-surface text-primary border border-transparent hover:bg-transparent hover:text-white hover:border-white transition-all px-4 py-3 flex items-center justify-center cursor-pointer"
                   aria-label="Subscribe to newsletter"
                 >
                   <Send className="h-5 w-5" />
                 </button>
               </div>
             </form>
-
-            {/* Social Media */}
-            <div>
-              <h3 className="text-sm font-semibold text-inverse mb-4">Follow Us</h3>
-              <div className="flex space-x-4">
-                {displayedSocials.map((link, idx) => (
-                  <a
-                    key={idx}
-                    href={link.url}
-                    target={link.url === '#' ? undefined : '_blank'}
-                    rel="noopener noreferrer"
-                    className="hover:opacity-85 transition-opacity"
-                    aria-label={link.name}
-                  >
-                    <Image
-                      src={link.image}
-                      alt={link.name}
-                      width={20}
-                      height={20}
-                      style={{ width: "20px", height: "20px" }}
-                      className="w-5 h-5 object-contain"
-                    />
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
+      </div>
 
-        {/* Features Bar */}
-        <div className="border-t border-white/20 pt-8 mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <div className="flex flex-col items-start w-full">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Free Shipping</h3>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-left pl-7 sm:pl-9">On orders over $50</p>
-            </div>
-            <div className="flex flex-col items-start w-full">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Secure Payment</h3>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-left pl-7 sm:pl-9">100% secure transactions</p>
-            </div>
-            <div className="flex flex-col items-start w-full">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Easy Returns</h3>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-left pl-7 sm:pl-9">30-day return policy</p>
-            </div>
-            <div className="flex flex-col items-start w-full">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-muted shrink-0" />
-                <h3 className="font-semibold text-inverse text-xs sm:text-sm leading-tight">Multiple Payment</h3>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted leading-tight mt-1 text-left pl-7 sm:pl-9">Secure payment methods</p>
-            </div>
-          </div>
-        </div>
+      {/* Giant 100% Width Brand Name Banner (100% full text visible) */}
+      <div className="w-full mt-10 border-t border-white/10 overflow-hidden select-none pointer-events-none leading-none">
+        <svg viewBox="0 0 1000 200" className="w-full h-auto block" preserveAspectRatio="none">
+          <text
+            x="50%"
+            y="50%"
+            textAnchor="middle"
+            dominantBaseline="central"
+            textLength="1000"
+            lengthAdjust="spacingAndGlyphs"
+            className="fill-white font-black uppercase"
+            style={{ fontSize: '180px', fontWeight: 900, fontFamily: 'Arial Black, Impact, sans-serif' }}
+          >
+            {brandName ? brandName.toUpperCase() : 'VELLVISTA'}
+          </text>
+        </svg>
+      </div>
 
-        {/* Bottom Footer */}
-        <div className="border-t border-white/20 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-muted text-sm">
-              <p>&copy; 2026 vellvista. All rights reserved. | Crafted with passion for fragrance lovers</p>
-            </div>
-            
-            {/* Payment Methods */}
-            <div className="flex items-center space-x-4">
-              <span className="text-muted text-sm">We accept:</span>
-              <div className="flex items-center space-x-3">
-                {displayedPayments.map((pm, idx) => (
-                  <Image
-                    key={idx}
-                    src={pm.image}
-                    alt={pm.name}
-                    width={pm.width || 38}
-                    height={20}
-                    style={{ height: "20px", width: "auto" }}
-                    className="h-5 w-auto object-contain"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Copyright Notice below VELLVISTA name */}
+      <div className="w-full bg-primary-light text-center py-4 border-t border-white/10 text-muted text-xs sm:text-sm">
+        <p>&copy; 2026 vellvista. All rights reserved. | Crafted with passion for fragrance lovers</p>
       </div>
     </footer>
   );
