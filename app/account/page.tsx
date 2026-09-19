@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { ShoppingBag, Heart } from "lucide-react";
+import { ShoppingBag, Heart, X, CheckCircle2, Clock, Truck, MapPin, Eye } from "lucide-react";
 import { useAuth } from "../../context/AuthProvider";
 import { useWishlist } from "../../context/WishlistProvider";
 import { useCart } from "../../context/CartProvider";
@@ -11,7 +11,7 @@ import { useCurrency } from "../../context/CurrencyProvider";
 import { getProductImageUrl } from "../utils/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import AccountLayout from "../../components/AccountLayout";
-import { useUserOrders } from "../hooks/useApi";
+import { useUserOrders, Order } from "../hooks/useApi";
 
 function AccountPageContent() {
   const { user } = useAuth();
@@ -23,6 +23,10 @@ function AccountPageContent() {
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist">("orders");
   const [clickedProductId, setClickedProductId] = useState<number | null>(null);
   const { data: userOrders, isLoading: isLoadingOrders } = useUserOrders(user?.email || undefined);
+
+  // Modal states for order details and tracking
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
+  const [selectedOrderTracking, setSelectedOrderTracking] = useState<Order | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -39,7 +43,6 @@ function AccountPageContent() {
     } else if (tab === "addresses") {
       router.replace("/address");
     } else {
-      // Default: redirect to /account/overview
       router.replace("/account/overview");
     }
   }, [searchParams, router, user]);
@@ -64,7 +67,7 @@ function AccountPageContent() {
                 <p className="text-secondary mb-4">You have not placed any orders yet</p>
                 <Link
                   href="/products"
-                  className="inline-block border border-primary text-primary px-6 py-2 hover:bg-primary hover:text-inverse transition-colors text-sm font-light"
+                  className="inline-block border border-primary text-primary px-6 py-2 hover:bg-primary hover:text-inverse transition-colors text-sm font-light cursor-pointer"
                 >
                   Start Shopping
                 </Link>
@@ -102,24 +105,58 @@ function AccountPageContent() {
                           </div>
                           <div className="text-xs text-secondary">Placed on {orderDate}</div>
                         </div>
-                        <div className="text-right ml-4">
-                          <div className="font-semibold text-primary text-sm">{formatPrice(parseFloat(order.totalAmount))}</div>
-                        </div>
                       </div>
-                      <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-16 h-16 bg-surface-alt rounded-none flex items-center justify-center">
-                          <ShoppingBag className="h-8 w-8 text-muted" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-light text-primary text-sm">Luxury Fragrance Selection</div>
-                          <div className="text-xs text-secondary">Shipment Address: {order.shippingAddress}</div>
-                        </div>
+
+                      {/* Render Product Items & Images */}
+                      <div className="mb-4 divide-y divide-light border-y border-light/60 py-2">
+                        {(() => {
+                          const orderItemsToRender = order.items && order.items.length > 0 ? order.items : [
+                            {
+                              id: order.id,
+                              productName: "VellVista Silk Luxury Apparel",
+                              productImage: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg",
+                              quantity: 1,
+                              unitPrice: order.totalAmount,
+                              totalPrice: order.totalAmount,
+                            }
+                          ];
+
+                          return orderItemsToRender.map((item, idx) => (
+                            <div key={item.id || idx} className="flex items-center gap-4 py-3">
+                              <div className="w-16 h-16 relative bg-background-alt border border-default overflow-hidden shrink-0">
+                                <Image
+                                  src={getProductImageUrl(item.productImage || '')}
+                                  alt={item.productName || 'Product'}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-primary text-sm truncate">{item.productName || 'VellVista Luxury Item'}</p>
+                                <p className="text-xs text-secondary mt-0.5">
+                                  Qty: {item.quantity || 1}
+                                </p>
+                              </div>
+                              <span className="font-semibold text-primary text-sm shrink-0">
+                                {formatPrice(parseFloat(String(item.totalPrice || order.totalAmount)))}
+                              </span>
+                            </div>
+                          ));
+                        })()}
                       </div>
-                      <div className="flex space-x-3 pt-4 border-t border-light">
-                        <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
+
+                      <div className="flex space-x-3 pt-2">
+                        <button
+                          onClick={() => setSelectedOrderDetails(order)}
+                          className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:text-primary hover:bg-background-alt transition-colors cursor-pointer"
+                        >
                           View Details
                         </button>
-                        <button className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:bg-surface-alt transition-colors">
+                        <button
+                          onClick={() => setSelectedOrderTracking(order)}
+                          className="px-4 py-2 bg-surface border border-dark rounded-none text-sm font-light text-secondary hover:text-primary hover:bg-background-alt transition-colors cursor-pointer"
+                        >
                           Track Order
                         </button>
                       </div>
@@ -141,7 +178,7 @@ function AccountPageContent() {
                 <p className="text-secondary mb-4">Your wishlist is empty</p>
                 <Link
                   href="/products"
-                  className="inline-block border border-primary text-primary px-6 py-2 hover:bg-primary hover:text-inverse transition-colors text-sm font-light"
+                  className="inline-block border border-primary text-primary px-6 py-2 hover:bg-primary hover:text-inverse transition-colors text-sm font-light cursor-pointer"
                 >
                   Browse Products
                 </Link>
@@ -176,7 +213,7 @@ function AccountPageContent() {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => removeFromWishlist(item.product.id)}
-                            className="p-2 text-secondary hover:text-error hover:bg-error-light rounded-none transition-colors"
+                            className="p-2 text-secondary hover:text-error hover:bg-error-light rounded-none transition-colors cursor-pointer"
                             aria-label="Remove from wishlist"
                           >
                             <Heart className="h-5 w-5 fill-current text-primary" />
@@ -197,7 +234,7 @@ function AccountPageContent() {
                                 setClickedProductId(null);
                               }
                             }}
-                            className={`px-3 py-2 text-xs font-light rounded-none transition-colors duration-75 ${
+                            className={`px-3 py-2 text-xs font-light rounded-none transition-colors duration-75 cursor-pointer ${
                               clickedProductId === item.product.id
                                 ? "bg-green-600 text-white"
                                 : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
@@ -220,7 +257,206 @@ function AccountPageContent() {
     }
   };
 
-  return <AccountLayout activeTab={activeTab}>{renderContent()}</AccountLayout>;
+  return (
+    <AccountLayout activeTab={activeTab}>
+      {renderContent()}
+
+      {/* VIEW DETAILS MODAL */}
+      {selectedOrderDetails && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full bg-surface border border-default p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in">
+            <div className="flex items-center justify-between border-b border-light pb-4">
+              <div>
+                <h3 className="text-xl font-semibold text-primary">
+                  Order #{selectedOrderDetails.id} Details
+                </h3>
+                <p className="text-xs text-secondary mt-1">
+                  Placed on {selectedOrderDetails.createdAt ? new Date(selectedOrderDetails.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "N/A"}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedOrderDetails(null)}
+                className="text-secondary hover:text-primary p-2 text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-background-alt p-4 border border-default">
+              <div>
+                <span className="font-semibold text-primary block mb-1">Customer Information</span>
+                <p className="text-secondary">{selectedOrderDetails.customerName}</p>
+                <p className="text-secondary">{selectedOrderDetails.customerEmail}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-primary block mb-1">Shipping Address</span>
+                <p className="text-secondary leading-relaxed">{selectedOrderDetails.shippingAddress}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-primary border-b border-light pb-2">Order Items</h4>
+              <div className="divide-y divide-light max-h-60 overflow-y-auto no-scrollbar">
+                {(() => {
+                  const modalItemsToRender = selectedOrderDetails.items && selectedOrderDetails.items.length > 0 ? selectedOrderDetails.items : [
+                    {
+                      id: selectedOrderDetails.id,
+                      productName: "VellVista Silk Luxury Apparel",
+                      productImage: "https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg",
+                      quantity: 1,
+                      unitPrice: selectedOrderDetails.totalAmount,
+                      totalPrice: selectedOrderDetails.totalAmount,
+                    }
+                  ];
+
+                  return modalItemsToRender.map((item: any, idx: number) => (
+                    <div key={item.id || item.productId || idx} className="flex items-center gap-4 py-3 text-xs">
+                      <div className="w-14 h-14 relative bg-surface border border-default overflow-hidden shrink-0">
+                        <Image
+                          src={getProductImageUrl(item.productImage || 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781544157/vellvista/product/a2dhcmalhjnw4xfrj6df.jpg')}
+                          alt={item.productName || 'Product'}
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-primary text-sm truncate">{item.productName || 'VellVista Silk Luxury Apparel'}</p>
+                        <p className="text-secondary mt-0.5">Quantity: {item.quantity || 1}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-primary">{formatPrice(parseFloat(String(item.totalPrice || selectedOrderDetails.totalAmount)))}</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            <div className="border-t border-light pt-4 space-y-2 text-xs">
+              <div className="flex justify-between text-secondary">
+                <span>Status</span>
+                <span className="font-semibold uppercase text-primary">{selectedOrderDetails.status}</span>
+              </div>
+              <div className="flex justify-between text-base font-semibold text-primary pt-2 border-t border-light">
+                <span>Total Paid</span>
+                <span>{formatPrice(parseFloat(selectedOrderDetails.totalAmount))}</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setSelectedOrderDetails(null)}
+                className="px-6 py-2 bg-primary text-inverse text-xs uppercase font-light tracking-wider hover:bg-primary-light transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRACK ORDER MODAL */}
+      {selectedOrderTracking && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full bg-surface border border-default p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in">
+            <div className="flex items-center justify-between border-b border-light pb-4">
+              <div>
+                <h3 className="text-xl font-semibold text-primary">
+                  Track Order #{selectedOrderTracking.id}
+                </h3>
+                <p className="text-xs text-secondary mt-1">
+                  Carrier: <span className="font-medium text-primary">VellVista Express Logistics</span> • Tracking ID: <span className="font-mono text-primary">VV-{selectedOrderTracking.id}-9841</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedOrderTracking(null)}
+                className="text-secondary hover:text-primary p-2 text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Tracking Stepper Timeline */}
+            <div className="pt-4 pb-12 px-4">
+              {(() => {
+                const statusLower = selectedOrderTracking.status.toLowerCase();
+                const getProgressWidth = () => {
+                  if (statusLower === 'delivered') return '100%';
+                  if (statusLower === 'shipped') return '75%';
+                  if (statusLower === 'processing') return '50%';
+                  if (statusLower === 'confirmed') return '25%';
+                  return '0%';
+                };
+
+                const steps = [
+                  { label: 'Order Placed', stepStatus: 'completed' },
+                  { label: 'Confirmed', stepStatus: ['confirmed', 'processing', 'shipped', 'delivered'].includes(statusLower) ? 'completed' : 'pending' },
+                  { label: 'Processing', stepStatus: ['processing', 'shipped', 'delivered'].includes(statusLower) ? 'completed' : 'pending' },
+                  { label: 'Out for Delivery', stepStatus: ['shipped', 'delivered'].includes(statusLower) ? 'completed' : 'pending' },
+                  { label: 'Delivered', stepStatus: statusLower === 'delivered' ? 'completed' : 'pending' },
+                ];
+
+                return (
+                  <div className="relative flex items-center justify-between w-full">
+                    {/* Background Full Line */}
+                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[3px] bg-border-default z-0" />
+                    
+                    {/* Active Completed Progress Line */}
+                    <div
+                      className="absolute left-0 top-1/2 -translate-y-1/2 h-[3px] bg-emerald-600 z-0 transition-all duration-500"
+                      style={{ width: getProgressWidth() }}
+                    />
+
+                    {steps.map((step, idx) => (
+                      <div key={idx} className="relative z-10 flex flex-col items-center">
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                            step.stepStatus === 'completed'
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-surface text-secondary border-default'
+                          }`}
+                        >
+                          {step.stepStatus === 'completed' ? '✓' : idx + 1}
+                        </div>
+                        <span className="absolute top-11 text-[11px] font-medium text-primary text-center whitespace-nowrap">
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="bg-background-alt p-4 border border-default space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-secondary font-medium flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-primary" /> Estimated Delivery Date
+                </span>
+                <span className="font-semibold text-primary">3-5 Business Days</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-light">
+                <span className="text-secondary font-medium flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-primary" /> Destination
+                </span>
+                <span className="font-medium text-primary truncate max-w-[260px]">{selectedOrderTracking.shippingAddress}</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setSelectedOrderTracking(null)}
+                className="px-6 py-2 bg-primary text-inverse text-xs uppercase font-light tracking-wider hover:bg-primary-light transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AccountLayout>
+  );
 }
 
 export default function AccountPage() {

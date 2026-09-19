@@ -590,7 +590,7 @@ export default function CheckoutPage() {
           </p>
           <Link
             href="/products"
-            className="bg-primary text-inverse px-8 py-3 hover:bg-primary-light transition-all text-sm font-light uppercase tracking-wider"
+            className="bg-primary text-inverse px-8 py-3 hover:bg-primary-light transition-all text-sm font-light uppercase tracking-wider cursor-pointer"
           >
             Continue Shopping
           </Link>
@@ -669,7 +669,7 @@ export default function CheckoutPage() {
                   {!showAddressForm && (
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="w-full border border-dashed border-dark py-4 text-sm font-light text-secondary hover:text-primary hover:border-primary transition-all bg-surface"
+                      className="w-full border border-dashed border-dark py-4 text-sm font-light text-secondary hover:text-primary hover:border-primary transition-all bg-surface cursor-pointer"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <Plus className="h-4 w-4 shrink-0" />
@@ -697,7 +697,7 @@ export default function CheckoutPage() {
                               setSelectedAddressId(addresses[0].id);
                             }
                           }}
-                          className="text-xs text-secondary hover:underline"
+                          className="text-xs text-secondary hover:underline cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -889,7 +889,7 @@ export default function CheckoutPage() {
                       <button
                         type="submit"
                         disabled={isProcessing}
-                        className="w-full bg-primary text-inverse py-2.5 text-sm hover:bg-primary-light transition-all"
+                        className="w-full bg-primary text-inverse py-2.5 text-sm hover:bg-primary-light transition-all cursor-pointer disabled:cursor-not-allowed"
                       >
                         <span className="flex items-center justify-center gap-2">
                           {isProcessing && <Loader2 className="h-4 w-4 animate-spin shrink-0" />}
@@ -1054,7 +1054,7 @@ export default function CheckoutPage() {
                   />
                   <button
                     onClick={handleApplyCouponCode}
-                    className="bg-primary text-inverse px-4 py-2 text-xs font-light hover:bg-primary-light transition-all uppercase tracking-wider"
+                    className="bg-primary text-inverse px-4 py-2 text-xs font-light hover:bg-primary-light transition-all uppercase tracking-wider cursor-pointer"
                   >
                     Apply
                   </button>
@@ -1066,7 +1066,7 @@ export default function CheckoutPage() {
                       <Sparkles className="h-3 w-3" />
                       Coupon "{couponCode}" Applied
                     </span>
-                    <button onClick={handleRemoveCouponCode} className="text-xs text-error-dark hover:underline">
+                    <button onClick={handleRemoveCouponCode} className="text-xs text-error-dark hover:underline cursor-pointer">
                       Remove
                     </button>
                   </div>
@@ -1103,7 +1103,7 @@ export default function CheckoutPage() {
               <button
                 onClick={executePayment}
                 disabled={isProcessing || addresses.length === 0 && !showAddressForm}
-                className="w-full bg-primary text-inverse py-3 hover:bg-primary-light transition-all font-light uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-inverse py-3 hover:bg-primary-light transition-all font-light uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isProcessing ? (
                   <span className="flex items-center justify-center gap-2">

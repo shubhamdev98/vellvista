@@ -127,10 +127,13 @@ export const trpc = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).subscribeToNewsletter.mutate(input),
 
-  // Avatar mutation
+  // Avatar & Profile mutations
   updateAvatar: (input: { id: string; avatar: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).updateAvatar.mutate(input),
+  updateUserProfile: (input: { id: string; data: any }) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).updateUserProfile.mutate(input),
 
   // Wishlist operations
   getWishlist: (input: { userId: string }) =>

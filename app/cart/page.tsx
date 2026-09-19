@@ -93,9 +93,9 @@ export default function CartPage() {
               }, 0);
               const vendorSubtotal = isNaN(vendorSubtotalRaw) ? 0 : vendorSubtotalRaw;
               return (
-                <div key={storeName} className="border border-light rounded-xl overflow-hidden bg-surface shadow-sm space-y-2">
+                <div key={storeName} className="border border-default overflow-hidden bg-surface space-y-2">
                   {/* Vendor Store Header */}
-                  <div className="bg-background-muted px-4 py-3 border-b border-light flex items-center justify-between">
+                  <div className="bg-background-muted px-4 py-3 border-b border-default flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Store className="w-4 h-4 text-accent" />
                       <span className="text-xs font-bold text-primary">Store: {storeName}</span>
@@ -104,10 +104,10 @@ export default function CartPage() {
                   </div>
 
                   {/* Vendor Product Items */}
-                  <div className="divide-y divide-light px-4">
+                  <div className="divide-y divide-default px-4">
                     {vendorGroupItems.map((item) => (
                       <div key={item.cartItemId} className="flex items-center gap-4 py-4">
-                        <div className="w-16 h-16 relative flex-shrink-0 bg-background-muted rounded overflow-hidden">
+                        <div className="w-16 h-16 relative flex-shrink-0 bg-background-muted border border-default overflow-hidden">
                           <Image
                             src={getProductImageUrl(item.image)}
                             alt={item.name}
@@ -123,12 +123,12 @@ export default function CartPage() {
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => updateQuantity(item.cartItemId, item.quantity - 1, item.id)}
-                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer"
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-default bg-background-alt hover:bg-surface text-primary cursor-pointer"
                           >−</button>
                           <span className="w-6 text-center text-xs text-primary font-semibold">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.cartItemId, item.quantity + 1, item.id)}
-                            className="w-6 h-6 flex items-center justify-center text-xs border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer"
+                            className="w-6 h-6 flex items-center justify-center text-xs border border-default bg-background-alt hover:bg-surface text-primary cursor-pointer"
                           >+</button>
                         </div>
                         <button
@@ -146,7 +146,7 @@ export default function CartPage() {
             })}
 
             {/* Pricing Summary */}
-            <div className="border-t border-light pt-6 space-y-3 bg-surface p-6 rounded-xl">
+            <div className="border border-default p-6 space-y-3 bg-surface">
               <div className="flex justify-between text-sm text-secondary">
                 <span>Subtotal</span>
                 <span>{formatPrice(subtotal)}</span>
@@ -161,7 +161,7 @@ export default function CartPage() {
                   <span>-{formatPrice(discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-bold text-primary pt-2 border-t border-light">
+              <div className="flex justify-between text-lg font-bold text-primary pt-2 border-t border-default">
                 <span>Grand Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
@@ -174,11 +174,11 @@ export default function CartPage() {
                 placeholder="Coupon code"
                 value={localCoupon}
                 onChange={(e) => setLocalCoupon(e.target.value)}
-                className="flex-1 border border-border rounded px-4 py-2 text-sm bg-surface text-primary focus:outline-none"
+                className="flex-1 border border-default px-4 py-2 text-sm bg-surface text-primary focus:outline-none"
               />
               <button
                 onClick={handleApply}
-                className="bg-primary text-inverse px-5 py-2 rounded text-xs font-bold uppercase tracking-wider hover:opacity-90"
+                className="bg-primary text-inverse px-5 py-2 text-xs font-bold uppercase tracking-wider hover:bg-primary-light transition-colors"
               >
                 Apply
               </button>
@@ -195,11 +195,11 @@ export default function CartPage() {
             <div className="flex gap-4 pt-4">
               <button
                 onClick={clearCart}
-                className="flex-1 border border-primary py-3 hover:bg-black/5 text-primary text-xs uppercase font-bold tracking-wider rounded-lg"
+                className="flex-1 border border-primary py-3 hover:bg-primary/5 text-primary text-xs uppercase font-bold tracking-wider transition-colors"
               >
                 Clear Cart
               </button>
-              <Link href="/checkout" className="flex-1 bg-primary text-inverse py-3 hover:opacity-90 text-center flex items-center justify-center text-xs uppercase font-bold tracking-wider rounded-lg">
+              <Link href="/checkout" className="flex-1 bg-primary hover:bg-primary-light text-inverse py-3 text-center flex items-center justify-center text-xs uppercase font-bold tracking-wider transition-colors">
                 Proceed to Single Unified Checkout
               </Link>
             </div>

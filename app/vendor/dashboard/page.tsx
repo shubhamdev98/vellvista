@@ -229,7 +229,7 @@ export default function VendorDashboardPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-light p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-default p-8">
           <AlertCircle className="w-12 h-12 text-primary mx-auto" />
           <h2 className="text-xl font-semibold text-primary">Authentication Required</h2>
           <p className="text-secondary text-sm">Please sign in to access your vendor dashboard.</p>
@@ -258,7 +258,7 @@ export default function VendorDashboardPage() {
   if (!vendorProfile) {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6 bg-surface border border-light p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-6 bg-surface border border-default p-8">
           <Store className="w-12 h-12 text-primary mx-auto" />
           <h2 className="text-2xl font-semibold text-primary">No Active Vendor Store</h2>
           <p className="text-secondary text-sm">
@@ -278,7 +278,7 @@ export default function VendorDashboardPage() {
   if (vendorProfile.status === 'PENDING') {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-light p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-default p-8">
           <Clock className="w-12 h-12 text-warning mx-auto" />
           <h2 className="text-xl font-semibold text-primary">Application Under Review</h2>
           <p className="text-secondary text-sm">
@@ -292,7 +292,7 @@ export default function VendorDashboardPage() {
   if (vendorProfile.status === 'SUSPENDED') {
     return (
       <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-error/30 p-8 shadow-sm">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-error/50 p-8">
           <ShieldAlert className="w-12 h-12 text-error mx-auto" />
           <h2 className="text-xl font-semibold text-error">Vendor Account Suspended</h2>
           <p className="text-secondary text-sm">
@@ -307,7 +307,7 @@ export default function VendorDashboardPage() {
     <div className="min-h-screen bg-background-muted py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Top Vendor Banner Header */}
-        <div className="relative overflow-hidden bg-surface border border-light p-6 sm:p-8 shadow-sm">
+        <div className="relative overflow-hidden bg-surface border border-default p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
             <div className="flex items-center gap-4">
               <img
@@ -338,7 +338,7 @@ export default function VendorDashboardPage() {
               </Link>
               <button
                 onClick={() => setShowProductModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-all"
               >
                 <Plus className="w-4 h-4" /> Add Product
               </button>
@@ -361,7 +361,7 @@ export default function VendorDashboardPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-light whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-primary text-inverse shadow-sm border border-primary'
+                    ? 'bg-primary text-inverse border border-primary'
                     : 'bg-surface text-secondary hover:text-primary hover:bg-background-alt border border-default'
                 }`}
               >
@@ -375,7 +375,7 @@ export default function VendorDashboardPage() {
         {activeTab === 'overview' && analytics && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Gross Vendor Sales</span>
                   <DollarSign className="w-4 h-4 text-success-dark" />
@@ -384,7 +384,7 @@ export default function VendorDashboardPage() {
                 <p className="text-[11px] text-muted">Total processed revenue</p>
               </div>
 
-              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Net Earnings</span>
                   <TrendingUp className="w-4 h-4 text-primary" />
@@ -393,7 +393,7 @@ export default function VendorDashboardPage() {
                 <p className="text-[11px] text-muted">After 10% platform commission</p>
               </div>
 
-              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Total Orders</span>
                   <ShoppingBag className="w-4 h-4 text-info-dark" />
@@ -402,7 +402,7 @@ export default function VendorDashboardPage() {
                 <p className="text-[11px] text-muted">{analytics.pendingOrders} pending fulfillment</p>
               </div>
 
-              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Active Products</span>
                   <Package className="w-4 h-4 text-secondary" />
@@ -413,7 +413,7 @@ export default function VendorDashboardPage() {
             </div>
 
             {/* Recent Orders Preview */}
-            <div className="bg-surface border border-light p-6 space-y-4 shadow-sm">
+            <div className="bg-surface border border-default p-6 space-y-4">
               <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary" /> Recent Vendor Orders
               </h3>
@@ -449,7 +449,7 @@ export default function VendorDashboardPage() {
               <h3 className="text-lg font-semibold text-primary">Vendor Product Catalog</h3>
               <button
                 onClick={() => setShowProductModal(true)}
-                className="px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                className="px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs flex items-center gap-1.5 transition-all"
               >
                 <Plus className="w-4 h-4" /> Add New Product
               </button>
@@ -457,7 +457,7 @@ export default function VendorDashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {productsList.map((prod) => (
-                <div key={prod.id} className="bg-surface border border-light hover:border-dark transition-all p-4 space-y-4 flex flex-col justify-between shadow-sm">
+                <div key={prod.id} className="bg-surface border border-default hover:border-dark transition-all p-4 space-y-4 flex flex-col justify-between">
                   <div className="space-y-3">
                     <img
                       src={prod.image}
@@ -497,12 +497,12 @@ export default function VendorDashboardPage() {
             <h3 className="text-lg font-semibold text-primary">Manage Customer Orders</h3>
             <div className="space-y-4">
               {ordersList.length === 0 ? (
-                <div className="p-8 text-center bg-surface border border-light text-muted text-sm shadow-sm">
+                <div className="p-8 text-center bg-surface border border-default text-muted text-sm">
                   No orders found.
                 </div>
               ) : (
                 ordersList.map((ord) => (
-                  <div key={ord.id} className="p-6 bg-surface border border-light space-y-4 shadow-sm">
+                  <div key={ord.id} className="p-6 bg-surface border border-default space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-light pb-4">
                       <div>
                         <div className="flex items-center gap-2">
@@ -547,17 +547,17 @@ export default function VendorDashboardPage() {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-primary">Financial Breakdown & Payouts</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <span className="text-xs font-medium text-secondary block">Gross Sales</span>
                 <p className="text-2xl font-semibold text-primary">${analytics.grossSales}</p>
               </div>
 
-              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <span className="text-xs font-medium text-secondary block">Platform Commission (10%)</span>
                 <p className="text-2xl font-semibold text-error">-${analytics.commissionPaid}</p>
               </div>
 
-              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+              <div className="p-6 bg-surface border border-default space-y-2">
                 <span className="text-xs font-medium text-secondary block">Net Take-Home Earnings</span>
                 <p className="text-2xl font-semibold text-success-dark">${analytics.netEarnings}</p>
               </div>
@@ -569,7 +569,7 @@ export default function VendorDashboardPage() {
       {/* CREATE PRODUCT MODAL */}
       {showProductModal && (
         <div className="fixed inset-0 z-50 bg-overlay backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full bg-surface border border-light p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="max-w-2xl w-full bg-surface border border-default p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-light pb-4">
               <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
                 <Plus className="w-5 h-5 text-primary" /> Add New Marketplace Product
@@ -647,7 +647,7 @@ export default function VendorDashboardPage() {
                   <label className="block text-xs font-light text-secondary mb-1">Product Image *</label>
                   
                   <div className="flex items-center gap-3">
-                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-colors shadow-sm select-none">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-colors select-none">
                       {isUploading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
@@ -721,7 +721,7 @@ export default function VendorDashboardPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-primary hover:bg-primary-light text-inverse text-xs font-light tracking-wide transition-all shadow-sm"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-light text-inverse text-xs font-light tracking-wide transition-all"
                 >
                   Create Product
                 </button>

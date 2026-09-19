@@ -8,7 +8,7 @@ import { useCurrency } from "../context/CurrencyProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useBrand } from "../context/BrandProvider";
-import { getInitials } from "../app/utils/image";
+import { getInitials, getImageUrl } from "../app/utils/image";
 import CurrencySelector from "./CurrencySelector";
 import CartItem from "./CartItem";
 
@@ -260,9 +260,17 @@ export default function Header() {
               {user ? (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3 py-1">
-                    <div className="w-10 h-10 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-sm border border-border-light select-none shrink-0">
-                      {getInitials(user.fullName)}
-                    </div>
+                    {user.avatar ? (
+                      <img
+                        src={getImageUrl(user.avatar)}
+                        alt={user.fullName}
+                        className="w-10 h-10 rounded-full object-cover shrink-0 border border-border-light"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-secondary text-primary rounded-full flex items-center justify-center font-semibold text-sm border border-border-light select-none shrink-0">
+                        {getInitials(user.fullName)}
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-primary truncate text-sm">
                         {user.fullName}

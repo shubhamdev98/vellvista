@@ -456,24 +456,24 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <button
                   onClick={handleAddToCart}
                   disabled={isAdding || isAdded}
-                  className={`flex-1 py-3 font-semibold transition-all duration-75 flex items-center justify-center cursor-pointer ${
+                  className={`flex-1 py-3 font-normal transition-all duration-150 flex items-center justify-center cursor-pointer border ${
                     isAdded
-                      ? "bg-green-600 text-white"
+                      ? "bg-white text-black border-black"
                       : isAdding
-                        ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                        : "bg-primary text-inverse hover:bg-secondary hover:text-primary"
+                        ? "bg-white text-black/70 border-black cursor-not-allowed"
+                        : "bg-primary text-inverse hover:bg-white hover:text-black border-primary hover:border-black"
                   }`}
                 >
                   {isAdded ? (
                     <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       Added!
                     </>
                   ) : isAdding ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
                       Adding...
                     </>
                   ) : (

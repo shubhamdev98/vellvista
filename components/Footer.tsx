@@ -157,8 +157,11 @@ const Footer = () => {
       </div>
 
       {/* Copyright Notice below VELLVISTA name */}
-      <div className="w-full bg-primary-light text-center py-4 border-t border-white/10 text-muted text-xs sm:text-sm">
-        <p>&copy; 2026 vellvista. All rights reserved. | Crafted with passion for fragrance lovers</p>
+      <div className="w-full bg-primary-light border-t border-white/10 text-muted text-xs sm:text-sm py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <p>&copy; 2026 vellvista. All rights reserved.</p>
+          <p>Crafted with passion for fragrance lovers</p>
+        </div>
       </div>
     </footer>
   );

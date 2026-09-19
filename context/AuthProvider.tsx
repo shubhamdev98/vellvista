@@ -256,31 +256,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setUser(prev => {
         if (!prev) return null;
-        if (userData.avatar) {
-          trpc.updateAvatar({
-            id: prev.id,
-            avatar: userData.avatar
-          }).then((result: any) => {
-            const updated = { ...prev, avatar: result.user.avatar };
-            setUser(updated);
-            localStorage.setItem('userData', JSON.stringify(updated));
-          }).catch((err: any) => {
-            console.error('Avatar update failed:', err);
-          }).finally(() => {
-            setIsLoading(false);
-          });
-          return prev;
-        } else {
-          const updated = { ...prev, ...userData };
-          localStorage.setItem('userData', JSON.stringify(updated));
-          setIsLoading(false);
-          return updated;
-        }
+        return prev;
       });
+
+      // Get current user reference from state
+      const currentUser = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = currentUser.id;
+
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (userData.avatar) {
+        const result: any = await trpc.updateAvatar({
+          id: userId,
+          avatar: userData.avatar,
+        });
+        const updated: User = { ...currentUser, avatar: result.user.avatar };
+        setUser(updated);
+        localStorage.setItem('userData', JSON.stringify(updated));
+      } else {
+        const result: any = await trpc.updateUserProfile({
+          id: userId,
+          data: userData,
+        });
+        const updated: User = { ...currentUser, ...result.user };
+        setUser(updated);
+        localStorage.setItem('userData', JSON.stringify(updated));
+      }
     } catch (error) {
       console.error('Profile update failed:', error);
-      setIsLoading(false);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 

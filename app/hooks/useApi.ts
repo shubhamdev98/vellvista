@@ -186,6 +186,17 @@ export function useSubscribeToNewsletter() {
   );
 }
 
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  productName: string;
+  productImage?: string | null;
+  quantity: number;
+  unitPrice: string | number;
+  totalPrice: string | number;
+}
+
 export interface Order {
   id: number;
   customerName: string;
@@ -195,6 +206,7 @@ export interface Order {
   shippingAddress: string;
   createdAt?: string;
   updatedAt?: string;
+  items?: OrderItem[];
 }
 
 export function useUserOrders(email?: string) {
