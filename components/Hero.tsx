@@ -1,6 +1,5 @@
 "use client";
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useHeroSettings } from '../app/hooks/useApi';
 import { getProductImageUrl } from '../app/utils/image';
@@ -63,28 +62,6 @@ export default function Hero() {
             <source src={mobileVideo} type="video/mp4" media="(max-width: 767px)" />
             <source src={desktopVideo} type="video/mp4" media="(min-width: 768px)" />
           </video>
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-primary/60"></div>
-        </div>
-
-        {/* Content Overlay */}
-        <div className="absolute inset-0 z-10 flex items-center justify-center">
-          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="max-w-2xl mx-auto">
-              <h4 className="text-xs sm:text-sm tracking-[0.2em] uppercase text-gray-300 font-light mb-2.5 sm:mb-3 mt-4">
-                {subtitle}
-              </h4>
-              <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal leading-tight text-inverse">
-                {title}
-              </h1>
-              <Link 
-                href="/products" 
-                className="inline-block mt-6 border border-white bg-white text-primary font-medium py-3 px-6 transition-all duration-300 hover:bg-transparent hover:text-white hover:border-white"
-              >
-                Shop Now
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
