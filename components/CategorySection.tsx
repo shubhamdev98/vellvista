@@ -19,7 +19,7 @@ export default function CategorySection() {
 
   if (isLoading) {
     return (
-      <section id="categories" className="py-12 md:py-16 bg-background">
+      <section id="categories" className="py-8 md:py-12 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading Skeleton */}
@@ -49,11 +49,11 @@ export default function CategorySection() {
   }
 
   return (
-    <section id="categories" className="py-12 md:py-16 bg-background">
+    <section id="categories" className="py-8 md:py-12 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
-        <div className="mb-8 md:mb-12 font-inter">
+        <div className="mb-6 md:mb-8 font-inter">
           <p className="font-label-caps text-xs text-secondary tracking-widest mb-2 font-semibold">
             CURATED FOR YOU
           </p>

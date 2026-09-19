@@ -8,7 +8,7 @@ export default function PromoBanner() {
 
   if (isLoading) {
     return (
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="w-full h-[18.75rem] md:h-[25rem] bg-surface-alt animate-pulse" />
       </section>
     );
@@ -19,7 +19,7 @@ export default function PromoBanner() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <div className="relative h-[18.75rem] md:h-[25rem] overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">

@@ -903,9 +903,9 @@ export default function AdminHomepageManager() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-light">
-            {/* Desktop Video */}
+            {/* Desktop Video / Image */}
             <div className="space-y-3">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">Desktop Hero Video MP4 URL</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">Desktop Hero Media URL (Video / Image)</label>
               <input
                 type="text"
                 value={heroForm.desktopVideo}
@@ -913,18 +913,18 @@ export default function AdminHomepageManager() {
                 className="w-full border border-dark p-3 text-sm focus:outline-none focus:border-primary bg-background text-primary"
               />
               <div className="border border-dark p-4 bg-background flex items-center justify-between gap-4">
-                <span className="text-xs text-secondary">Upload Desktop Video (MP4)</span>
+                <span className="text-xs text-secondary">Upload Desktop Media (MP4 / Image)</span>
                 <label className="bg-background border border-dark py-2 px-3 text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-alt cursor-pointer transition-colors flex items-center gap-1.5">
                   {isUploadingVideo.desktop ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  Browse Video
-                  <input type="file" accept="video/mp4" onChange={e => handleVideoUpload(e, "desktop")} disabled={isUploadingVideo.desktop} className="hidden" />
+                  Browse File
+                  <input type="file" accept="video/*,image/*" onChange={e => handleVideoUpload(e, "desktop")} disabled={isUploadingVideo.desktop} className="hidden" />
                 </label>
               </div>
             </div>
 
-            {/* Mobile Video */}
+            {/* Mobile Video / Image */}
             <div className="space-y-3">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">Mobile Hero Video MP4 URL</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">Mobile Hero Media URL (Video / Image)</label>
               <input
                 type="text"
                 value={heroForm.mobileVideo}
@@ -932,11 +932,11 @@ export default function AdminHomepageManager() {
                 className="w-full border border-dark p-3 text-sm focus:outline-none focus:border-primary bg-background text-primary"
               />
               <div className="border border-dark p-4 bg-background flex items-center justify-between gap-4">
-                <span className="text-xs text-secondary">Upload Mobile Video (MP4)</span>
+                <span className="text-xs text-secondary">Upload Mobile Media (MP4 / Image)</span>
                 <label className="bg-background border border-dark py-2 px-3 text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-alt cursor-pointer transition-colors flex items-center gap-1.5">
                   {isUploadingVideo.mobile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  Browse Video
-                  <input type="file" accept="video/mp4" onChange={e => handleVideoUpload(e, "mobile")} disabled={isUploadingVideo.mobile} className="hidden" />
+                  Browse File
+                  <input type="file" accept="video/*,image/*" onChange={e => handleVideoUpload(e, "mobile")} disabled={isUploadingVideo.mobile} className="hidden" />
                 </label>
               </div>
             </div>

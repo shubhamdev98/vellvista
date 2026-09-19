@@ -444,7 +444,7 @@ export default function ProductGrid({
   };
 
   return (
-    <section id="products" className="pt-12 pb-24 sm:py-16 scroll-mt-20 bg-background">
+    <section id="products" className="py-8 md:py-12 pb-24 scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showTitle && (
           <div className={`flex justify-between items-end mb-8 font-inter ${

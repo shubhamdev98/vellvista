@@ -96,7 +96,10 @@ export default function Header() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center space-x-1 sm:space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Country / Currency Selector */}
+            <CurrencySelector />
+
             {/* Desktop Search Bar */}
             <form onSubmit={handleSearchSubmit} className="hidden md:block relative">
               <input
@@ -241,20 +244,10 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Drawer Footer: User Section & Currency */}
+          {/* Drawer Footer: User Section */}
           <div className="p-5 bg-background-muted border-t border-border-light space-y-4">
-            <div className="flex items-center justify-between text-xs text-secondary font-semibold tracking-wider uppercase mb-1">
-              <span>Settings</span>
-            </div>
-
-            {/* Currency Selector inside Drawer */}
-            <div className="flex items-center justify-between py-1 px-1">
-              <span className="text-xs text-secondary font-medium">Currency</span>
-              <CurrencySelector />
-            </div>
-
             {/* User Account widget inside Drawer */}
-            <div className="pt-4 border-t border-border-light">
+            <div>
               {user ? (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3 py-1">
