@@ -10,24 +10,15 @@ import {
   DollarSign,
   TrendingUp,
   Plus,
-  Edit,
   Trash2,
-  CheckCircle2,
   Clock,
-  Truck,
-  XCircle,
-  AlertCircle,
   ExternalLink,
-  Search,
-  Filter,
   BarChart3,
-  Layers,
-  Settings,
   ShieldAlert,
-  Sparkles,
   Upload,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import { useToast } from '@/context/ToastProvider';
@@ -237,12 +228,15 @@ export default function VendorDashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
-          <h2 className="text-xl font-bold">Authentication Required</h2>
-          <p className="text-slate-400 text-sm">Please sign in to access your vendor dashboard.</p>
-          <Link href="/auth" className="inline-block px-6 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm">
+      <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-light p-8 shadow-sm">
+          <AlertCircle className="w-12 h-12 text-primary mx-auto" />
+          <h2 className="text-xl font-semibold text-primary">Authentication Required</h2>
+          <p className="text-secondary text-sm">Please sign in to access your vendor dashboard.</p>
+          <Link
+            href="/auth/login"
+            className="inline-block px-6 py-2.5 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-sm transition-all"
+          >
             Sign In
           </Link>
         </div>
@@ -252,10 +246,10 @@ export default function VendorDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-amber-400">
-          <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-          <span className="font-semibold text-sm">Loading Vendor Portal...</span>
+      <div className="min-h-screen bg-background-muted flex items-center justify-center">
+        <div className="flex items-center gap-3 text-primary">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span className="font-light text-sm">Loading Vendor Portal...</span>
         </div>
       </div>
     );
@@ -263,16 +257,16 @@ export default function VendorDashboardPage() {
 
   if (!vendorProfile) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
-          <Store className="w-12 h-12 text-amber-400 mx-auto" />
-          <h2 className="text-2xl font-black text-white">No Active Vendor Store</h2>
-          <p className="text-slate-400 text-sm">
+      <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-6 bg-surface border border-light p-8 shadow-sm">
+          <Store className="w-12 h-12 text-primary mx-auto" />
+          <h2 className="text-2xl font-semibold text-primary">No Active Vendor Store</h2>
+          <p className="text-secondary text-sm">
             You currently do not have an approved vendor store on VellVista. Apply today to start selling across multiple categories!
           </p>
           <Link
             href="/vendor/apply"
-            className="inline-block w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all"
+            className="inline-block w-full py-3 bg-primary hover:bg-primary-light text-inverse font-light tracking-wide text-sm transition-all"
           >
             Apply for Vendor Account
           </Link>
@@ -283,12 +277,12 @@ export default function VendorDashboardPage() {
 
   if (vendorProfile.status === 'PENDING') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-slate-900 border border-slate-800 p-8 rounded-3xl">
-          <Clock className="w-12 h-12 text-amber-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">Application Under Review</h2>
-          <p className="text-slate-400 text-sm">
-            Your vendor application for **{vendorProfile.storeName}** is pending admin review. You will receive full access once approved.
+      <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-light p-8 shadow-sm">
+          <Clock className="w-12 h-12 text-warning mx-auto" />
+          <h2 className="text-xl font-semibold text-primary">Application Under Review</h2>
+          <p className="text-secondary text-sm">
+            Your vendor application for <span className="font-semibold text-primary">{vendorProfile.storeName}</span> is pending admin review. You will receive full access once approved.
           </p>
         </div>
       </div>
@@ -297,12 +291,12 @@ export default function VendorDashboardPage() {
 
   if (vendorProfile.status === 'SUSPENDED') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4 bg-slate-900 border border-rose-500/40 p-8 rounded-3xl">
-          <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto" />
-          <h2 className="text-xl font-bold text-rose-400">Vendor Account Suspended</h2>
-          <p className="text-slate-400 text-sm">
-            Your vendor store **{vendorProfile.storeName}** is currently suspended. Please contact platform administration.
+      <div className="min-h-screen bg-background-muted flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-4 bg-surface border border-error/30 p-8 shadow-sm">
+          <ShieldAlert className="w-12 h-12 text-error mx-auto" />
+          <h2 className="text-xl font-semibold text-error">Vendor Account Suspended</h2>
+          <p className="text-secondary text-sm">
+            Your vendor store <span className="font-semibold text-primary">{vendorProfile.storeName}</span> is currently suspended. Please contact platform administration.
           </p>
         </div>
       </div>
@@ -310,25 +304,25 @@ export default function VendorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-background-muted py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Top Vendor Banner Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl">
+        <div className="relative overflow-hidden bg-surface border border-light p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
             <div className="flex items-center gap-4">
               <img
                 src={vendorProfile.logo || 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png'}
                 alt={vendorProfile.storeName}
-                className="w-16 h-16 rounded-2xl object-cover border border-slate-700 bg-slate-950"
+                className="w-16 h-16 object-cover border border-default bg-background-alt"
               />
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{vendorProfile.storeName}</h1>
-                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-primary">{vendorProfile.storeName}</h1>
+                  <span className="px-2.5 py-0.5 rounded-none bg-success-light text-success-dark text-[10px] font-medium uppercase tracking-wider border border-success/20">
                     {vendorProfile.status}
                   </span>
                 </div>
-                <p className="text-slate-400 text-xs mt-1">
+                <p className="text-secondary text-xs mt-1">
                   Owner: {vendorProfile.ownerName} • Rating: ★ {vendorProfile.rating || '5.0'}
                 </p>
               </div>
@@ -338,13 +332,13 @@ export default function VendorDashboardPage() {
               <Link
                 href={`/store/${vendorProfile.slug}`}
                 target="_blank"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-background-alt hover:bg-surface text-secondary hover:text-primary text-xs font-light border border-default transition-colors"
               >
                 <ExternalLink className="w-3.5 h-3.5" /> View Public Storefront
               </Link>
               <button
                 onClick={() => setShowProductModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shadow-lg shadow-amber-500/20"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-all shadow-sm"
               >
                 <Plus className="w-4 h-4" /> Add Product
               </button>
@@ -353,7 +347,7 @@ export default function VendorDashboardPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-default pb-3 overflow-x-auto">
           {[
             { id: 'overview', label: 'Overview & Sales', icon: BarChart3 },
             { id: 'products', label: `Products (${productsList.length})`, icon: Package },
@@ -365,10 +359,10 @@ export default function VendorDashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+                className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-light whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+                    ? 'bg-primary text-inverse shadow-sm border border-primary'
+                    : 'bg-surface text-secondary hover:text-primary hover:bg-background-alt border border-default'
                 }`}
               >
                 <Icon className="w-4 h-4" /> {tab.label}
@@ -381,62 +375,62 @@ export default function VendorDashboardPage() {
         {activeTab === 'overview' && analytics && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Gross Vendor Sales</span>
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <DollarSign className="w-4 h-4 text-success-dark" />
                 </div>
-                <p className="text-2xl font-black text-white">${analytics.grossSales}</p>
-                <p className="text-[10px] text-slate-400">Total processed revenue</p>
+                <p className="text-2xl font-semibold text-primary">${analytics.grossSales}</p>
+                <p className="text-[11px] text-muted">Total processed revenue</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Net Earnings</span>
-                  <TrendingUp className="w-4 h-4 text-amber-400" />
+                  <TrendingUp className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-2xl font-black text-amber-400">${analytics.netEarnings}</p>
-                <p className="text-[10px] text-slate-400">After 10% platform commission</p>
+                <p className="text-2xl font-semibold text-primary">${analytics.netEarnings}</p>
+                <p className="text-[11px] text-muted">After 10% platform commission</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Total Orders</span>
-                  <ShoppingBag className="w-4 h-4 text-indigo-400" />
+                  <ShoppingBag className="w-4 h-4 text-info-dark" />
                 </div>
-                <p className="text-2xl font-black text-white">{analytics.totalOrders}</p>
-                <p className="text-[10px] text-slate-400">{analytics.pendingOrders} pending fulfillment</p>
+                <p className="text-2xl font-semibold text-primary">{analytics.totalOrders}</p>
+                <p className="text-[11px] text-muted">{analytics.pendingOrders} pending fulfillment</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <div className="p-6 bg-surface border border-light shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-secondary text-xs font-medium">
                   <span>Active Products</span>
-                  <Package className="w-4 h-4 text-purple-400" />
+                  <Package className="w-4 h-4 text-secondary" />
                 </div>
-                <p className="text-2xl font-black text-white">{analytics.totalProducts}</p>
-                <p className="text-[10px] text-slate-400">Listed across marketplace</p>
+                <p className="text-2xl font-semibold text-primary">{analytics.totalProducts}</p>
+                <p className="text-[11px] text-muted">Listed across marketplace</p>
               </div>
             </div>
 
             {/* Recent Orders Preview */}
-            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400" /> Recent Vendor Orders
+            <div className="bg-surface border border-light p-6 space-y-4 shadow-sm">
+              <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" /> Recent Vendor Orders
               </h3>
 
               {ordersList.length === 0 ? (
-                <p className="text-slate-400 text-xs py-4 text-center">No orders received yet.</p>
+                <p className="text-muted text-xs py-4 text-center">No orders received yet.</p>
               ) : (
-                <div className="divide-y divide-slate-800">
+                <div className="divide-y divide-light">
                   {ordersList.slice(0, 5).map((ord) => (
                     <div key={ord.id} className="py-3 flex items-center justify-between gap-4 text-xs">
                       <div>
-                        <p className="font-bold text-white">Sub-Order #{ord.id}</p>
-                        <p className="text-slate-400">{ord.customerName} ({ord.customerEmail})</p>
+                        <p className="font-semibold text-primary">Sub-Order #{ord.id}</p>
+                        <p className="text-muted">{ord.customerName} ({ord.customerEmail})</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-extrabold text-amber-400">${ord.subtotal}</p>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300">
+                        <p className="font-semibold text-primary">${ord.subtotal}</p>
+                        <span className="px-2 py-0.5 text-[10px] font-medium uppercase bg-background-alt text-secondary border border-default">
                           {ord.status}
                         </span>
                       </div>
@@ -452,10 +446,10 @@ export default function VendorDashboardPage() {
         {activeTab === 'products' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">Vendor Product Catalog</h3>
+              <h3 className="text-lg font-semibold text-primary">Vendor Product Catalog</h3>
               <button
                 onClick={() => setShowProductModal(true)}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20"
+                className="px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs flex items-center gap-1.5 shadow-sm transition-all"
               >
                 <Plus className="w-4 h-4" /> Add New Product
               </button>
@@ -463,30 +457,30 @@ export default function VendorDashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {productsList.map((prod) => (
-                <div key={prod.id} className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden space-y-4 p-4 flex flex-col justify-between">
+                <div key={prod.id} className="bg-surface border border-light hover:border-dark transition-all p-4 space-y-4 flex flex-col justify-between shadow-sm">
                   <div className="space-y-3">
                     <img
                       src={prod.image}
                       alt={prod.name}
-                      className="w-full h-44 object-cover rounded-xl bg-slate-950 border border-slate-800"
+                      className="w-full h-44 object-cover bg-background-alt border border-light"
                     />
                     <div>
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-400 text-[10px] font-bold uppercase">
+                      <span className="px-2 py-0.5 text-[10px] font-medium uppercase bg-background-alt text-secondary border border-default inline-block">
                         {prod.category}
                       </span>
-                      <h4 className="text-base font-bold text-white mt-1 line-clamp-1">{prod.name}</h4>
-                      <p className="text-xs text-slate-400">{prod.brand}</p>
+                      <h4 className="text-base font-semibold text-primary mt-1 line-clamp-1">{prod.name}</h4>
+                      <p className="text-xs text-muted">{prod.brand}</p>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
-                      <span className="font-extrabold text-amber-400 text-base">${prod.price}</span>
-                      <span className="text-slate-400">Stock: {prod.stock}</span>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-light">
+                      <span className="font-semibold text-primary text-base">${prod.price}</span>
+                      <span className="text-secondary">Stock: {prod.stock}</span>
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+                  <div className="pt-3 border-t border-light flex items-center justify-end gap-2">
                     <button
                       onClick={() => handleDeleteProduct(prod.id)}
-                      className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold flex items-center gap-1"
+                      className="p-2 rounded bg-error-light hover:bg-error/20 text-error-dark text-xs font-medium flex items-center gap-1 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Delete
                     </button>
@@ -500,31 +494,31 @@ export default function VendorDashboardPage() {
         {/* TAB 3: VENDOR ORDERS */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white">Manage Customer Orders</h3>
+            <h3 className="text-lg font-semibold text-primary">Manage Customer Orders</h3>
             <div className="space-y-4">
               {ordersList.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 text-sm">
+                <div className="p-8 text-center bg-surface border border-light text-muted text-sm shadow-sm">
                   No orders found.
                 </div>
               ) : (
                 ordersList.map((ord) => (
-                  <div key={ord.id} className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div key={ord.id} className="p-6 bg-surface border border-light space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-light pb-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-white text-base">Sub-Order #{ord.id}</span>
-                          <span className="text-xs text-slate-400">(Parent Order #{ord.parentOrderId})</span>
+                          <span className="font-semibold text-primary text-base">Sub-Order #{ord.id}</span>
+                          <span className="text-xs text-muted">(Parent Order #{ord.parentOrderId})</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">Customer: {ord.customerName} ({ord.customerEmail})</p>
+                        <p className="text-xs text-secondary mt-1">Customer: {ord.customerName} ({ord.customerEmail})</p>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-amber-400 text-lg">${ord.subtotal}</span>
-                        <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1">
+                        <span className="font-semibold text-primary text-lg">${ord.subtotal}</span>
+                        <div className="flex items-center gap-1">
                           <select
                             value={ord.status}
                             onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                            className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none uppercase"
+                            className="bg-surface border border-default text-xs font-medium text-primary px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary uppercase cursor-pointer"
                           >
                             <option value="PENDING">PENDING</option>
                             <option value="CONFIRMED">CONFIRMED</option>
@@ -537,9 +531,9 @@ export default function VendorDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-400 space-y-1">
-                      <p><span className="font-semibold text-slate-300">Shipping Address:</span> {ord.shippingAddress}</p>
-                      <p><span className="font-semibold text-slate-300">Commission (10%):</span> ${ord.commissionAmount} | <span className="font-semibold text-emerald-400">Net Vendor Earnings: ${ord.vendorEarnings}</span></p>
+                    <div className="text-xs text-secondary space-y-1">
+                      <p><span className="font-medium text-primary">Shipping Address:</span> {ord.shippingAddress}</p>
+                      <p><span className="font-medium text-primary">Commission (10%):</span> ${ord.commissionAmount} | <span className="font-semibold text-success-dark">Net Vendor Earnings: ${ord.vendorEarnings}</span></p>
                     </div>
                   </div>
                 ))
@@ -551,21 +545,21 @@ export default function VendorDashboardPage() {
         {/* TAB 4: FINANCIALS & EARNINGS */}
         {activeTab === 'financials' && analytics && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white">Financial Breakdown & Payouts</h3>
+            <h3 className="text-lg font-semibold text-primary">Financial Breakdown & Payouts</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                <span className="text-xs font-semibold text-slate-400">Gross Sales</span>
-                <p className="text-2xl font-black text-white">${analytics.grossSales}</p>
+              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+                <span className="text-xs font-medium text-secondary block">Gross Sales</span>
+                <p className="text-2xl font-semibold text-primary">${analytics.grossSales}</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                <span className="text-xs font-semibold text-slate-400">Platform Commission (10%)</span>
-                <p className="text-2xl font-black text-rose-400">-${analytics.commissionPaid}</p>
+              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+                <span className="text-xs font-medium text-secondary block">Platform Commission (10%)</span>
+                <p className="text-2xl font-semibold text-error">-${analytics.commissionPaid}</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                <span className="text-xs font-semibold text-slate-400">Net Take-Home Earnings</span>
-                <p className="text-2xl font-black text-emerald-400">${analytics.netEarnings}</p>
+              <div className="p-6 bg-surface border border-light space-y-2 shadow-sm">
+                <span className="text-xs font-medium text-secondary block">Net Take-Home Earnings</span>
+                <p className="text-2xl font-semibold text-success-dark">${analytics.netEarnings}</p>
               </div>
             </div>
           </div>
@@ -574,43 +568,43 @@ export default function VendorDashboardPage() {
 
       {/* CREATE PRODUCT MODAL */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-amber-400" /> Add New Marketplace Product
+        <div className="fixed inset-0 z-50 bg-overlay backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full bg-surface border border-light p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between border-b border-light pb-4">
+              <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
+                <Plus className="w-5 h-5 text-primary" /> Add New Marketplace Product
               </h3>
-              <button onClick={() => setShowProductModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setShowProductModal(false)} className="text-muted hover:text-primary text-lg">✕</button>
             </div>
 
             <form onSubmit={handleCreateProduct} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Product Name *</label>
+                <div>
+                  <label className="block text-xs font-light text-secondary mb-1">Product Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Velvet Botanical Serum"
                     value={productForm.name}
                     onChange={(e) => setProductForm((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Brand Name *</label>
+                <div>
+                  <label className="block text-xs font-light text-secondary mb-1">Brand Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Chanel / Luxe Beauty"
                     value={productForm.brand}
                     onChange={(e) => setProductForm((p) => ({ ...p, brand: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Selling Price ($) *</label>
+                <div>
+                  <label className="block text-xs font-light text-secondary mb-1">Selling Price ($) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -618,16 +612,16 @@ export default function VendorDashboardPage() {
                     placeholder="89.99"
                     value={productForm.price}
                     onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Category *</label>
+                <div>
+                  <label className="block text-xs font-light text-secondary mb-1">Category *</label>
                   <select
                     value={productForm.category}
                     onChange={(e) => setProductForm((p) => ({ ...p, category: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="fragrance">Perfumes & Fragrance</option>
                     <option value="skincare">Skincare</option>
@@ -638,22 +632,22 @@ export default function VendorDashboardPage() {
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Stock Quantity *</label>
+                <div>
+                  <label className="block text-xs font-light text-secondary mb-1">Stock Quantity *</label>
                   <input
                     type="number"
                     required
                     value={productForm.stock}
                     onChange={(e) => setProductForm((p) => ({ ...p, stock: parseInt(e.target.value) || 0 }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
-                <div className="space-y-2 col-span-1 md:col-span-2 border-t border-slate-800 pt-3">
-                  <label className="text-xs font-semibold text-slate-300 block">Product Image *</label>
+                <div className="space-y-2 col-span-1 md:col-span-2 border-t border-light pt-3">
+                  <label className="block text-xs font-light text-secondary mb-1">Product Image *</label>
                   
                   <div className="flex items-center gap-3">
-                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shadow-md select-none">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-light text-inverse font-light text-xs transition-colors shadow-sm select-none">
                       {isUploading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
@@ -668,7 +662,7 @@ export default function VendorDashboardPage() {
                         className="hidden"
                       />
                     </label>
-                    <span className="text-xs text-slate-400">or enter image URL below</span>
+                    <span className="text-xs text-muted">or enter image URL below</span>
                   </div>
 
                   <input
@@ -677,27 +671,27 @@ export default function VendorDashboardPage() {
                     placeholder="https://... or upload local image above"
                     value={productForm.image}
                     onChange={(e) => setProductForm((p) => ({ ...p, image: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
 
                   {productForm.image && (
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                    <div className="flex items-center gap-3 p-2.5 bg-background-alt border border-light">
                       <img
                         src={productForm.image}
                         alt="Product Preview"
-                        className="h-12 w-12 object-cover rounded-lg border border-slate-800 shrink-0"
+                        className="h-12 w-12 object-cover border border-default shrink-0"
                         onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                       />
-                      <div className="text-xs text-slate-400 overflow-hidden flex-1 min-w-0">
-                        <p className="font-bold text-amber-400 truncate flex items-center gap-1">
+                      <div className="text-xs text-secondary overflow-hidden flex-1 min-w-0">
+                        <p className="font-semibold text-primary truncate flex items-center gap-1">
                           <ImageIcon className="w-3.5 h-3.5" /> Image Selected
                         </p>
-                        <p className="truncate text-[11px] text-slate-400 mt-0.5">{productForm.image.startsWith('data:') ? 'Local file uploaded' : productForm.image}</p>
+                        <p className="truncate text-[11px] text-muted mt-0.5">{productForm.image.startsWith('data:') ? 'Local file uploaded' : productForm.image}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setProductForm((p) => ({ ...p, image: '' }))}
-                        className="text-xs text-rose-400 hover:underline shrink-0 font-medium px-2 py-1"
+                        className="text-xs text-error hover:underline shrink-0 font-medium px-2 py-1"
                       >
                         Remove
                       </button>
@@ -706,14 +700,14 @@ export default function VendorDashboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Description</label>
+              <div>
+                <label className="block text-xs font-light text-secondary mb-1">Description</label>
                 <textarea
                   rows={3}
                   placeholder="Detailed product specification and features..."
                   value={productForm.description}
                   onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500 resize-none"
+                  className="w-full px-3 py-2.5 text-sm border border-default bg-surface text-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
 
@@ -721,13 +715,13 @@ export default function VendorDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setShowProductModal(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold"
+                  className="px-5 py-2.5 bg-surface border border-dark text-secondary hover:bg-background-alt text-xs font-light transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-lg shadow-amber-500/20"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-light text-inverse text-xs font-light tracking-wide transition-all shadow-sm"
                 >
                   Create Product
                 </button>
