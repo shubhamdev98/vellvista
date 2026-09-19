@@ -632,15 +632,6 @@ export default function AdminHomepageManager() {
       {/* Tabs Menu */}
       <div className="flex border-b border-light overflow-x-auto space-x-6 no-scrollbar">
         <button
-          onClick={() => setActiveTab("brand")}
-          className={`pb-4 px-1 text-sm font-medium flex items-center gap-2 cursor-pointer border-b-2 transition-all whitespace-nowrap ${
-            activeTab === "brand" ? "border-primary text-primary" : "border-transparent text-secondary hover:text-primary"
-          }`}
-        >
-          <Shield className="h-4 w-4" />
-          Brand Configuration
-        </button>
-        <button
           onClick={() => setActiveTab("hero")}
           className={`pb-4 px-1 text-sm font-medium flex items-center gap-2 cursor-pointer border-b-2 transition-all whitespace-nowrap ${
             activeTab === "hero" ? "border-primary text-primary" : "border-transparent text-secondary hover:text-primary"
@@ -648,6 +639,15 @@ export default function AdminHomepageManager() {
         >
           <Video className="h-4 w-4" />
           Hero Section
+        </button>
+        <button
+          onClick={() => setActiveTab("brand")}
+          className={`pb-4 px-1 text-sm font-medium flex items-center gap-2 cursor-pointer border-b-2 transition-all whitespace-nowrap ${
+            activeTab === "brand" ? "border-primary text-primary" : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          <Shield className="h-4 w-4" />
+          Brand Configuration
         </button>
         <button
           onClick={() => setActiveTab("categories")}
