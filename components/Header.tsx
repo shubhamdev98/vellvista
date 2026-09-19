@@ -73,7 +73,7 @@ export default function Header() {
   return (
     <>
       {/* Top Main AppBar */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200/80 h-16 flex items-center select-none">
+      <header className="sticky top-0 z-50 bg-white h-16 flex items-center select-none">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
           
           {/* Left: Drawer Toggle */}
@@ -109,7 +109,7 @@ export default function Header() {
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-40 lg:w-56 bg-gray-100 border border-gray-200/80 focus:border-gray-400 px-3 py-1.5 pl-8 text-xs focus:outline-none transition-all text-primary font-inter rounded-md"
+                className="w-40 lg:w-56 bg-gray-100 border border-gray-200/80 focus:border-gray-400 px-3 py-1.5 pl-8 text-xs focus:outline-none transition-all text-primary font-inter"
               />
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-secondary/60 pointer-events-none" />
             </form>

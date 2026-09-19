@@ -40,7 +40,7 @@ export default function Hero() {
   const desktopVideo = settings?.desktopVideo ? getProductImageUrl(settings.desktopVideo) : "/desk.mp4";
 
   return (
-    <div id="home" className="w-full bg-white py-1 overflow-hidden">
+    <div id="home" className="w-full bg-white pt-0 pb-1 overflow-hidden">
       <div
         className="relative h-[90vh] md:h-[88vh] text-inverse overflow-hidden transition-transform duration-100 ease-out will-change-transform mx-auto"
         style={{
