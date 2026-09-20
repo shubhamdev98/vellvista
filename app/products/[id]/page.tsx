@@ -11,6 +11,10 @@ import {
   Upload,
   X,
   Share2,
+  Sparkles,
+  Droplets,
+  Award,
+  Compass,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,6 +29,7 @@ import { useWishlist } from "../../../context/WishlistProvider";
 import { trpc } from "../../utils/trpc";
 import { getImageUrl } from "../../utils/image";
 import { ProductDetailSkeleton } from "../../../components/ui/Skeleton";
+import { ProductCard } from "../../../components/ProductGrid";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -39,6 +44,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const [activeTab, setActiveTab] = useState("description");
   const [product, setProduct] = useState<Product | null>(null);
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -120,6 +126,22 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
       }
     };
     fetchProduct();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      try {
+        const data = await trpc.getProducts({ limit: 10 });
+        if (data && Array.isArray(data)) {
+          const currentId = Number(id);
+          const filtered = data.filter((p: any) => p.id !== currentId).slice(0, 4);
+          setRelatedProducts(filtered);
+        }
+      } catch (e) {
+        console.warn("Could not fetch related products:", e);
+      }
+    };
+    fetchRelated();
   }, [id]);
 
   useEffect(() => {
@@ -414,9 +436,11 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               })()}
 
               {/* Description */}
-              <p className="text-primary/70 mb-6 leading-relaxed">
-                {product.description}
-              </p>
+              {product.description && (
+                <p className="text-primary/70 mb-6 leading-relaxed whitespace-pre-line">
+                  {product.description}
+                </p>
+              )}
 
               {/* Size Selection */}
               <div className="mb-6">
@@ -597,8 +621,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <h3 className="text-xl font-semibold text-primary mb-4">
                   Product Description
                 </h3>
-                <p className="text-primary/70 mb-4 leading-relaxed">
-                  {product.description || "No description available."}
+                <p className="text-primary/70 mb-4 leading-relaxed whitespace-pre-line">
+                  {product.description || "No description available for this fragrance."}
                 </p>
               </div>
             )}
@@ -811,6 +835,78 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             )}
           </div>
         </div>
+
+
+
+        {/* The VellVista Promise (Universal Customer Care) */}
+        <div className="mt-16">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs uppercase font-semibold tracking-widest text-primary/60">VellVista Service</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-primary mt-1">The Luxury Experience</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border border-default bg-surface p-6 space-y-3">
+              <div className="w-10 h-10 bg-background-alt border border-default flex items-center justify-center text-primary">
+                <Truck className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-primary text-base">1. Express Insured Shipping</h3>
+              <p className="text-xs text-secondary leading-relaxed">
+                Fast, fully insured global delivery dispatched directly from our climate-controlled warehouse with real-time order tracking.
+              </p>
+            </div>
+
+            <div className="border border-default bg-surface p-6 space-y-3">
+              <div className="w-10 h-10 bg-background-alt border border-default flex items-center justify-center text-primary">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-primary text-base">2. Authenticity Guarantee</h3>
+              <p className="text-xs text-secondary leading-relaxed">
+                Every item undergoes multi-point inspection by certified specialists to ensure 100% genuine quality and pristine condition.
+              </p>
+            </div>
+
+            <div className="border border-default bg-surface p-6 space-y-3">
+              <div className="w-10 h-10 bg-background-alt border border-default flex items-center justify-center text-primary">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-primary text-base">3. 30-Day Easy Returns</h3>
+              <p className="text-xs text-secondary leading-relaxed">
+                Enjoy complete peace of mind with our seamless worldwide return policy and instant exchange options for all eligible items.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* You May Also Like / Related Fragrances */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 pt-12 border-t border-light">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <span className="text-xs uppercase font-semibold tracking-widest text-primary/60">Curated Selection</span>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-primary mt-0.5">You May Also Like</h2>
+              </div>
+              <Link href="/products" className="text-xs sm:text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+                Explore All Fragrances &rarr;
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {relatedProducts.map((relProduct) => (
+                <ProductCard
+                  key={relProduct.id}
+                  product={relProduct}
+                  formatPrice={formatPrice}
+                  isInWishlist={isInWishlist}
+                  addToWishlist={addToWishlist}
+                  removeFromWishlist={removeFromWishlist}
+                  addItem={addItem}
+                  showToast={showToast}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         </>
         )}
       </main>

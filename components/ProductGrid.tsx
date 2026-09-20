@@ -129,7 +129,7 @@ const products: Product[] = [
   },
 ];
 
-interface ProductCardProps {
+export interface ProductCardProps {
   product: Product;
   formatPrice: (price: number) => string;
   isInWishlist: (productId: number) => boolean;
@@ -139,7 +139,7 @@ interface ProductCardProps {
   showToast: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
-function ProductCard({
+export function ProductCard({
   product,
   formatPrice,
   isInWishlist,

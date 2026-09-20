@@ -47,13 +47,13 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-primary-light text-inverse pt-16 pb-0 overflow-hidden">
+    <footer className="bg-primary-light text-inverse pt-12 pb-0 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-b border-white/10">
           
           {/* Company Info */}
-          <div className="col-span-1 lg:pr-8 lg:border-r lg:border-white/10">
+          <div className="col-span-1 py-10 lg:px-6 lg:border-l lg:border-r border-white/10 border-b lg:border-b-0">
             <div className="relative h-14 w-[11rem] mb-4">
               <Image
                 src={brandLogo}
@@ -69,22 +69,22 @@ const Footer = () => {
             </p>
             <div className="space-y-3">
               <div className="flex items-center text-muted">
-                <MapPin className="h-4 w-4 mr-3 text-muted" />
+                <MapPin className="h-4 w-4 mr-3 text-muted shrink-0" />
                 <span className="text-sm">123 Luxury Avenue, NY 10001</span>
               </div>
               <div className="flex items-center text-muted">
-                <Phone className="h-4 w-4 mr-3 text-muted" />
+                <Phone className="h-4 w-4 mr-3 text-muted shrink-0" />
                 <span className="text-sm">+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center text-muted">
-                <Mail className="h-4 w-4 mr-3 text-muted" />
+                <Mail className="h-4 w-4 mr-3 text-muted shrink-0" />
                 <span className="text-sm">info@vellvista.com</span>
               </div>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="col-span-1 lg:px-8 lg:border-r lg:border-white/10">
+          <div className="col-span-1 py-10 lg:px-6 lg:border-r border-white/10 border-b lg:border-b-0">
             <h3 className="text-lg font-semibold text-inverse mb-4">Quick Links</h3>
             <ul className="space-y-1.5">
               <li><a href="#home" className="text-muted hover:text-inverse transition-colors text-sm">Home</a></li>
@@ -98,7 +98,7 @@ const Footer = () => {
           </div>
 
           {/* Customer Service */}
-          <div className="col-span-1 lg:px-8 lg:border-r lg:border-white/10">
+          <div className="col-span-1 py-10 lg:px-6 lg:border-r border-white/10 border-b lg:border-b-0">
             <h3 className="text-lg font-semibold text-inverse mb-4">Customer Service</h3>
             <ul className="space-y-1.5">
               <li><a href="#shipping" className="text-muted hover:text-inverse transition-colors text-sm">Shipping & Delivery</a></li>
@@ -112,7 +112,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="col-span-1 lg:pl-8">
+          <div className="col-span-1 py-10 lg:px-6 lg:border-r border-white/10">
             <h3 className="text-lg font-semibold text-inverse mb-6">Stay Connected</h3>
             <p className="text-muted mb-6 text-sm">Subscribe to receive exclusive offers, new product alerts, and fragrance tips.</p>
             
@@ -123,11 +123,11 @@ const Footer = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-primary border border-white/20 text-inverse placeholder:text-muted focus:outline-none focus:border-white/50 text-sm"
+                  className="flex-1 px-4 py-3 bg-primary border border-white/20 text-inverse placeholder:text-muted focus:outline-none focus:border-white/50 text-sm min-w-0"
                 />
                 <button
                   type="submit"
-                  className="bg-surface text-primary border border-transparent hover:bg-transparent hover:text-white hover:border-white transition-all px-4 py-3 flex items-center justify-center cursor-pointer"
+                  className="bg-surface text-primary border border-transparent hover:bg-transparent hover:text-white hover:border-white transition-all px-4 py-3 flex items-center justify-center cursor-pointer shrink-0"
                   aria-label="Subscribe to newsletter"
                 >
                   <Send className="h-5 w-5" />
@@ -138,29 +138,36 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Giant 100% Width Brand Name Banner (100% full text visible) */}
+      {/* Brand Name Banner */}
       <div className="w-full mt-10 border-t border-white/10 overflow-hidden select-none pointer-events-none leading-none">
-        <svg viewBox="0 0 1000 200" className="w-full h-auto block" preserveAspectRatio="none">
-          <text
-            x="50%"
-            y="50%"
-            textAnchor="middle"
-            dominantBaseline="central"
-            textLength="1000"
-            lengthAdjust="spacingAndGlyphs"
-            className="fill-white font-black uppercase"
-            style={{ fontSize: '180px', fontWeight: 900, fontFamily: 'Arial Black, Impact, sans-serif' }}
-          >
-            {brandName ? brandName.toUpperCase() : 'VELLVISTA'}
-          </text>
-        </svg>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <svg viewBox="0 0 1000 200" className="w-full h-auto block" preserveAspectRatio="none">
+            <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="central"
+              textLength="1000"
+              lengthAdjust="spacingAndGlyphs"
+              className="fill-white font-black uppercase"
+              style={{ fontSize: '180px', fontWeight: 900, fontFamily: 'Arial Black, Impact, sans-serif' }}
+            >
+              {brandName ? brandName.toUpperCase() : 'VELLVISTA'}
+            </text>
+          </svg>
+        </div>
       </div>
 
       {/* Copyright Notice below VELLVISTA name */}
       <div className="w-full bg-primary-light border-t border-white/10 text-muted text-xs sm:text-sm py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-          <p>&copy; 2026 vellvista. All rights reserved.</p>
-          <p>Crafted with passion for fragrance lovers</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
+          <p>
+            &copy; 2026 vellvista professional. All rights reserved.
+          </p>
+          <span className="hidden sm:inline-block h-4 w-px bg-white/20 shrink-0" aria-hidden="true" />
+          <p>
+            Crafted with passion for fragrance lovers
+          </p>
         </div>
       </div>
     </footer>

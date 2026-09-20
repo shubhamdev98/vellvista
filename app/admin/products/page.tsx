@@ -592,6 +592,17 @@ export default function AdminProducts() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-secondary mb-1">Product Description</label>
+                <textarea
+                  rows={4}
+                  placeholder="Enter detailed description (scent notes, formulation, origin, etc.)..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-default focus:outline-none focus:ring-1 focus:ring-primary bg-background text-primary"
+                />
+              </div>
+
               <div className="space-y-2 border-t border-light pt-3">
                 <label className="block text-xs font-semibold text-secondary mb-1">Product Image *</label>
                 

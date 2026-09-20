@@ -66,7 +66,7 @@ export default function CategorySection() {
             <button
               key={item.id}
               onClick={() => handleCategoryClick(item.categorySlug)}
-              className="group relative w-[240px] sm:w-[280px] md:w-[320px] h-[320px] sm:h-[360px] md:h-[400px] shrink-0 overflow-hidden bg-surface-alt text-left cursor-pointer focus:outline-none shadow-md hover:shadow-xl transition-all duration-500 snap-start"
+              className="group relative w-[240px] sm:w-[280px] md:w-[320px] h-[320px] sm:h-[360px] md:h-[400px] shrink-0 overflow-hidden bg-surface-alt text-left cursor-pointer focus:outline-none transition-all duration-500 snap-start"
             >
               {/* Rounded Image Container */}
               <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
@@ -80,7 +80,7 @@ export default function CategorySection() {
               </div>
 
               {/* Gradient Dark Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-colors duration-300" />
 
               {/* Text overlay */}
               <div className="absolute bottom-5 left-5 right-5 md:bottom-6 md:left-6 md:right-6 font-inter z-10">

@@ -22,6 +22,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "vellvista | The Realm of Luxury Fragrances",
   description: "Discover the most iconic and sought-after fragrances in the world, meticulously curated for the modern connoisseur. Experience luxury in every spritz.",
+  icons: {
+    icon: [
+      { url: "/apple-icon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" }
+    ],
+    shortcut: "/apple-icon.png",
+    apple: "/apple-icon.png"
+  }
 };
 
 export default function RootLayout({

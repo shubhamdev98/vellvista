@@ -108,7 +108,7 @@ function AccountPageContent() {
                       </div>
 
                       {/* Render Product Items & Images */}
-                      <div className="mb-4 divide-y divide-light border-y border-light/60 py-2">
+                      <div className="mb-4 py-2 space-y-3">
                         {(() => {
                           const orderItemsToRender = order.items && order.items.length > 0 ? order.items : [
                             {
@@ -296,7 +296,7 @@ function AccountPageContent() {
 
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-primary border-b border-light pb-2">Order Items</h4>
-              <div className="divide-y divide-light max-h-60 overflow-y-auto no-scrollbar">
+              <div className="space-y-3 max-h-60 overflow-y-auto no-scrollbar">
                 {(() => {
                   const modalItemsToRender = selectedOrderDetails.items && selectedOrderDetails.items.length > 0 ? selectedOrderDetails.items : [
                     {
@@ -360,33 +360,38 @@ function AccountPageContent() {
       {selectedOrderTracking && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="max-w-2xl w-full bg-surface border border-default p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in">
-            <div className="flex items-center justify-between border-b border-light pb-4">
-              <div>
-                <h3 className="text-xl font-semibold text-primary">
+            <div className="flex items-start justify-between border-b border-light pb-4">
+              <div className="pr-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-primary">
                   Track Order #{selectedOrderTracking.id}
                 </h3>
-                <p className="text-xs text-secondary mt-1">
-                  Carrier: <span className="font-medium text-primary">VellVista Express Logistics</span> • Tracking ID: <span className="font-mono text-primary">VV-{selectedOrderTracking.id}-9841</span>
-                </p>
+                <div className="text-xs text-secondary mt-1.5 space-y-0.5">
+                  <p>
+                    Carrier: <span className="font-medium text-primary">VellVista Express Logistics</span>
+                  </p>
+                  <p>
+                    Tracking ID: <span className="font-mono font-medium text-primary">VV-{selectedOrderTracking.id}-9841</span>
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedOrderTracking(null)}
-                className="text-secondary hover:text-primary p-2 text-lg cursor-pointer"
+                className="text-secondary hover:text-primary p-2 text-lg cursor-pointer shrink-0"
               >
                 ✕
               </button>
             </div>
 
             {/* Tracking Stepper Timeline */}
-            <div className="pt-4 pb-12 px-4">
+            <div className="pt-4 pb-6 px-1 sm:px-4">
               {(() => {
                 const statusLower = selectedOrderTracking.status.toLowerCase();
-                const getProgressWidth = () => {
-                  if (statusLower === 'delivered') return '100%';
-                  if (statusLower === 'shipped') return '75%';
-                  if (statusLower === 'processing') return '50%';
-                  if (statusLower === 'confirmed') return '25%';
-                  return '0%';
+                const getProgressPercent = () => {
+                  if (statusLower === 'delivered') return 80;
+                  if (statusLower === 'shipped') return 60;
+                  if (statusLower === 'processing') return 40;
+                  if (statusLower === 'confirmed') return 20;
+                  return 0;
                 };
 
                 const steps = [
@@ -398,20 +403,20 @@ function AccountPageContent() {
                 ];
 
                 return (
-                  <div className="relative flex items-center justify-between w-full">
+                  <div className="relative flex items-start justify-between w-full">
                     {/* Background Full Line */}
-                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[3px] bg-border-default z-0" />
+                    <div className="absolute left-[10%] right-[10%] top-4 -translate-y-1/2 h-[3px] bg-border-default z-0" />
                     
                     {/* Active Completed Progress Line */}
                     <div
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-[3px] bg-emerald-600 z-0 transition-all duration-500"
-                      style={{ width: getProgressWidth() }}
+                      className="absolute left-[10%] top-4 -translate-y-1/2 h-[3px] bg-emerald-600 z-0 transition-all duration-500"
+                      style={{ width: `${getProgressPercent()}%` }}
                     />
 
                     {steps.map((step, idx) => (
-                      <div key={idx} className="relative z-10 flex flex-col items-center">
+                      <div key={idx} className="relative z-10 flex flex-col items-center flex-1 min-w-0">
                         <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all shrink-0 ${
                             step.stepStatus === 'completed'
                               ? 'bg-emerald-600 text-white border-emerald-600'
                               : 'bg-surface text-secondary border-default'
@@ -419,7 +424,7 @@ function AccountPageContent() {
                         >
                           {step.stepStatus === 'completed' ? '✓' : idx + 1}
                         </div>
-                        <span className="absolute top-11 text-[11px] font-medium text-primary text-center whitespace-nowrap">
+                        <span className="mt-2 text-[8px] sm:text-[11px] font-medium text-primary text-center leading-tight break-words w-full px-0.5">
                           {step.label}
                         </span>
                       </div>
@@ -429,18 +434,20 @@ function AccountPageContent() {
               })()}
             </div>
 
-            <div className="bg-background-alt p-4 border border-default space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-secondary font-medium flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-primary" /> Estimated Delivery Date
+            <div className="bg-background-alt p-4 border border-default space-y-3 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2.5 border-b border-light/70">
+                <span className="text-secondary font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary shrink-0" /> Estimated Delivery Date
                 </span>
-                <span className="font-semibold text-primary">3-5 Business Days</span>
+                <span className="font-semibold text-primary text-xs pl-6 sm:pl-0">3-5 Business Days</span>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-light">
-                <span className="text-secondary font-medium flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-primary" /> Destination
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 pt-0.5">
+                <span className="text-secondary font-medium flex items-center gap-2 shrink-0">
+                  <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" /> Destination
                 </span>
-                <span className="font-medium text-primary truncate max-w-[260px]">{selectedOrderTracking.shippingAddress}</span>
+                <span className="font-medium text-primary leading-relaxed pl-6 sm:pl-0 sm:text-right break-words max-w-full sm:max-w-[320px]">
+                  {selectedOrderTracking.shippingAddress}
+                </span>
               </div>
             </div>
 
