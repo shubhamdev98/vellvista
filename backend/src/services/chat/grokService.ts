@@ -71,7 +71,7 @@ ${JSON.stringify(context.dataPayload || {}, null, 2)}`;
       });
 
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as any;
         const responseText = data.choices?.[0]?.message?.content;
         if (responseText) {
           return {
