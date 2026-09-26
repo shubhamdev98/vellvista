@@ -432,6 +432,66 @@ export const trpc = {
   updateBrandSettings: (input: { adminId: string; brandName: string; brandLogo: string }) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).updateBrandSettings.mutate(input),
+
+  // Chatbot operations
+  sendChatMessage: async (input: { sessionId?: string; message: string; userId?: string }) => {
+    try {
+      const response = await fetch(`${getBackendUrl()}/trpc/sendChatMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error.message || 'Failed to send chat message');
+      }
+      return data.result?.data || data.result;
+    } catch (err) {
+      console.warn('tRPC sendChatMessage direct fetch fallback:', err);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (client as any).sendChatMessage.mutate(input);
+    }
+  },
+
+  getChatHistory: async (input: { sessionId: string; userId?: string }) => {
+    try {
+      const queryParam = encodeURIComponent(JSON.stringify(input));
+      const response = await fetch(`${getBackendUrl()}/trpc/getChatHistory?input=${queryParam}`);
+      const data = await response.json();
+      if (data.error) {
+        return [];
+      }
+      return data.result?.data || [];
+    } catch (err) {
+      console.warn('tRPC getChatHistory fallback:', err);
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return await (client as any).getChatHistory.query(input);
+      } catch {
+        return [];
+      }
+    }
+  },
+
+  clearChatHistory: async (input: { sessionId: string; userId?: string }) => {
+    try {
+      const response = await fetch(`${getBackendUrl()}/trpc/clearChatHistory`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
+      const data = await response.json();
+      return data.result?.data || { success: true };
+    } catch (err) {
+      console.warn('tRPC clearChatHistory fallback:', err);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (client as any).clearChatHistory.mutate(input);
+    }
+  },
 };
 
 

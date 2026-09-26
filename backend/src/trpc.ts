@@ -13,6 +13,8 @@ const otpStore = new Map<string, { otp: string; expiresAt: Date }>();
 import { eq, and, desc, asc, or, count, inArray } from 'drizzle-orm';
 import { transporter } from './auth';
 import { RazorpayService } from './services/razorpayService';
+import { processChatMessage, getSessionHistory } from './services/chat/chatService';
+import { chatSessions, chatMessages } from './schema';
 
 // Razorpay integration is handled via RazorpayService
 
@@ -3086,6 +3088,63 @@ export const appRouter = router({
           code: 'INTERNAL_SERVER_ERROR',
           message: err.message || 'Failed to update brand settings',
         });
+      }
+    }),
+
+  // --- AI CHATBOT PROCEDURES (Server-side Authorized & Website-Aware) ---
+  sendChatMessage: publicProcedure
+    .input(z.object({
+      sessionId: z.string().optional(),
+      message: z.string().min(1),
+      userId: z.string().nullable().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        return await processChatMessage({
+          sessionId: input.sessionId,
+          message: input.message,
+          userId: input.userId || null,
+        });
+      } catch (err: any) {
+        console.error('Chat error:', err);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message || 'Failed to process chat message',
+        });
+      }
+    }),
+
+  getChatHistory: publicProcedure
+    .input(z.object({
+      sessionId: z.string(),
+      userId: z.string().nullable().optional(),
+    }))
+    .query(async ({ input }) => {
+      try {
+        return await getSessionHistory(input.sessionId, input.userId || null);
+      } catch (err: any) {
+        console.error('Get chat history error:', err);
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: err.message || 'Could not retrieve chat history',
+        });
+      }
+    }),
+
+  clearChatHistory: publicProcedure
+    .input(z.object({
+      sessionId: z.string(),
+      userId: z.string().nullable().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        if (input.sessionId) {
+          await db.delete(chatMessages).where(eq(chatMessages.sessionId, input.sessionId));
+        }
+        return { success: true };
+      } catch (err: any) {
+        console.error('Clear chat error:', err);
+        return { success: false };
       }
     }),
 

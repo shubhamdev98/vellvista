@@ -6,11 +6,12 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials } from "../../app/utils/image";
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout, Settings, Building2 } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Star, Mail, LogOut, Menu, Users, Globe, X, Truck, CreditCard, Tag, Share2, Bell, Layout, Settings, Building2, Bot } from "lucide-react";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, type AppNotification } from "../hooks/useApi";
 import { useSocket } from "../../context/SocketProvider";
 import { useToast } from "../../context/ToastProvider";
 import { useBrand } from "../../context/BrandProvider";
+import { useChat } from "../../context/ChatProvider";
 
 function formatRelativeTime(dateInput: Date | string) {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -40,6 +41,7 @@ function formatRelativeTime(dateInput: Date | string) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
   const { brandName, brandLogo } = useBrand();
+  const { openChat } = useChat();
   const router = useRouter();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -348,6 +350,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
 
           <div className="flex items-center gap-4 ml-auto">
+            {/* Bot Icon Button */}
+            <button
+              onClick={openChat}
+              className="p-2 rounded hover:bg-surface-alt text-secondary hover:text-primary transition-all cursor-pointer flex items-center justify-center border border-transparent"
+              aria-label="AI Assistant"
+              title="AI Assistant"
+            >
+              <Bot className="h-5 w-5" />
+            </button>
+
             {/* Notification Bell Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button

@@ -9,6 +9,9 @@ import { SocketProvider } from "../context/SocketProvider";
 import { CurrencyProvider } from "../context/CurrencyProvider";
 import { BrandProvider } from "../context/BrandProvider";
 
+import { ChatProvider } from "../context/ChatProvider";
+import ChatBot from "@/components/ChatBot";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -67,7 +70,10 @@ export default function RootLayout({
                 <CartProvider>
                   <WishlistProvider>
                     <BrandProvider>
-                      {children}
+                      <ChatProvider>
+                        {children}
+                        <ChatBot />
+                      </ChatProvider>
                     </BrandProvider>
                   </WishlistProvider>
                 </CartProvider>

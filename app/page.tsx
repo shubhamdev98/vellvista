@@ -7,7 +7,6 @@ import ProductGrid from '@/components/ProductGrid';
 import FaqSection from '@/components/FaqSection';
 import Footer from '@/components/Footer';
 import OfferNavBar from '@/components/OfferNavBar';
-import ChatBot from '@/components/ChatBot';
 
 export default function Home() {
   return (
@@ -23,7 +22,6 @@ export default function Home() {
         <FaqSection />
       </main>
       <Footer />
-      <ChatBot />
     </div>
   );
 }

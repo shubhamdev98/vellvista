@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, ShoppingBag, ChevronRight, Search } from "lucide-react";
+import { Menu, X, ShoppingBag, ChevronRight, Search, Bot } from "lucide-react";
 import { useCart } from "../context/CartProvider";
 import { useAuth } from "../context/AuthProvider";
 import { useCurrency } from "../context/CurrencyProvider";
+import { useChat } from "../context/ChatProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useBrand } from "../context/BrandProvider";
@@ -14,6 +15,7 @@ import CartItem from "./CartItem";
 
 const navLinks = [
   { name: "Shop All", href: "/products" },
+  { name: "Garba & Events", href: "/events" },
   { name: "Perfumes", href: "/products?category=fragrance" },
   { name: "Skincare", href: "/products?category=skincare" },
   { name: "Cosmetics", href: "/products?category=cosmetics" },
@@ -48,6 +50,7 @@ export default function Header() {
   const { totalItems } = useCart();
   const { user, logout } = useAuth();
   const { formatPrice } = useCurrency();
+  const { toggleChat } = useChat();
   const router = useRouter();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -79,24 +82,24 @@ export default function Header() {
           {/* Left: Drawer Toggle */}
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="text-primary hover:opacity-75 transition-opacity p-2 -ml-2 cursor-pointer"
+            className="text-primary hover:opacity-75 transition-opacity p-1.5 sm:p-2 -ml-1 sm:-ml-2 cursor-pointer"
             aria-label="Open navigation menu"
           >
-            <Menu className="h-6 w-6 stroke-[1.5]" />
+            <Menu className="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5]" />
           </button>
 
           {/* Center: Brand Logo */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[45vw] sm:max-w-none overflow-hidden">
             <Link
               href="/"
-              className="text-xl sm:text-2xl font-bold uppercase tracking-[0.25em] text-primary font-manrope whitespace-nowrap hover:opacity-85 transition-opacity"
+              className="text-sm sm:text-xl lg:text-2xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.25em] text-primary font-manrope whitespace-nowrap block truncate hover:opacity-85 transition-opacity"
             >
               {brandName}
             </Link>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-1 sm:space-x-3">
             {/* Country / Currency Selector (Desktop only) */}
             <div className="hidden md:block">
               <CurrencySelector />
@@ -117,20 +120,31 @@ export default function Header() {
             {/* Mobile Search Button */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="md:hidden p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
+              className="md:hidden p-1.5 sm:p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
               aria-label="Toggle search"
             >
-              <Search className="h-6 w-6 stroke-[1.5]" />
+              <Search className="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5]" />
+            </button>
+
+            {/* AI ChatBot Icon Button (Between Search Bar and Cart Icon) */}
+            <button
+              onClick={toggleChat}
+              className="relative p-1.5 sm:p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer flex items-center justify-center"
+              aria-label="Open AI Assistant Chat"
+              title="VellVista Help AI"
+            >
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5]" />
+              <span className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 bg-emerald-500 w-2 h-2 rounded-full ring-2 ring-white"></span>
             </button>
 
             {/* Shopping Bag */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-primary hover:opacity-75 transition-opacity cursor-pointer"
               aria-label="Open shopping cart"
             >
-              <ShoppingBag className="h-6 w-6 stroke-[1.5]" />
-              <span className="absolute top-1.5 right-1.5 bg-primary text-inverse text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center font-inter">
+              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5]" />
+              <span className="absolute top-0.5 sm:top-1.5 right-0.5 sm:right-1.5 bg-primary text-inverse text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center font-inter">
                 {totalItems}
               </span>
             </button>

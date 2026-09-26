@@ -40,6 +40,8 @@ export async function ensureDatabaseSchema() {
     [`CREATE TABLE IF NOT EXISTS homepage_categories (id SERIAL PRIMARY KEY, title TEXT NOT NULL, subtitle TEXT, category_slug TEXT NOT NULL, image TEXT NOT NULL, grid_span TEXT NOT NULL DEFAULT 'col-span-1', height TEXT NOT NULL DEFAULT 'h-[192px]', sort_order INTEGER DEFAULT 0 NOT NULL, updated_at TIMESTAMP DEFAULT NOW());`, 'homepage_categories'],
     [`CREATE TABLE IF NOT EXISTS marquee_messages (id SERIAL PRIMARY KEY, text TEXT NOT NULL, sort_order INTEGER DEFAULT 0 NOT NULL, updated_at TIMESTAMP DEFAULT NOW());`, 'marquee_messages'],
     [`CREATE TABLE IF NOT EXISTS brand_settings (id SERIAL PRIMARY KEY, brand_name TEXT NOT NULL DEFAULT 'VellVista', brand_logo TEXT NOT NULL DEFAULT 'https://res.cloudinary.com/dujjidn0e/image/upload/v1781626147/vellvista/logo/w5kkgq9suiw7sk4poxsz.png', updated_at TIMESTAMP DEFAULT NOW());`, 'brand_settings'],
+    [`CREATE TABLE IF NOT EXISTS chat_sessions (id TEXT PRIMARY KEY, user_id TEXT REFERENCES "user"(id) ON DELETE CASCADE, title TEXT, created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW());`, 'chat_sessions'],
+    [`CREATE TABLE IF NOT EXISTS chat_messages (id SERIAL PRIMARY KEY, session_id TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE, sender TEXT NOT NULL, text TEXT NOT NULL, metadata TEXT, created_at TIMESTAMP DEFAULT NOW());`, 'chat_messages'],
 
     // Column additions (ensures all tables have required columns even if table existed before)
     [`ALTER TABLE coupons ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id);`, 'coupons_vendor_id'],

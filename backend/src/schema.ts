@@ -536,6 +536,33 @@ export const brandSettings = pgTable('brand_settings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Chat Sessions table
+export const chatSessions = pgTable('chat_sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('chat_sessions_user_id_idx').on(table.userId),
+  };
+});
+
+// Chat Messages table
+export const chatMessages = pgTable('chat_messages', {
+  id: serial('id').primaryKey(),
+  sessionId: text('session_id').notNull().references(() => chatSessions.id, { onDelete: 'cascade' }),
+  sender: text('sender').notNull(), // 'user' | 'bot'
+  text: text('text').notNull(),
+  metadata: text('metadata'), // JSON object containing structured cards, quick actions, recommended products
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    sessionIdIdx: index('chat_messages_session_id_idx').on(table.sessionId),
+  };
+});
+
 // Types for TypeScript
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
